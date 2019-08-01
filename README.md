@@ -33,8 +33,10 @@ new features / modifications for forest ecosystem
 
 
 new features / modifications for biochemistry cycle & transport
+- use BIOME-BGC calculation for ecological stoichiometry 
 - new flag "-readinWFdoc_flag" when reading in worldfiles that has hillslope.gwDOC, hillslope.gwDON, patch.soil.DOC, and patch.soil.DON; In the latest model, these DOC related state variables are written out to the worldfile when perform "output_current_state" in the tecfile. Please insect this flag (-readinWFdoc_flag) in the command line when reading in the worldfiles that is created by "output_current_state".
 - first version of SAT_solutes code implemention
+- updated on nitrification and denitrification (patch scale soil moisture distribution is default used for calculation)
 
 
 
