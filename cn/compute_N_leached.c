@@ -102,14 +102,16 @@ double	compute_N_leached(
                 if(critialZ<=0){
                     // any z is possible
                     nleached = patch[0].soil_defaults[0][0].porosity_decay * ((N0-absorptionConst*p_0)*(constantHold2-constantHold1) + absorptionConst*p_0*p_0*0.5*(constantHold2*constantHold2-constantHold1*constantHold1));
-                    nleached = Qout_frac * max(min(nleached,availableN), 0.0);
+                    nleached = Qout_frac * max(min(nleached,availableN), 0.0); //<<-----
+                    
                 }else if(critialZ<1.0){
                     critialZ = -log(critialZ)*patch[0].soil_defaults[0][0].porosity_decay;
                     critialZ = min(critialZ,activedepthz);
                     if(critialZ > z1){ //sat_deficit_z
                         constantHold1 = exp(-p_decayRate * critialZ);
                         nleached = patch[0].soil_defaults[0][0].porosity_decay * ((N0-absorptionConst*p_0)*(constantHold2-constantHold1) + absorptionConst*p_0*p_0*0.5*(constantHold2*constantHold2-constantHold1*constantHold1));
-                        nleached = Qout_frac *  max(min(nleached,availableN), 0.0);
+                        nleached = Qout_frac *  max(min(nleached,availableN), 0.0); //<<-----
+                        
                     }else{
                         //nothing comes out; absorptionConst is too great
                         nleached = 0.0;
@@ -117,7 +119,7 @@ double	compute_N_leached(
                 }else{ nleached = 0.0; }
             }else{
                 // absorptionConst = 0
-                nleached = Qout_frac * availableN;
+                nleached = Qout_frac * availableN; //<<-----
             }
         }
         

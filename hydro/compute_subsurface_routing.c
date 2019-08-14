@@ -358,7 +358,11 @@ void compute_subsurface_routing(struct command_line_object *command_line,
 //                patch[0].soil_ns.sminn += (patch[0].soil_ns.NH4_Qin - patch[0].soil_ns.NH4_Qout);
 //                patch[0].soil_cs.DOC += (patch[0].soil_cs.DOC_Qin - patch[0].soil_cs.DOC_Qout);
 //                patch[0].soil_ns.DON += (patch[0].soil_ns.DON_Qin - patch[0].soil_ns.DON_Qout);
-                
+                if(patch[0].sat_NO3*1.001 < patch[0].soil_ns.NO3_Qout) printf("sub_routing _Qout[%d]{%e,%e}\n",patch[0].ID,patch[0].sat_NO3,patch[0].soil_ns.NO3_Qout);
+                patch[0].soil_ns.NO3_Qout = min(patch[0].sat_NO3, patch[0].soil_ns.NO3_Qout);
+                patch[0].soil_ns.NH4_Qout = min(patch[0].sat_NH4, patch[0].soil_ns.NH4_Qout);
+                patch[0].soil_cs.DOC_Qout = min(patch[0].sat_DOC, patch[0].soil_cs.DOC_Qout);
+                patch[0].soil_ns.DON_Qout = min(patch[0].sat_DON, patch[0].soil_ns.DON_Qout);
                 patch[0].sat_NO3 += (patch[0].soil_ns.NO3_Qin - patch[0].soil_ns.NO3_Qout);
                 patch[0].sat_NH4 += (patch[0].soil_ns.NH4_Qin - patch[0].soil_ns.NH4_Qout);
                 patch[0].sat_DOC += (patch[0].soil_cs.DOC_Qin - patch[0].soil_cs.DOC_Qout);
@@ -367,7 +371,9 @@ void compute_subsurface_routing(struct command_line_object *command_line,
                 if( patch[0].sat_deficit_z > patch[0].preday_sat_deficit_z){
                     // water table drops
                     double sat_leftbehind_frac = (exp(-patch[0].preday_sat_deficit_z/patch[0].soil_defaults[0][0].porosity_decay)-exp(-patch[0].sat_deficit_z/patch[0].soil_defaults[0][0].porosity_decay))/(exp(-patch[0].preday_sat_deficit_z/patch[0].soil_defaults[0][0].porosity_decay)-exp(-patch[0].soil_defaults[0][0].soil_depth/patch[0].soil_defaults[0][0].porosity_decay));
+                        // 0 < sat_leftbehind_frac < 1
                     
+                    if(sat_leftbehind_frac<0 || patch[0].sat_NO3<0 || patch[0].sat_NO3!=patch[0].sat_NO3) printf("sub_routing (%d) [%e,%e,%e]\n", patch[0].ID, sat_leftbehind_frac, patch[0].soil_ns.nitrate, patch[0].sat_NO3);
                     patch[0].soil_ns.nitrate += patch[0].sat_NO3 * sat_leftbehind_frac;
                     patch[0].soil_ns.sminn += patch[0].sat_NH4 * sat_leftbehind_frac;
                     patch[0].soil_cs.DOC += patch[0].sat_DOC * sat_leftbehind_frac;

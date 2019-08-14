@@ -349,7 +349,7 @@ void  update_drainage_land(
 			Nout = compute_N_leached(
 				verbose_flag,
                 /// problem re-project!! && "soil_ns -= going2sat_NO3"
-				patch[0].sat_NO3, //patch[0].soil_ns.nitrate - (NO3_leached_to_patch/patch[0].area),
+				patch[0].sat_NO3 - patch[0].soil_ns.NO3_Qout, //patch[0].soil_ns.nitrate - (NO3_leached_to_patch/patch[0].area),
 				return_flow,
 				(command_line[0].rootNdecayRate > 0? patch[0].rootzone.NO3decayRate : patch[0].soil_defaults[0][0].N_decay_rate),
 				(command_line[0].rootNdecayRate > 0? patch[0].soil_defaults[0][0].soil_depth : (command_line[0].root2active > 0.0? patch[0].rootzone.depth * command_line[0].root2active : patch[0].soil_defaults[0][0].active_zone_z)),
@@ -361,7 +361,7 @@ void  update_drainage_land(
 
 			Nout = compute_N_leached(
 				verbose_flag,
-				patch[0].sat_NH4, //patch[0].soil_ns.sminn - (NH4_leached_to_patch/patch[0].area),
+				patch[0].sat_NH4 - patch[0].soil_ns.NH4_Qout, //patch[0].soil_ns.sminn - (NH4_leached_to_patch/patch[0].area),
 				return_flow,
 				(command_line[0].NH4root2active>0.0? patch[0].soil_defaults[0][0].N_decay_rate : (command_line[0].rootNdecayRate > 0? patch[0].rootzone.NH4decayRate : patch[0].soil_defaults[0][0].N_decay_rate)),
                 (command_line[0].NH4root2active>0.0? patch[0].rootzone.depth * command_line[0].NH4root2active : (command_line[0].rootNdecayRate > 0? patch[0].soil_defaults[0][0].soil_depth : (command_line[0].root2active>0.0? patch[0].rootzone.depth * command_line[0].root2active : patch[0].soil_defaults[0][0].active_zone_z))),
@@ -373,7 +373,7 @@ void  update_drainage_land(
 
 			Nout = compute_N_leached(
 				verbose_flag,
-				patch[0].sat_DON, //patch[0].soil_ns.DON - (DON_leached_to_patch/patch[0].area),
+				patch[0].sat_DON - patch[0].soil_ns.DON_Qout, //patch[0].soil_ns.DON - (DON_leached_to_patch/patch[0].area),
 				return_flow,
 				(command_line[0].rootNdecayRate > 0? patch[0].rootzone.DOMdecayRate : patch[0].soil_defaults[0][0].DOM_decay_rate),
 				(command_line[0].rootNdecayRate > 0? patch[0].soil_defaults[0][0].soil_depth : (command_line[0].root2active > 0.0? patch[0].rootzone.depth * command_line[0].root2active : patch[0].soil_defaults[0][0].active_zone_z)),
@@ -385,7 +385,7 @@ void  update_drainage_land(
             
 			Nout = compute_N_leached(
 				verbose_flag,
-				patch[0].sat_DOC, //patch[0].soil_cs.DOC - (DOC_leached_to_patch/patch[0].area),
+				patch[0].sat_DOC - patch[0].soil_cs.DOC_Qout, //patch[0].soil_cs.DOC - (DOC_leached_to_patch/patch[0].area),
 				return_flow,
 				(command_line[0].rootNdecayRate > 0? patch[0].rootzone.DOMdecayRate : patch[0].soil_defaults[0][0].DOM_decay_rate),
 				(command_line[0].rootNdecayRate > 0? patch[0].soil_defaults[0][0].soil_depth : (command_line[0].root2active > 0.0? patch[0].rootzone.depth * command_line[0].root2active : patch[0].soil_defaults[0][0].active_zone_z)),
