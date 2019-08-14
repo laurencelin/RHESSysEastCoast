@@ -340,9 +340,13 @@ void update_mortality(
     if ((cs_litr->litr4c > 0.0) && (ns_litr->litr4n > 0.0))    cn_l4 = cs_litr->litr4c/ns_litr->litr4n; else cn_l4 = 0.0; // LIG_CN;
     
     
+    
+    
+    
+    
     if(thintyp == 3){
         // thinning ID 3 process
-      
+        // currently missing
         
     }else if(thintyp != 2 && BGC_flag==1){
         // regular: thintyp = 1
@@ -739,6 +743,8 @@ void update_mortality(
         
     }else{
         // thinning ID thintyp=2 processes (grazing)
+        // currently missing
+        
         
     }// thinning type
 	
