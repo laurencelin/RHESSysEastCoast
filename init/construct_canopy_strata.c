@@ -251,12 +251,12 @@ struct canopy_strata_object *construct_canopy_strata(
 		}
 	} /* end-while */
 	canopy_strata[0].defaults[0] = &defaults[0].stratum[i];
-    if(canopy_strata[0].defaults[0]->ID == 802){
+    if(canopy_strata[0].defaults[0]->ID == 802 || canopy_strata[0].defaults[0]->epc.veg_type == GRASS || canopy_strata[0].defaults[0]->epc.veg_type == C4GRASS){
         // understory
-        canopy_strata[0].local_max_lai = (canopy_strata[0].cs.leafc+canopy_strata[0].cs.leafc_transfer+canopy_strata[0].cs.leafc_store)* canopy_strata[0].defaults[0]->epc.proj_sla * 1.1;
+        canopy_strata[0].local_max_lai = min( canopy_strata[0].defaults[0]->epc.max_lai, (canopy_strata[0].cs.leafc+canopy_strata[0].cs.leafc_transfer+canopy_strata[0].cs.leafc_store)* canopy_strata[0].defaults[0]->epc.proj_sla * 1.1);
+        
     }else{
-        canopy_strata[0].local_max_lai = (canopy_strata[0].cs.leafc+canopy_strata[0].cs.leafc_transfer+canopy_strata[0].cs.leafc_store)* canopy_strata[0].defaults[0]->epc.proj_sla * 1.5;
-        //canopy_strata[0].local_max_lai = max((canopy_strata[0].cs.leafc+canopy_strata[0].cs.leafc_transfer+canopy_strata[0].cs.leafc_store)* canopy_strata[0].defaults[0]->epc.proj_sla,canopy_strata[0].defaults[0]->epc.max_lai);
+        canopy_strata[0].local_max_lai = min( canopy_strata[0].defaults[0]->epc.max_lai, (canopy_strata[0].cs.leafc+canopy_strata[0].cs.leafc_transfer+canopy_strata[0].cs.leafc_store)* canopy_strata[0].defaults[0]->epc.proj_sla * 1.5);
     }
     
 //    printf("[%d, %d] {%e, %e, %e}\n", patch[0].ID, canopy_strata[0].defaults[0]->ID,

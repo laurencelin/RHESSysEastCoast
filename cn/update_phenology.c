@@ -186,35 +186,30 @@ void update_phenology(struct zone_object  *zone,
 	
   if (epc.phenology_flag == STATIC) {
 
+        if (day == phen->expand_startday){
+            expand_flag = 1;
+            phen->gwseasonday = 1;
+            phen->lfseasonday = -1;
+        }
 
-	if (day == phen->expand_startday){ 
-		expand_flag = 1;
-		phen->gwseasonday = 1;
-		phen->lfseasonday = -1;
-	}
+        else if (day == phen->litfall_startday){
+            litfall_flag = 1;
+            phen->lfseasonday = 1;
+            phen->gwseasonday = -1;
+        }
 
-	else if (day == phen->litfall_startday){ 
-		litfall_flag = 1;
-		phen->lfseasonday = 1;
-		phen->gwseasonday = -1;
-	}
+        else if (phen->gwseasonday > -1 && phen->gwseasonday <= epc.ndays_expand){
+            expand_flag = 1;
+        }
 
-	else if (phen->gwseasonday > -1 && phen->gwseasonday <= epc.ndays_expand){ 
-		expand_flag = 1;
-	}
+        else if (phen->lfseasonday > -1 && phen->lfseasonday <= epc.ndays_litfall){
+            litfall_flag = 1;
+        }
 
-	else if (phen->lfseasonday > -1 && phen->lfseasonday <= epc.ndays_litfall){ 
-		litfall_flag = 1;
-	}
-
-  }
-	
- /*--------------------------------------------------------------*/
+  } else {
+  /*--------------------------------------------------------------*/
   /* dynamic phenology                      */  
   /*--------------------------------------------------------------*/
-
-  else {
-
       int ii;
       for(ii=NUM_fday_Pred-1; ii>=0; ii--){
           // from future to present!

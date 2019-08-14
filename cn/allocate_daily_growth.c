@@ -424,8 +424,9 @@ int allocate_daily_growth(int nlimit,
 //                   excess_lai);
 
         } else {
+            
             // non-tree
-            excess_allocation_to_leaf = cs->leafc + cs->leafc_store + cs->leafc_transfer - MAX_LAI/epc.proj_sla;
+            excess_allocation_to_leaf = cs->leafc + cs->leafc_store + cs->leafc_transfer - MAX_LAI_c;
             // problem here: cs->leafc_store and cs->leafc_transfer are previously stored
             
             double sumGO = cdf->cpool_to_leafc + cdf->cpool_to_leafc_store;
@@ -435,14 +436,30 @@ int allocate_daily_growth(int nlimit,
 //                       sumGO,sumGO/cnfr,);
                 cdf->cpool_to_frootc += sumGO;
                 ndf->npool_to_frootn += sumGO/cnfr;
+                
                 cdf->cpool_to_leafc = 0.0;
                 cdf->cpool_to_leafc_store = 0.0;
                 ndf->npool_to_leafn = 0.0;
                 ndf->npool_to_leafn_store = 0.0;
                 
+                // turn some tissus to DOC
+                double hold = min(cs->leafc_store, excess_allocation_to_leaf *  cs->leafc_store /(cs->leafc + cs->leafc_store + cs->leafc_transfer));
+                cs->leafc_store -= hold;
+                cs->cpool += hold;
+                hold = min(ns->leafn_store, hold/cnl);
+                ns->leafn_store -= hold;
+                ns->npool += hold;
+                
+                hold = min(cs->leafc_transfer, excess_allocation_to_leaf *  cs->leafc_transfer /(cs->leafc + cs->leafc_store + cs->leafc_transfer));
+                cs->leafc_transfer -= hold;
+                cs->cpool += hold;
+                hold = min(ns->leafn_transfer, hold/cnl);
+                ns->leafn_transfer -= hold;
+                ns->npool += hold;
+                
             }else if(sumGO>0){
                 //existing parts are not yet over the max LAI yet; so some "transfer" will go
-                excess_allocation_to_leaf += sumGO; // should make "excess_allocation_to_leaf" positive
+                excess_allocation_to_leaf += sumGO; // should make "excess_allocation_to_leaf" positive !! based on the first if
                 double ratio = 1.0 - excess_allocation_to_leaf/sumGO;
                 
                 cdf->cpool_to_frootc += excess_allocation_to_leaf;
