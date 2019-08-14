@@ -44,49 +44,59 @@ void	output_patch(
 	/*	Local Variable Definition. 							*/
 	/*------------------------------------------------------*/
 	int check, c, layer;
-	double alai, asub, apsn, litterS, aheight, agsi;
-    double mean_gl, gl_scalar;
-    double coverf, totalcoverf;
-    struct mult_conduct_struct *mc;
-    double mc_scalar;
+    double alai; //, asub, apsn, litterS, aheight, agsi;
+    double coverf;
+//    double mean_gl, gl_scalar;
+//    double coverf, totalcoverf;
+//    struct mult_conduct_struct *mc;
+//    double mc_scalar;
     
-	if (patch[0].litter.rain_capacity > ZERO)
-		litterS = patch[0].litter.rain_stored / patch[0].litter.rain_capacity;
-	else
-		litterS = 1.0;
+//    if (patch[0].litter.rain_capacity > ZERO)
+//        litterS = patch[0].litter.rain_stored / patch[0].litter.rain_capacity;
+//    else
+//        litterS = 1.0;
 
-	apsn = 0.0;
-	asub = 0.0;
+//    apsn = 0.0;
+//    asub = 0.0;
 	alai = 0.0;
-	aheight = 0.0;
-    agsi = 0.0;
-    mean_gl = 0.0;
-    gl_scalar= 0.0;
-    totalcoverf = 0.0;
-    
+//    aheight = 0.0;
+//    agsi = 0.0;
+//    mean_gl = 0.0;
+//    gl_scalar= 0.0;
+//    totalcoverf = 0.0;
+    double treeLAI = 0.0;
+    double nontreeLAI = 0.0;
 	for ( layer=0 ; layer<patch[0].num_layers; layer++ ){
 		for ( c=0 ; c<patch[0].layers[layer].count; c++ ){
             
             coverf = patch[0].canopy_strata[(patch[0].layers[layer].strata[c])][0].cover_fraction;
-            mc = &patch[0].canopy_strata[(patch[0].layers[layer].strata[c])][0].mult_conductance;
-            mc_scalar = mc->APAR * mc->tavg * mc->LWP * mc->CO2 * mc->tmin * mc->vpd;
+//            mc = &patch[0].canopy_strata[(patch[0].layers[layer].strata[c])][0].mult_conductance;
+//            mc_scalar = mc->APAR * mc->tavg * mc->LWP * mc->CO2 * mc->tmin * mc->vpd;
             
-			apsn += coverf * patch[0].canopy_strata[(patch[0].layers[layer].strata[c])][0].cs.net_psn ;
-			asub += coverf * patch[0].canopy_strata[(patch[0].layers[layer].strata[c])][0].sublimation;
+//            apsn += coverf * patch[0].canopy_strata[(patch[0].layers[layer].strata[c])][0].cs.net_psn ;
+//            asub += coverf * patch[0].canopy_strata[(patch[0].layers[layer].strata[c])][0].sublimation;
+//            aheight += coverf * patch[0].canopy_strata[(patch[0].layers[layer].strata[c])][0].epv.height;
 			alai += coverf * patch[0].canopy_strata[(patch[0].layers[layer].strata[c])][0].epv.proj_lai;
-			aheight += coverf * patch[0].canopy_strata[(patch[0].layers[layer].strata[c])][0].epv.height;
             
-            agsi += coverf * patch[0].canopy_strata[(patch[0].layers[layer].strata[c])][0].phen.gsi;
+            if(patch[0].canopy_strata[(patch[0].layers[layer].strata[c])][0].defaults[0][0].epc.veg_type == TREE && patch[0].canopy_strata[(patch[0].layers[layer].strata[c])][0].defaults[0][0].ID!=802){
+                treeLAI += coverf * patch[0].canopy_strata[(patch[0].layers[layer].strata[c])][0].epv.proj_lai;
+            }//tree
+            if(patch[0].canopy_strata[(patch[0].layers[layer].strata[c])][0].defaults[0][0].epc.veg_type == GRASS || patch[0].canopy_strata[(patch[0].layers[layer].strata[c])][0].defaults[0][0].ID==802){
+                nontreeLAI += coverf * patch[0].canopy_strata[(patch[0].layers[layer].strata[c])][0].epv.proj_lai;
+            }//non-tree
+            
+            
 
-            mean_gl += coverf * patch[0].canopy_strata[(patch[0].layers[layer].strata[c])][0].defaults[0][0].epc.gl_smax * mc_scalar;
-            gl_scalar += coverf * mc_scalar;
-            totalcoverf += coverf;
             
+//            agsi += coverf * patch[0].canopy_strata[(patch[0].layers[layer].strata[c])][0].phen.gsi;
+//            mean_gl += coverf * patch[0].canopy_strata[(patch[0].layers[layer].strata[c])][0].defaults[0][0].epc.gl_smax * mc_scalar;
+//            gl_scalar += coverf * mc_scalar;
+//            totalcoverf += coverf;
+//
 		}
 	}
-    if(totalcoverf>1.0){ mean_gl/=totalcoverf; gl_scalar/=totalcoverf;  }
-	check = fprintf(outfile,"%d-%d-%d %d %lf %lf %lf %lf %lf %lf \
-                             %lf %lf %lf %lf %lf\n", // \
+//    if(totalcoverf>1.0){ mean_gl/=totalcoverf; gl_scalar/=totalcoverf;  }
+	check = fprintf(outfile,"%d %d %d %d %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf\n", // \
                              //%lf %lf %lf %lf %lf \
                              //%lf %lf %lf %lf %lf \
                              //%lf %lf %lf\n",
@@ -102,7 +112,12 @@ void	output_patch(
                     (patch[0].cap_rise - patch[0].unsat_drainage)*1000.0,//12
                     patch[0].sat_deficit_z*1000.0,//13
                     (patch[0].sat_deficit>0)? (patch[0].sat_deficit>patch[0].rootzone.potential_sat? (patch[0].rz_storage+patch[0].unsat_storage)/patch[0].sat_deficit : patch[0].rz_storage/patch[0].sat_deficit) : -1, //14
-                    (patch[0].sat_deficit>0)? (patch[0].sat_deficit>patch[0].rootzone.potential_sat? patch[0].rz_storage/patch[0].rootzone.potential_sat : patch[0].rz_storage/patch[0].sat_deficit) : -1); //15
+                    (patch[0].sat_deficit>0)? (patch[0].sat_deficit>patch[0].rootzone.potential_sat? patch[0].rz_storage/patch[0].rootzone.potential_sat : patch[0].rz_storage/patch[0].sat_deficit) : -1, //15
+                    treeLAI, //16
+                    nontreeLAI //17
+                    );
+ 
+    
                     //patch[0].sat_deficit*1000.0, //patch[0].sat_DOC*1000.0,
                     //patch[0].rootzone.potential_sat*1000.0, //patch[0].soil_ns.nitrate*1000.0,
                     

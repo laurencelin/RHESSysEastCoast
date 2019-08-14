@@ -260,61 +260,102 @@ void add_growth_headers(struct world_output_file_object *world_output_files,
 	/*	Daily 							*/
 	/*--------------------------------------------------------------*/
 	outfile = world_output_files[0].patch[0].daily;
-	check = fprintf(outfile,"%s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s\n",
-		"day",
-		"month",
-		"year",
-		"basinID",
-		"hillID",
-		"zoneID",
-		"patchID",
-		"lai",
-		"plantc",
-		"plantn",
-		"net_psn",
-		"plant_resp",
-		"soil_resp",
-		"litr1c",
-		"litr2c",
-		"litr3c",
-		"litr4c",
-		"litr1n",
-		"litr2n",
-		"litr3n",
-		"litr4n",
-		"lit.rain_cap",
-		"soil1c",
-		"soil2c",
-		"soil3c",
-		"soil4c",
-		"soil1n",
-		"soil2n",
-		"soil3n",
-		"soil4n",
-		"soilDON",
-		"soilDOC",
-		"denitrif",
-		"netleach",
-		"DON_loss",
-		"DOC_loss",
-		"soilNO3",
-		"soilNH4",
-		"streamNO3",
-		"streamNH4",
-		"streamDON",
-		"streamDOC",
-		"surfaceNO3",
-		"surfaceNH4",
-		"surfaceDOC",
-		"surfaceDON",
-		"height",
-		"nuptake",
-		"root_depth",
-		"nfix",
-		"grazingC",
-		"area",
-        "cwdc","cwdn",
-        "gpsn_apar","gpsn_tavg","gpsn_lwp","gpsn_co2","gpsn_tmin","gpsn_vpd");
+	check = fprintf(outfile,
+                    //"%s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s\n",
+                    "%s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s\n",
+                    "year", //1
+                    "month", //2
+                    "day", //3
+                    "patchID", //4
+                    
+                    "soilNO3",//5
+                    "satNO3",//6
+                    "subNO3outin",//7
+                    "soilDOC",//8
+                    "satDOC",//9
+                    "subDOCoutin",//10
+                    "soilc",//11
+                    "soiln",//12
+                    "denitrif",//13
+                    "nitrifi",//14
+                    "uptake",//15
+                    "immob",//16
+                    "mineral",//17
+                    "psn",//18
+                    "plant_resp",//19
+                    "soil_resp",//20
+                    "cFrac",//21
+                    "gDayCount",//22
+                    "nFactor",//23
+                    "wFactor",//24
+                    "lFactor",//25
+                    "gFactor",//26
+                    "gwAPAR",//27
+                    "gwLWP",//28
+                    "gwVPD"//29
+                    
+                    
+                    
+//                    "day",
+//                    "month",
+//                    "year",
+//                    "basinID",
+//                    "hillID",
+//                    "zoneID",
+//                    "patchID",
+//                    "lai",
+//                    "plantc",
+//                    "plantn",
+//                    "net_psn",
+//                    "plant_resp",
+//                    "soil_resp",
+//                    "litr1c",
+//                    "litr2c",
+//                    "litr3c",
+//                    "litr4c",
+//                    "litr1n",
+//                    "litr2n",
+//                    "litr3n",
+//                    "litr4n",
+//                    "lit.rain_cap",
+//                    "soil1c",
+//                    "soil2c",
+//                    "soil3c",
+//                    "soil4c",
+//                    "soil1n",
+//                    "soil2n",
+//                    "soil3n",
+//                    "soil4n",
+//                    "soilDON",
+//                    "soilDOC",
+//                    "denitrif",
+//                    "netleach",
+//                    "DON_loss",
+//                    "DOC_loss",
+//                    "soilNO3",
+//                    "soilNH4",
+//                    "streamNO3",
+//                    "streamNH4",
+//                    "streamDON",
+//                    "streamDOC",
+//                    "surfaceNO3",
+//                    "surfaceNH4",
+//                    "surfaceDOC",
+//                    "surfaceDON",
+//                    "height",
+//                    "nuptake",
+//                    "root_depth",
+//                    "nfix",
+//                    "grazingC",
+//                    "area",
+//                    "cwdc","cwdn",
+//                    "gpsn_apar",
+//                    "gpsn_tavg",
+//                    "gpsn_lwp",
+//                    "gpsn_co2",
+//                    "gpsn_tmin",
+//                    "gpsn_vpd"
+                    );
 	/*--------------------------------------------------------------*/
 	/*	Yearly 							*/
 	/*--------------------------------------------------------------*/

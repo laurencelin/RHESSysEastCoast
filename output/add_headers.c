@@ -235,7 +235,7 @@ void add_headers(struct world_output_file_object *world_output_files,
             "apipedrainNH4",
             "apipedrainDON",
             "apipedrainDOC",
-        "lawnIrrigated","laiGRASS","PAR"); // basin daily
+        "lawnIrrigated","laiNontree","PAR"); // basin daily
 
 	/*--------------------------------------------------------------*/
 	/*	Monthly							*/
@@ -432,12 +432,12 @@ void add_headers(struct world_output_file_object *world_output_files,
 	outfile = world_output_files[0].patch[0].daily;
 		check = fprintf(outfile,
 //                        "%s-%s-%s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s\n" ,
-                        "%s-%s-%s %s %s %s %s %s %s %s %s %s %s %s %s\n",
+                        "%s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s\n",
                         
                         // we are looking for hydrology behavoirs
-						"day", //1
+						"year", //1
 						"month", //2
-						"year", //3
+						"day", //3
 						"patchID", //4
                         "subsurfaceQnet", //5 Qout-Qin  [+ = source; - = sink]
                         "surfaceQnet", //6 surface_Qout(sum of locally return_flow and locally rain on surface) - surface_Qin
@@ -445,11 +445,13 @@ void add_headers(struct world_output_file_object *world_output_files,
                         "stormdrainYield",//8
                         "return", //9 overland_flow(customized)
                         "rain_thr", //10
-                        "surfaceVQnet", //11 rain_thr - recharge -  [+ = source; - = sink]
-                        "subsurfaceVQnet", //12 patch[0].cap_rise - patch[0].unsat_drainage  [+ = rise; - = down]
+                        "thr_recharge", //11 rain_thr - recharge -  [+ = source; - = sink]
+                        "cap_drain", //12 patch[0].cap_rise - patch[0].unsat_drainage  [+ = rise; - = down]
                         "sat_def_z", //13
                         "unsatS", //14 (sat_def>0)? (rz_storage+unsat_stor)/sat_def : -1
-                        "rtS" //15 (sat_def>0)? rz_storage/potential_rz_store : -1
+                        "rtS", //15 (sat_def>0)? rz_storage/potential_rz_store : -1
+                        "treeLAI",//16
+                        "nontreeLAI"//17
 						); 
                         // patch daily
 	/*--------------------------------------------------------------*/
