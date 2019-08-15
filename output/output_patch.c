@@ -96,7 +96,7 @@ void	output_patch(
 		}
 	}
 //    if(totalcoverf>1.0){ mean_gl/=totalcoverf; gl_scalar/=totalcoverf;  }
-	check = fprintf(outfile,"%d %d %d %d %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf\n", // \
+	check = fprintf(outfile,"%d %d %d %d %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf\n", // \
                              //%lf %lf %lf %lf %lf \
                              //%lf %lf %lf %lf %lf \
                              //%lf %lf %lf\n",
@@ -113,8 +113,10 @@ void	output_patch(
                     patch[0].sat_deficit_z*1000.0,//13
                     (patch[0].sat_deficit>0)? (patch[0].sat_deficit>patch[0].rootzone.potential_sat? (patch[0].rz_storage+patch[0].unsat_storage)/patch[0].sat_deficit : patch[0].rz_storage/patch[0].sat_deficit) : -1, //14
                     (patch[0].sat_deficit>0)? (patch[0].sat_deficit>patch[0].rootzone.potential_sat? patch[0].rz_storage/patch[0].rootzone.potential_sat : patch[0].rz_storage/patch[0].sat_deficit) : -1, //15
-                    treeLAI, //16
-                    nontreeLAI //17
+                    
+                    (patch[0].transpiration_sat_zone + patch[0].transpiration_unsat_zone + patch[0].evaporation + patch[0].evaporation_surf  + patch[0].exfiltration_sat_zone + patch[0].exfiltration_unsat_zone)*1000.0, //16 ET mm
+                    treeLAI, //17
+                    nontreeLAI //18
                     );
  
     

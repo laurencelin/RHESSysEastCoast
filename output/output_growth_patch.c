@@ -175,22 +175,22 @@ void	output_growth_patch(
                     current_date.month,
                     current_date.day,
                     patch[0].ID,
-                    patch[0].soil_ns.nitrate*1000.0,
-                    patch[0].sat_NO3*1000.0,
-                    (patch[0].soil_ns.NO3_Qout_total - patch[0].soil_ns.DON_Qin_total)*1000.0,
-                    patch[0].soil_cs.DOC*1000.0,
-                    patch[0].sat_DOC*1000.0,
-                    (patch[0].soil_cs.DOC_Qout_total - patch[0].soil_cs.DOC_Qin_total)*1000.0,
-                    patch[0].soil_cs.soil1c+patch[0].soil_cs.soil2c+patch[0].soil_cs.soil3c+patch[0].soil_cs.soil4c,
-                    patch[0].soil_ns.soil1n+patch[0].soil_ns.soil2n+patch[0].soil_ns.soil3n+patch[0].soil_ns.soil4n,
-                    patch[0].ndf.denitrif*1000.0,
-                    patch[0].soil_ns.nitrate*1000.0,
-                    patch[0].ndf.sminn_to_npool*1000.0,
-                    (patch[0].ndf.net_mineralized - patch[0].ndf.mineralized) * 1000.0,
-                    patch[0].ndf.mineralized*1000.0,
-                    apsn*1000,
-                    aresp*1000,//plant respiration
-                    asoilhr*1000,
+                    patch[0].soil_ns.nitrate*1000.0, // --> gN/m2
+                    patch[0].sat_NO3*1000.0, // --> gN/m2
+                    (patch[0].soil_ns.NO3_Qout_total - patch[0].soil_ns.DON_Qin_total)*1000.0,// --> gN/m2/d
+                    patch[0].soil_cs.DOC*1000.0, // --> gC/m2
+                    patch[0].sat_DOC*1000.0, // --> gN/m2
+                    (patch[0].soil_cs.DOC_Qout_total - patch[0].soil_cs.DOC_Qin_total)*1000.0,// --> gC/m2/d
+                    patch[0].soil_cs.soil1c+patch[0].soil_cs.soil2c+patch[0].soil_cs.soil3c+patch[0].soil_cs.soil4c, // --> kgC/m2
+                    patch[0].soil_ns.soil1n+patch[0].soil_ns.soil2n+patch[0].soil_ns.soil3n+patch[0].soil_ns.soil4n, // --> kgC/m2
+                    patch[0].ndf.denitrif*1000.0, //--> gN/m2/d
+                    patch[0].soil_ns.nitrate*1000.0, //--> gN/m2/d
+                    patch[0].ndf.sminn_to_npool*1000.0, //--> gN/m2/d
+                    (patch[0].ndf.net_mineralized - patch[0].ndf.mineralized) * 1000.0, //--> gN/m2/d (decomposition immobilization)
+                    patch[0].ndf.mineralized*1000.0, //--> gN/m2/d (decomposition mineralization)
+                    apsn*1000, // --> plant gross PSN gC/m2
+                    aresp*1000,//plant respiration --> gC/m2
+                    asoilhr*1000, // --> gC/m2
                     m_cFrac,
                     m_gDayCount,
                     m_nFactor,
