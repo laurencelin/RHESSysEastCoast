@@ -46,7 +46,7 @@
 #define actionSEWER 11     // Sept 7 LAND; sewer drainage (subruface water loss, not come back to streamflow) (bounded by non-forest cover fraction)
 #define actionIRRIGRATION 13 // Sept 7 LAND; irrigration (bounded by lawn cover fraction)
 #define actionPIPEDRAIN 17 // Sept 28 LAND; drainage subsurface water (top 1-m) and route to streamflow
-#define actionFERTILIZE 19 // Nov 5 LAND; adding N to lawn; bounded by lawn cover fraction; LULC give the max fertilize rate (weekly); perhaps apply weekly but in the code it's going to average out daily.
+#define actionFERTILIZE 13 // same as irrigration --Aug 19,2019 //19 // Nov 5 LAND; adding N to lawn; bounded by lawn cover fraction; LULC give the max fertilize rate (weekly); perhaps apply weekly but in the code it's going to average out daily.
 // ----------- veg types
 #define NON_VEG 20
 #define TREE 1
@@ -1551,6 +1551,8 @@ struct patch_object
             double basementSideAdjustH2O;
             double ndistz;
             double basementFrac;
+            double aeratedSoilFrac; // August 19, 2019; first implement;
+            // this should couple with Ksat_0 and based on CROP rather than GRASS
             
             // how to effectively handle dynamic sat_def_z?
             //double rtz_NO3, rtz_NH4, rtz_DOC, rtz_DON;

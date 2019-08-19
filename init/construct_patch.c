@@ -582,6 +582,7 @@ struct patch_object *construct_patch(
     patch_SOIL4_N =  0.0;
     patch_SOIL3_CN_ = 0.0;
     cover_fractionTotal = 0.0;
+    patch[0].aeratedSoilFrac = 0.0;
 	for ( i=0 ; i<patch[0].num_canopy_strata ; i++ ){
 		patch[0].canopy_strata[i] = construct_canopy_strata(  
 			command_line,
@@ -651,6 +652,10 @@ struct patch_object *construct_patch(
         patch[0].patch_SOIL4_CN += 1.0;
         patch_SOIL4_N += 1.0 / (patch_SOIL3_CN_ * patch[0].canopy_strata[i][0].defaults[0][0].soil3_soil4_ratio);
         patch[0].patch_soil3_soil4_ratio += patch[0].canopy_strata[i][0].defaults[0][0].soil3_soil4_ratio * patch[0].canopy_strata[i][0].cover_fraction;
+        
+        if(patch[0].canopy_strata[i][0].defaults[0][0].epc.veg_type == GRASS){
+            patch[0].aeratedSoilFrac += patch[0].canopy_strata[i][0].cover_fraction;
+        }// if
         
 	} /*end for*/
     //patch[0].non_veg_cover_fraction = max(1.0 - cover_fractionTotal,0.0);

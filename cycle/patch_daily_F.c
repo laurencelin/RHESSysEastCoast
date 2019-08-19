@@ -1486,7 +1486,6 @@ void		patch_daily_F(
         }// for loop j
         if(fertilizerAdded>0) patch[0].fertilizerDaysCount++;
         else patch[0].fertilizerDaysCount = 0;
-        
     }// fertilizer_flag
 		
 	/*--------------------------------------------------------------*/
@@ -1575,17 +1574,12 @@ void		patch_daily_F(
 				}
 			else duration = zone[0].rain_duration/(86400);
 			
-            double currentS = 0.0;
-            if(patch[0].sat_deficit_z > ZERO){
-                //currentS = (patch[0].rz_storage + patch[0].unsat_storage)/patch[0].sat_deficit;
-                currentS = patch[0].rootzone.S; //patch[0].rz_storage/patch[0].rootzone.potential_sat;
-            }//
             
 			if (patch[0].rootzone.depth > ZERO)	{
 				infiltration = compute_infiltration(
 					command_line[0].verbose_flag,
 					patch[0].sat_deficit_z,
-					currentS,
+					patch[0].rootzone.S,
 					patch[0].Ksat_vertical,
 					patch[0].soil_defaults[0][0].Ksat_0_v,
 					patch[0].soil_defaults[0][0].mz_v,

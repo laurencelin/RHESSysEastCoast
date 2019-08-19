@@ -48,7 +48,8 @@
 
 #define  PARTICLE_DENSITY	2.65	/* soil particle density g/cm3 (Dingman) */
 //#define	 MAX_PERC		0.1	/* fraction of amonium that goes to nitrate */
-#define  MAX_RATE		(15*0.1353535)  //times by 6; 30 is max; balaning net mineralization   //120	/* mgN/kg soil/day twice groffman values for ag soils */
+//#define  MAX_RATE		(15*0.1353535)  //times by 6; 30 is max; balaning net mineralization
+//old entry:  120	/* mgN/kg soil/day twice groffman values for ag soils */
 #define NUM_NORMAL  10 	/* resolution of normal distribution */
 double NORMAL[10]= {0,0,0.253,0.524,0.842,1.283,-0.253,-0.524,-0.842,-1.283};
 
@@ -70,6 +71,8 @@ int update_nitrif(
 	/*	Local Variable Definition. 							*/
 	/*------------------------------------------------------*/
 	int ok,i;
+    
+    double MAX_RATE;
 	double nitrify;
 	double a, b, c, d;
 	double nh4_conc, kg_soil;
@@ -115,6 +118,10 @@ int update_nitrif(
     water_scalar = 0.0;
     nitrify = 0.0;
     std = 0.5;
+    
+    MAX_RATE = (15*0.1353535) * (1.0 + patch[0].aeratedSoilFrac*2.0);
+    // Soil aeration should increase nitrification by THREE times?
+    
 	if( depth>0 && ns_soil->sminn + patch[0].sat_NH4 > 0.0 && patch[0].soil_defaults[0][0].soil_water_cap>0.0) {
         
        
