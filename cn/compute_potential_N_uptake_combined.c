@@ -127,8 +127,12 @@ double compute_potential_N_uptake_combined(
 		froot = (1-leaf) for simplicity  
 			--------------------------------------------------------------- */
 		dickenson_k = (epc.waring_pa / (1.0 + epc.waring_pb * (cdf->psn_to_cpool) / c));
+        // when cdf->psn_to_cpool/c = 1, then dickenson_k = 0.2285714
 
-		froot = (1-exp(-1.0*dickenson_k * epv->proj_lai));
+        froot = (1-exp(-1.0*dickenson_k * epv->proj_lai)); //let LAI = 1; then 0.2043305
+        // when LAI is high, it develops root more;
+        // when LAI is low, it develop less root; but "fleaf" is still largely limited by the def allometic ratio
+        // 0.5 LAI will make froot ~ 0.1
 		
 		if (epc.veg_type == TREE)
 			fleaf = (1.0 - froot) / (1 + (1+f2)*f3);

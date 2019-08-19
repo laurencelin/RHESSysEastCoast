@@ -116,9 +116,11 @@ double compute_potential_N_uptake_Waring(
 	if (((cdf->potential_psn_to_cpool) > ZERO) && (cdf->psn_to_cpool > ZERO)) {
         
         c = max(cdf->potential_psn_to_cpool, cdf->psn_to_cpool);
-    
+        // develop the root > leaf > wood
         if ((cs->availc > ZERO) && (c > 0)){
             froot = epc.waring_pa / (1.0 + epc.waring_pb * cdf->psn_to_cpool / c);
+            // epc.waring_pa = 0.8 default
+            // epc.waring_pb = 2.5 default
             if (epc.veg_type == TREE){
                 fleaf = (1.0 - froot) / (1 + (1+f2)*f3) * (epv->proj_lai<MAX_LAI? 1.0 : 0.0);
                 fwood = 1.0 - froot - fleaf;

@@ -52,8 +52,8 @@ double	compute_lwp_predawn(
 							int	verbose_flag,
 							int	curve,
 							double	Tsoil,
-							double	LWP_min_spring,
-							double	LWP_stom_closure,
+							double	LWP_min_spring, // epc.psi_open
+							double	LWP_stom_closure, // epc.psi_close
 							double	psi_air_entry,
 							double 	pore_size_index,
 							double  p3,

@@ -116,8 +116,13 @@ double	compute_vascular_stratum_conductance(
 	wilting_point = 0.0;
 	
 	/* wilting point as volumetric water content, so needs to be multiplied by rz depth to get water depth */
-	wilting_point = exp(-1.0*log(-1.0*100.0*LWP_stom_closure/patch[0].soil_defaults[0][0].psi_air_entry) * patch[0].soil_defaults[0][0].pore_size_index);
-	wilting_point *= (min(patch[0].sat_deficit, patch[0].rootzone.potential_sat))*(1.0-patch[0].basementFrac);
+	wilting_point = exp(
+        -1.0*patch[0].soil_defaults[0][0].pore_size_index *
+        log(-100.0*LWP_stom_closure/patch[0].soil_defaults[0][0].psi_air_entry)
+        );
+        // this exp(log(a)*b)is fast then pow(a,b)!
+        // LWP_stom_closure = epc.psi_close; when epc.psi_close is big, the wilting_point is small
+	wilting_point *= (1.0-patch[0].basementFrac) * min(patch[0].sat_deficit, patch[0].rootzone.potential_sat);
 		
 	/*--------------------------------------------------------------*/
 	/*	incident PAR multiplier					*/
@@ -153,7 +158,7 @@ double	compute_vascular_stratum_conductance(
             // version2: looks like "leaf_conductance_LWP_curve" cannot count for wilting_point
             if( patch[0].rz_storage < wilting_point) { m_LWP = 0.0;}
         }
-
+        
     }else m_LWP=1.0;
 
 

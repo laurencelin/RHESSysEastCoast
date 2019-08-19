@@ -99,18 +99,18 @@ int allocate_annual_growth(				int id,
         printf("report,%d,%d,%d,%d,%d,%d,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e\n",
                patch[0].ID, stratum->defaults[0][0].ID, current_date.day, current_date.month, current_date.year,
                stratum->gDayCount,
-               stratum->nFactor *what,
-               stratum->wFactor *what,
-               stratum->lFactor *what,
-               stratum->gFactor *what,
+               stratum->nFactor *what, // 1 is good
+               stratum->wFactor *what, // 1 is good
+               stratum->lFactor *what, // large is good
+               stratum->gFactor *what, // 1 is good
                patch[0].constraintWaterTableTopDepth,
                stratum[0].cover_fraction,
                stratum[0].cs.cpool,
-               stratum->gwPSN *what,
-               stratum->gwMResp *what,
-               stratum->gwAPAR *what,
-               stratum->gwLWP *what,
-               stratum->gwVPD *what,
+               stratum->gwPSN *what,   // flux
+               stratum->gwMResp *what, // flux
+               stratum->gwAPAR *what, // 1 is good
+               stratum->gwLWP *what, // 1 is good
+               stratum->gwVPD *what, // 1 is good
                patch[0].sat_deficit_z,          //<<---------------- instant
                patch[0].basementSideAdjustWTZ,  //<<---------------- instant
                patch[0].basementSideAdjustH2O,  //<<---------------- instant
@@ -128,7 +128,7 @@ int allocate_annual_growth(				int id,
     stratum->gwAPAR=0.0; // tracking @ canopy_stratum_daily_F
     stratum->gwLWP=0.0; // tracking @ canopy_stratum_daily_F
     stratum->gwVPD=0.0; // tracking @ canopy_stratum_daily_F
-    // patch    vegid    day    month    year    gday    nfactor    wfactor    lfactor    gfactor    basement    cover    cpool    gwPSN    gwMresp    gwAPAR    gwLWP    gwVPD    wtz    adjustWTZ    adjustH2O    leafc    frootc
+    // patch vegid day month year gday nfactor wfactor lfactor gfactor basement cover cpool gwPSN gwMresp gwAPAR gwLWP gwVPD wtz adjustWTZ adjustH2O leafc frootc
     
     
     

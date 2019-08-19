@@ -100,7 +100,8 @@ double compute_potential_N_uptake_Dickenson(
     // problem, need to count for "excess_lai" Jan 11th. 2019
     double MAX_LAI = stratum[0].local_max_lai; //epc.max_lai;
     
-	fleaf = exp(-1.0*epc.dickenson_pa * epv->proj_lai); // 3.665163 is the turning point
+	fleaf = exp(-1.0*epc.dickenson_pa * epv->proj_lai);
+    // dickenson_pa = 0.25 default
     fleaf = min(fleaf, 1.0) * (epv->proj_lai<MAX_LAI? 1.0 : 0.0);
     
     //total_nonwood = (cs->dead_leafc + cs->leafc + cs->frootc);
