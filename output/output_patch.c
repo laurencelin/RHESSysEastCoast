@@ -111,8 +111,8 @@ void	output_patch(
 					(patch[0].rain_throughfall - patch[0].recharge)*1000.0,//11
                     (patch[0].cap_rise - patch[0].unsat_drainage)*1000.0,//12
                     patch[0].sat_deficit_z*1000.0,//13
-                    (patch[0].sat_deficit>0)? (patch[0].sat_deficit>patch[0].rootzone.potential_sat? (patch[0].rz_storage+patch[0].unsat_storage)/patch[0].sat_deficit : patch[0].rz_storage/patch[0].sat_deficit) : -1, //14
-                    (patch[0].sat_deficit>0)? (patch[0].sat_deficit>patch[0].rootzone.potential_sat? patch[0].rz_storage/patch[0].rootzone.potential_sat : patch[0].rz_storage/patch[0].sat_deficit) : -1, //15
+                    (patch[0].sat_deficit>0)? (patch[0].sat_deficit>patch[0].rootzone.potential_sat? (patch[0].rz_storage+patch[0].unsat_storage)/patch[0].sat_deficit : patch[0].rz_storage/patch[0].sat_deficit) : 1.0, //14
+                    (patch[0].sat_deficit>0)? (patch[0].sat_deficit>patch[0].rootzone.potential_sat? patch[0].rz_storage/patch[0].rootzone.potential_sat : patch[0].rz_storage/patch[0].sat_deficit) : 1.0, //15
                     
                     (patch[0].transpiration_sat_zone + patch[0].transpiration_unsat_zone + patch[0].evaporation + patch[0].evaporation_surf  + patch[0].exfiltration_sat_zone + patch[0].exfiltration_unsat_zone)*1000.0, //16 ET mm
                     treeLAI, //17

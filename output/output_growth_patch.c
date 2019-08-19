@@ -89,7 +89,7 @@ void	output_growth_patch(
 			strata = patch[0].canopy_strata[(patch[0].layers[layer].strata[c])];
             what = strata->gDayCount>0? 1.0/(1.0*strata->gDayCount) : 0.0;
             
-            apsn += strata->cover_fraction * strata->cs.gpsn_src;
+            apsn += strata->cover_fraction * strata->cdf.psn_to_cpool; //cs.gpsn_src is not!!
 			
 //            aleafc += strata->cover_fraction * (strata->cs.leafc
 //                + strata->cs.leafc_store + strata->cs.leafc_transfer );

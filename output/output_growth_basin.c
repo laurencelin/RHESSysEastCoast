@@ -377,7 +377,7 @@ void	output_growth_basin(
 		hgwNH4*1000,
 		hgwDON,
 		hgwDOC,
-		astreamflow_NO3*1000.0,
+		astreamflow_NO3*1000.0, //gN/m2
 		astreamflow_NH4*1000.0,
 		astreamflow_DON*1000.0,
 		astreamflow_DOC*1000.0,
