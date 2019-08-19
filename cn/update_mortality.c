@@ -327,7 +327,7 @@ void update_mortality(
     add2L1n = m_leafn_to_litr1n + m_deadleafn_to_litr1n + m_frootn_to_litr1n + m_deadstemn_store_to_litr1n + m_deadstemn_transfer_to_litr1n + m_deadcrootn_store_to_litr1n + m_deadcrootn_transfer_to_litr1n;
     
     if(add2DOC<0 || add2DON<0){
-        printf("update mortality[%d,%d: %d,%d,%d]BGC_flag[%d], (%e{%e,%e,%e,%e}, %e{%e,%e,%e,%e})\n",
+        printf("update mortality DOC issue [%d,%d: %d,%d,%d]BGC_flag[%d], (%e{%e,%e,%e,%e}, %e{%e,%e,%e,%e})\n",
                patch[0].ID,stratum->defaults[0][0].ID, current_date.day, current_date.month, current_date.year, BGC_flag,
                add2DOC, cs->leafc_store, cs->leafc_transfer, cs->frootc_store, cs->frootc_transfer,
                add2DON, ns->leafn_store, ns->leafn_transfer, ns->frootn_store, ns->frootn_transfer);
@@ -341,6 +341,52 @@ void update_mortality(
     
     
     
+    if( (add2L1c/add2L1n < 18 && add2L1c>0) || (add2DOC/add2DON < 18 && add2DOC>0) ){
+        printf("update mortality[%d,%d: %d,%d,%d]BGC_flag[%d], Begin_litterpool_CN[%e,%e,%e,%e], add2L1(%e)[%e,%e,%e,%e,%e,%e,%e], add2DOC(%e)[%e,%e,%e,%e,%e,%e,%e,%e](%e,%e,%e,%e)\n",
+               patch[0].ID,stratum->defaults[0][0].ID, current_date.day, current_date.month, current_date.year, BGC_flag,
+               cn_l1,cn_l2,cn_l3,cn_l4,//l1CN
+               // add2L1
+               add2L1c/add2L1n, // why this becomes -9.134378e+17?
+               m_leafc_to_litr1c/m_leafn_to_litr1n,//1 * nan
+               m_deadleafc_to_litr1c/m_deadleafn_to_litr1n,//2 45
+               m_frootc_to_litr1c/m_frootn_to_litr1n,//3 * 50
+               m_deadstemc_store_to_litr1c/m_deadstemn_store_to_litr1n,//4 nan
+               m_deadstemc_transfer_to_litr1c/m_deadstemn_transfer_to_litr1n,//5 nan
+               m_deadcrootc_store_to_litr1c/m_deadcrootn_store_to_litr1n,//6 nan
+               m_deadcrootc_transfer_to_litr1c/m_deadcrootn_transfer_to_litr1n,//7 nan
+               // add2DOC
+               add2DOC/add2DON,
+               m_leafc_store_to_litr1c/m_leafn_store_to_litr1n,// turns negative
+               m_leafc_transfer_to_litr1c/m_leafn_transfer_to_litr1n,
+               m_frootc_store_to_litr1c/m_frootn_store_to_litr1n,
+               m_frootc_transfer_to_litr1c/m_frootn_transfer_to_litr1n,
+               m_livestemc_store_to_litr1c/m_livestemn_store_to_litr1n,
+               m_livestemc_transfer_to_litr1c/m_livestemn_transfer_to_litr1n,
+               m_livecrootc_store_to_litr1c/m_livecrootn_store_to_litr1n,
+               m_livecrootc_transfer_to_litr1c/m_livecrootn_transfer_to_litr1n,
+               //last 4
+               m_gresp_store_to_litr1c,
+               m_gresp_transfer_to_litr1c,
+               m_npool,//3
+               m_retransn_to_litr1n//4
+               );
+        // --- Fix this bug!?
+        if(m_leafc_to_litr1c<=0 || m_leafn_to_litr1n<=0){ m_leafc_to_litr1c=0.0; m_leafn_to_litr1n=0.0;}
+        if(m_leafc_transfer_to_litr1c<=0 || m_leafn_transfer_to_litr1n<=0){ m_leafc_transfer_to_litr1c=0.0; m_leafn_transfer_to_litr1n=0.0;}
+        if(m_frootc_store_to_litr1c<=0 || m_frootn_store_to_litr1n<=0){ m_frootc_store_to_litr1c=0.0; m_frootn_store_to_litr1n=0.0;}
+        if(m_frootc_transfer_to_litr1c<=0 || m_frootn_transfer_to_litr1n<=0){ m_frootc_transfer_to_litr1c=0.0; m_frootn_transfer_to_litr1n=0.0;}
+        
+        if(m_livestemc_store_to_litr1c<=0 || m_livestemn_store_to_litr1n<=0){ m_livestemc_store_to_litr1c=0.0; m_livestemn_store_to_litr1n=0.0;}
+        if(m_livestemc_transfer_to_litr1c<=0 || m_livestemn_transfer_to_litr1n<=0){ m_livestemc_transfer_to_litr1c=0.0; m_livestemn_transfer_to_litr1n=0.0;}
+        if(m_livecrootc_store_to_litr1c<=0 || m_livecrootn_store_to_litr1n<=0){ m_livecrootc_store_to_litr1c=0.0; m_livecrootn_store_to_litr1n=0.0;}
+        if(m_livecrootc_transfer_to_litr1c<=0 || m_livecrootn_transfer_to_litr1n<=0){ m_livecrootn_transfer_to_litr1n=0.0; m_livestemn_store_to_litr1n=0.0;}
+        
+    }//debug
+    
+    
+    
+    
+    
     
     
     
@@ -350,28 +396,27 @@ void update_mortality(
         
     }else if(thintyp != 2 && BGC_flag==1){
         // regular: thintyp = 1
-        cs->gresp_store -= m_gresp_store_to_litr1c;
-            patch[0].soil_cs.DOC    += m_gresp_store_to_litr1c;
-        
-        cs->gresp_transfer -= m_gresp_transfer_to_litr1c;
-            patch[0].soil_cs.DOC    += m_gresp_transfer_to_litr1c;
-        
-        ns->npool -= m_npool;
-            patch[0].soil_ns.DON += m_npool;
-        
-        ns->retransn  -= m_retransn_to_litr1n;
-            patch[0].soil_ns.DON += m_retransn_to_litr1n;
-        
+//        cs->gresp_store -= m_gresp_store_to_litr1c; //set as zero
+//            patch[0].soil_cs.DOC    += m_gresp_store_to_litr1c;
+//
+//        cs->gresp_transfer -= m_gresp_transfer_to_litr1c; // set as zero
+//            patch[0].soil_cs.DOC    += m_gresp_transfer_to_litr1c;
+//
+//        ns->npool -= m_npool; // set as zero
+//            patch[0].soil_ns.DON += m_npool;
+//
+//        ns->retransn  -= m_retransn_to_litr1n; // set as zero
+//            patch[0].soil_ns.DON += m_retransn_to_litr1n;
         
         // live leaf
         cs->leafc -= m_leafc_to_litr1c;
         cs->leafc -= m_leafc_to_litr2c;
         cs->leafc -= m_leafc_to_litr3c;
-        cs->leafc -= m_leafc_to_litr4c;
+        cs->leafc -= m_leafc_to_litr4c; cs->leafc = cs->leafc<0? 0.0 : cs->leafc;
         ns->leafn -= m_leafn_to_litr1n;
         ns->leafn -= m_leafn_to_litr2n;
         ns->leafn -= m_leafn_to_litr3n;
-        ns->leafn -= m_leafn_to_litr4n;
+        ns->leafn -= m_leafn_to_litr4n; ns->leafn = ns->leafn<0? 0.0 : ns->leafn;
             cs_litr->litr1c    += m_leafc_to_litr1c;
             cs_litr->litr2c    += m_leafc_to_litr2c;
             cs_litr->litr3c    += m_leafc_to_litr3c;
@@ -381,13 +426,13 @@ void update_mortality(
             ns_litr->litr3n    += m_leafn_to_litr3n;
             ns_litr->litr4n    += m_leafn_to_litr4n;
         
-        cs->leafc_store -= m_leafc_store_to_litr1c;
-        ns->leafn_store -= m_leafn_store_to_litr1n;
+        cs->leafc_store -= m_leafc_store_to_litr1c; cs->leafc_store = cs->leafc_store<0? 0.0 : cs->leafc_store;
+        ns->leafn_store -= m_leafn_store_to_litr1n; ns->leafn_store = ns->leafn_store<0? 0.0 : ns->leafn_store;
             patch[0].soil_cs.DOC += m_leafc_store_to_litr1c;
             patch[0].soil_ns.DON += m_leafn_store_to_litr1n;
         
-        cs->leafc_transfer    -= m_leafc_transfer_to_litr1c;
-        ns->leafn_transfer    -= m_leafn_transfer_to_litr1n;
+        cs->leafc_transfer    -= m_leafc_transfer_to_litr1c; cs->leafc_transfer = cs->leafc_transfer<0? 0.0 : cs->leafc_transfer;
+        ns->leafn_transfer    -= m_leafn_transfer_to_litr1n; ns->leafn_transfer = ns->leafn_transfer<0? 0.0 : ns->leafn_transfer;
             patch[0].soil_cs.DOC    += m_leafc_transfer_to_litr1c;
             patch[0].soil_ns.DON    += m_leafn_transfer_to_litr1n;
         
@@ -396,11 +441,11 @@ void update_mortality(
         cs->dead_leafc  -= m_deadleafc_to_litr1c;
         cs->dead_leafc  -= m_deadleafc_to_litr2c;
         cs->dead_leafc  -= m_deadleafc_to_litr3c;
-        cs->dead_leafc  -= m_deadleafc_to_litr4c;
+        cs->dead_leafc  -= m_deadleafc_to_litr4c; cs->dead_leafc = cs->dead_leafc<0? 0.0 : cs->dead_leafc;
         ns->dead_leafn  -= m_deadleafn_to_litr1n;
         ns->dead_leafn  -= m_deadleafn_to_litr2n;
         ns->dead_leafn  -= m_deadleafn_to_litr3n;
-        ns->dead_leafn  -= m_deadleafn_to_litr4n;
+        ns->dead_leafn  -= m_deadleafn_to_litr4n; ns->dead_leafn = ns->dead_leafn<0? 0.0 : ns->dead_leafn;
             cs_litr->litr1c    += m_deadleafc_to_litr1c;
             cs_litr->litr2c    += m_deadleafc_to_litr2c;
             cs_litr->litr3c    += m_deadleafc_to_litr3c;
@@ -415,11 +460,11 @@ void update_mortality(
         cs->frootc  -= m_frootc_to_litr1c;
         cs->frootc  -= m_frootc_to_litr2c;
         cs->frootc  -= m_frootc_to_litr3c;
-        cs->frootc  -= m_frootc_to_litr4c;
+        cs->frootc  -= m_frootc_to_litr4c; cs->frootc = cs->frootc<0? 0.0 : cs->frootc;
         ns->frootn  -= m_frootn_to_litr1n;
         ns->frootn  -= m_frootn_to_litr2n;
         ns->frootn  -= m_frootn_to_litr3n;
-        ns->frootn  -= m_frootn_to_litr4n;
+        ns->frootn  -= m_frootn_to_litr4n; ns->frootn = ns->frootn<0? 0.0 : ns->frootn;
             cs_litr->litr1c    += m_frootc_to_litr1c;
             cs_litr->litr2c    += m_frootc_to_litr2c;
             cs_litr->litr3c    += m_frootc_to_litr3c;
@@ -429,13 +474,13 @@ void update_mortality(
             ns_litr->litr3n    += m_frootn_to_litr3n;
             ns_litr->litr4n    += m_frootn_to_litr4n;
         
-        cs->frootc_store     -= m_frootc_store_to_litr1c;
-        ns->frootn_store      -= m_frootn_store_to_litr1n;
+        cs->frootc_store     -= m_frootc_store_to_litr1c; cs->frootc_store = cs->frootc_store<0? 0.0 : cs->frootc_store;
+        ns->frootn_store     -= m_frootn_store_to_litr1n; ns->frootn_store = ns->frootn_store<0? 0.0 : ns->frootn_store;
             patch[0].soil_cs.DOC    += m_frootc_store_to_litr1c;
             patch[0].soil_ns.DON    += m_frootn_store_to_litr1n;
         
-        cs->frootc_transfer  -= m_frootc_transfer_to_litr1c;
-        ns->frootn_transfer  -= m_frootn_transfer_to_litr1n;
+        cs->frootc_transfer  -= m_frootc_transfer_to_litr1c; cs->frootc_transfer = cs->frootc_transfer<0? 0.0 : cs->frootc_transfer;
+        ns->frootn_transfer  -= m_frootn_transfer_to_litr1n; ns->frootn_transfer = ns->frootn_transfer<0? 0.0 : ns->frootn_transfer;
             patch[0].soil_cs.DOC    += m_frootc_transfer_to_litr1c;
             patch[0].soil_ns.DON    += m_frootn_transfer_to_litr1n;
         
@@ -443,73 +488,73 @@ void update_mortality(
         if(epc.veg_type == TREE){
             
             // live stem
-            cs->live_stemc  -= m_livestemc_to_cwdc;
+            cs->live_stemc  -= m_livestemc_to_cwdc; cs->live_stemc = cs->live_stemc<0? 0.0 : cs->live_stemc;
             ns->live_stemn  -= m_livestemn_to_cwdn;
-            ns->live_stemn  -= m_livestemn_to_litr1n;
+            ns->live_stemn  -= m_livestemn_to_litr1n; ns->live_stemn = ns->live_stemn<0? 0.0 : ns->live_stemn;
                 cs->cwdc    += m_livestemc_to_cwdc;
                 ns->cwdn    += m_livestemn_to_cwdn;
                 ns->cwdN_stored     += m_livestemn_to_litr1n; //<<--------------
             
-            cs->livestemc_store   -= m_livestemc_store_to_litr1c;
-            ns->livestemn_store   -= m_livestemn_store_to_litr1n;
+            cs->livestemc_store   -= m_livestemc_store_to_litr1c; cs->livestemc_store = cs->livestemc_store<0? 0.0 : cs->livestemc_store;
+            ns->livestemn_store   -= m_livestemn_store_to_litr1n; ns->livestemn_store = ns->livestemn_store<0? 0.0 : ns->livestemn_store;
                 patch[0].soil_cs.DOC    += m_livestemc_store_to_litr1c;
                 patch[0].soil_ns.DON    += m_livestemn_store_to_litr1n;
             
-            cs->livestemc_transfer  -= m_livestemc_transfer_to_litr1c;
-            ns->livestemn_transfer  -= m_livestemn_transfer_to_litr1n;
+            cs->livestemc_transfer  -= m_livestemc_transfer_to_litr1c; cs->livestemc_transfer = cs->livestemc_transfer<0? 0.0 : cs->livestemc_transfer;
+            ns->livestemn_transfer  -= m_livestemn_transfer_to_litr1n; ns->livestemn_transfer = ns->livestemn_transfer<0? 0.0 : ns->livestemn_transfer;
                 patch[0].soil_cs.DOC    += m_livestemc_transfer_to_litr1c;
                 patch[0].soil_ns.DON    += m_livestemn_transfer_to_litr1n;
             
             
             // dead stem
-            cs->dead_stemc  -= m_deadstemc_to_cwdc;
-            ns->dead_stemn  -= m_deadstemn_to_cwdn;
+            cs->dead_stemc  -= m_deadstemc_to_cwdc; cs->dead_stemc = cs->dead_stemc<0? 0.0 : cs->dead_stemc;
+            ns->dead_stemn  -= m_deadstemn_to_cwdn; ns->dead_stemn = ns->dead_stemn<0? 0.0 : ns->dead_stemn;
                 cs->cwdc    += m_deadstemc_to_cwdc;
                 ns->cwdn    += m_deadstemn_to_cwdn;
             
-            cs->deadstemc_store   -= m_deadstemc_store_to_litr1c;
-            ns->deadstemn_store   -= m_deadstemn_store_to_litr1n;
+            cs->deadstemc_store   -= m_deadstemc_store_to_litr1c; cs->deadstemc_store = cs->deadstemc_store<0? 0.0 : cs->deadstemc_store;
+            ns->deadstemn_store   -= m_deadstemn_store_to_litr1n; ns->deadstemn_store = ns->deadstemn_store<0? 0.0 : ns->deadstemn_store;
                 cs_litr->litr1c    += m_deadstemc_store_to_litr1c;
                 ns_litr->litr1n    += m_deadstemn_store_to_litr1n;
             
-            cs->deadstemc_transfer  -= m_deadstemc_transfer_to_litr1c;
-            ns->deadstemn_transfer  -= m_deadstemn_transfer_to_litr1n;
+            cs->deadstemc_transfer  -= m_deadstemc_transfer_to_litr1c; cs->deadstemc_transfer = cs->deadstemc_transfer<0? 0.0 : cs->deadstemc_transfer;
+            ns->deadstemn_transfer  -= m_deadstemn_transfer_to_litr1n; ns->deadstemn_transfer = ns->deadstemn_transfer<0? 0.0 : ns->deadstemn_transfer;
                 cs_litr->litr1c    += m_deadstemc_transfer_to_litr1c;
                 ns_litr->litr1n    += m_deadstemn_transfer_to_litr1n;
             
             
             // live croot
-            cs->live_crootc -= m_livecrootc_to_cwdc;
+            cs->live_crootc -= m_livecrootc_to_cwdc; cs->live_crootc = cs->live_crootc<0? 0.0 : cs->live_crootc;
             ns->live_crootn -= m_livecrootn_to_cwdn;
-            ns->live_crootn -= m_livecrootn_to_litr1n;
+            ns->live_crootn -= m_livecrootn_to_litr1n; ns->live_crootn = ns->live_crootn<0? 0.0 : ns->live_crootn;
                 cs->cwdc       += m_livecrootc_to_cwdc;
                 ns->cwdn       += m_livecrootn_to_cwdn;
                 ns->cwdN_stored     += m_livecrootn_to_litr1n;  //<<--------------
             
-            cs->livecrootc_store  -= m_livecrootc_store_to_litr1c;
-            ns->livecrootn_store  -= m_livecrootn_store_to_litr1n;
+            cs->livecrootc_store  -= m_livecrootc_store_to_litr1c; cs->livecrootc_store = cs->livecrootc_store<0? 0.0 : cs->livecrootc_store;
+            ns->livecrootn_store  -= m_livecrootn_store_to_litr1n; ns->livecrootn_store = ns->livecrootn_store<0? 0.0 : ns->livecrootn_store;
                 patch[0].soil_cs.DOC += m_livecrootc_store_to_litr1c;
                 patch[0].soil_ns.DON += m_livecrootn_store_to_litr1n;
             
-            cs->livecrootc_transfer -= m_livecrootc_transfer_to_litr1c;
-            ns->livecrootn_transfer -= m_livecrootn_transfer_to_litr1n;
+            cs->livecrootc_transfer -= m_livecrootc_transfer_to_litr1c; cs->livecrootc_transfer = cs->livecrootc_transfer<0? 0.0 : cs->livecrootc_transfer;
+            ns->livecrootn_transfer -= m_livecrootn_transfer_to_litr1n; ns->livecrootn_transfer = ns->livecrootn_transfer<0? 0.0 : ns->livecrootn_transfer;
                 patch[0].soil_cs.DOC += m_livecrootc_transfer_to_litr1c;
                 patch[0].soil_ns.DON += m_livecrootn_transfer_to_litr1n;
             
             
             // dead croot
-            cs->dead_crootc -= m_deadcrootc_to_cwdc;
-            ns->dead_crootn -= m_deadcrootn_to_cwdn;
+            cs->dead_crootc -= m_deadcrootc_to_cwdc; cs->dead_crootc = cs->dead_crootc<0? 0.0 : cs->dead_crootc;
+            ns->dead_crootn -= m_deadcrootn_to_cwdn; ns->dead_crootn = ns->dead_crootn<0? 0.0 : ns->dead_crootn;
                 cs->cwdc    += m_deadcrootc_to_cwdc;
                 ns->cwdn    += m_deadcrootn_to_cwdn;
             
-            cs->deadcrootc_store  -= m_deadcrootc_store_to_litr1c;
-            ns->deadcrootn_store  -= m_deadcrootn_store_to_litr1n;
+            cs->deadcrootc_store  -= m_deadcrootc_store_to_litr1c; cs->deadcrootc_store = cs->deadcrootc_store<0? 0.0 : cs->deadcrootc_store;
+            ns->deadcrootn_store  -= m_deadcrootn_store_to_litr1n; ns->deadcrootn_store = ns->deadcrootn_store<0? 0.0 : ns->deadcrootn_store;
                 cs_litr->litr1c += m_deadcrootc_store_to_litr1c;
                 ns_litr->litr1n += m_deadcrootn_store_to_litr1n;
             
-            cs->deadcrootc_transfer -= m_deadcrootc_transfer_to_litr1c;
-            ns->deadcrootn_transfer -= m_deadcrootn_transfer_to_litr1n;
+            cs->deadcrootc_transfer -= m_deadcrootc_transfer_to_litr1c; cs->deadcrootc_transfer = cs->deadcrootc_transfer<0? 0.0 : cs->deadcrootc_transfer;
+            ns->deadcrootn_transfer -= m_deadcrootn_transfer_to_litr1n; ns->deadcrootn_transfer = ns->deadcrootn_transfer<0? 0.0 : ns->deadcrootn_transfer;
                 cs_litr->litr1c += m_deadcrootc_transfer_to_litr1c;
                 ns_litr->litr1n += m_deadcrootn_transfer_to_litr1n;
             
@@ -749,37 +794,7 @@ void update_mortality(
     }// thinning type
 	
     
-
-    if( (add2L1c/add2L1n < 18 && add2L1c>0) || (add2DOC/add2DON < 18 && add2DOC>0) ){
-        printf("update mortality[%d,%d: %d,%d,%d]BGC_flag[%d], Begin_litterpool_CN[%e,%e,%e,%e], add2L1(%e)[%e,%e,%e,%e,%e,%e,%e], add2DOC(%e)[%e,%e,%e,%e,%e,%e,%e,%e](%e,%e,%e,%e)\n",
-               patch[0].ID,stratum->defaults[0][0].ID, current_date.day, current_date.month, current_date.year, BGC_flag,
-               cn_l1,cn_l2,cn_l3,cn_l4,//l1CN
-               // add2L1
-               add2L1c/add2L1n,
-               m_leafc_to_litr1c/m_leafn_to_litr1n,//1 *
-               m_deadleafc_to_litr1c/m_deadleafn_to_litr1n,//2
-               m_frootc_to_litr1c/m_frootn_to_litr1n,//3 *
-               m_deadstemc_store_to_litr1c/m_deadstemn_store_to_litr1n,//4
-               m_deadstemc_transfer_to_litr1c/m_deadstemn_transfer_to_litr1n,//5
-               m_deadcrootc_store_to_litr1c/m_deadcrootn_store_to_litr1n,//6
-               m_deadcrootc_transfer_to_litr1c/m_deadcrootn_transfer_to_litr1n,//7
-               // add2DOC
-               add2DOC/add2DON,
-               m_leafc_store_to_litr1c/m_leafn_store_to_litr1n,// turns negative
-               m_leafc_transfer_to_litr1c/m_leafn_transfer_to_litr1n,
-               m_frootc_store_to_litr1c/m_frootn_store_to_litr1n,
-               m_frootc_transfer_to_litr1c/m_frootn_transfer_to_litr1n,
-               m_livestemc_store_to_litr1c/m_livestemn_store_to_litr1n,
-               m_livestemc_transfer_to_litr1c/m_livestemn_transfer_to_litr1n,
-               m_livecrootc_store_to_litr1c/m_livecrootn_store_to_litr1n,
-               m_livecrootc_transfer_to_litr1c/m_livecrootn_transfer_to_litr1n,
-               //last 4
-               m_gresp_store_to_litr1c,
-               m_gresp_transfer_to_litr1c,
-               m_npool,//3
-               m_retransn_to_litr1n//4
-               );
-    }//debug
+    
     
     
     
