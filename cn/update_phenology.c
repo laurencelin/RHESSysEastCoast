@@ -475,7 +475,7 @@ void update_phenology(struct zone_object  *zone,
 		/*	compute leaf litter fall				*/
 		/*--------------------------------------------------------------*/
 		if (ok && compute_leaf_litfall(epc,
-			leaflitfallc,cover_fraction,
+			leaflitfallc, cover_fraction,
 			cs,ns, cs_litr,ns_litr,patch,cdf_patch,ndf_patch, cdf,ndf, grow_flag, BGC_flag)){
 			fprintf(stderr,
 				"FATAL ERROR: in leaf_litfall() from update_phenology()\n");
@@ -496,25 +496,26 @@ void update_phenology(struct zone_object  *zone,
 	/*	only drop when accumulated litterfall due to water stress */
 	/*	is greater than usual litterfall			*/
 	/*--------------------------------------------------------------*/
-	/*
-	 if (epv->psi < epc.psi_open)	{
-		perc_leaflitfall = (1.0 / (epc.psi_close - epc.psi_open) *
-				epv->psi + (-epc.psi_open) /
-				(epc.psi_close - epc.psi_open)) / 100.0;
-		leaflitfallc = (perc_leaflitfall * cs->leafc);
-		phen->leaflitfallc_wstress += leaflitfallc;
-		if ((phen->leaflitfallc_wstress > phen->leaflitfallc) && 
-			(phen->leaflitfallc_wstress < 1.5 * phen->leaflitfallc)) {
-			if (ok && compute_leaf_litfall(epc,
-				leaflitfallc,cover_fraction,
-				cs,ns, cs_litr,ns_litr,cdf_patch,ndf_patch, cdf,ndf, grow_flag)){
-				fprintf(stderr,
-					"FATAL ERROR: in leaf_litfall() from update_phenology()\n");
-				exit(EXIT_FAILURE);
-				}
-		}
-	}
-	*/
+    // ------------ this is good; but not yet tested; disable for now.
+//    if (epv->psi < epc.psi_open)    {
+//        perc_leaflitfall = (1.0 / (epc.psi_close - epc.psi_open) * epv->psi + (-epc.psi_open) /
+//                (epc.psi_close - epc.psi_open)) / 100.0;
+//        leaflitfallc = (perc_leaflitfall * cs->leafc);
+//        phen->leaflitfallc_wstress += leaflitfallc;
+//
+//        if ((phen->leaflitfallc_wstress > phen->leaflitfallc) &&
+//            (phen->leaflitfallc_wstress < 1.5 * phen->leaflitfallc)) {
+//            if (ok && compute_leaf_litfall(epc,
+//                leaflitfallc, cover_fraction,
+//                cs,ns, cs_litr,ns_litr,cdf_patch,ndf_patch, cdf,ndf, grow_flag)){
+//                fprintf(stderr,
+//                    "FATAL ERROR: in leaf_litfall() from update_phenology()\n");
+//                exit(EXIT_FAILURE);
+//                }// if
+//        }// if
+//
+//    }// if
+	
 
 	if ((frootlitfallc > 0.0)  && (grow_flag > 0) && (cs->frootc > ZERO) && (ns->frootn > ZERO)){
 		/*--------------------------------------------------------------*/
@@ -537,6 +538,8 @@ void update_phenology(struct zone_object  *zone,
 	/*--------------------------------------------------------------*/
 
 	if (((epc.veg_type == GRASS) || (epc.veg_type == C4GRASS)) && (grow_flag > 0) && (cs->dead_leafc > ZERO)) {
+        
+        //
 		if (ok && compute_deadleaf_turnover(epc,epv, cover_fraction, cs,ns,
 			cs_litr,ns_litr,patch,cdf_patch,ndf_patch,grow_flag,BGC_flag)){
 			fprintf(stderr,"FATAL ERROR: in compute_deadleaf_turnover() from update_phenology()\n");

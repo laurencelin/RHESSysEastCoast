@@ -46,12 +46,16 @@ int compute_annual_litfall(
 	int ok=1;
 	/* leaf and fine root litfall */
 	if (epc.phenology_type == EVERGREEN) {
-		phen->leaflitfallc = (cs->leafc) * epc.leaf_turnover;
+		// 1)
+        phen->leaflitfallc = (cs->leafc) * epc.leaf_turnover;
+        // 2)
 		if (grow_flag > 0)
 			phen->frootlitfallc = (cs->frootc) * epc.froot_turnover;
 	}
 	else{
+        // 1)
 		phen->leaflitfallc = (cs->leafc);
+        // 2)
 		if (grow_flag > 0)
 			phen->frootlitfallc = (cs->frootc) * epc.froot_turnover;
 	}

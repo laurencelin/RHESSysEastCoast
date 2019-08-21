@@ -108,7 +108,7 @@ struct stratum_default *construct_stratum_defaults(
 		default_object_list[i].mrc.q10 = 		getDoubleParam(&paramCnt, &paramPtr, "mrc.q10", "%lf", 1.5, 1);
 		default_object_list[i].mrc.per_N = 		getDoubleParam(&paramCnt, &paramPtr, "mrc.per_N", "%lf", 0.21, 1);
 		default_object_list[i].epc.gr_perc = 		getDoubleParam(&paramCnt, &paramPtr, "epc.gr_perc", "%lf", 0.2, 1);
-		default_object_list[i].lai_stomatal_fraction = 	getDoubleParam(&paramCnt, &paramPtr, "lai_stomatal_fraction", "%lf", 1.0, 1);
+		default_object_list[i].lai_stomatal_fraction = 	getDoubleParam(&paramCnt, &paramPtr, "lai_stomatal_fraction", "%lf", 1.0, 1); 
 		default_object_list[i].epc.flnr = 		getDoubleParam(&paramCnt, &paramPtr, "epc.flnr", "%lf", 0.1, 1);
 		default_object_list[i].epc.ppfd_coef = 		getDoubleParam(&paramCnt, &paramPtr, "epc.ppfd_coef", "%lf", 0.03, 1);
 		default_object_list[i].epc.topt = 		getDoubleParam(&paramCnt, &paramPtr, "epc.topt", "%lf", 15.0, 1);
@@ -166,7 +166,7 @@ struct stratum_default *construct_stratum_defaults(
 
 		default_object_list[i].epc.kfrag_base = 		getDoubleParam(&paramCnt, &paramPtr, "epc.kfrag_base", "%lf", 0.01, 1);
 		default_object_list[i].epc.daily_mortality_turnover = 	getFloatParam(&paramCnt, &paramPtr, "epc.daily_mortality_turnover", "%f", 0.005, 1) / 365; ///<<------- replacing the old "mortality"
-		default_object_list[i].epc.froot_cn = 			getDoubleParam(&paramCnt, &paramPtr, "epc.froot_cn", "%lf", 139.7, 1);
+		default_object_list[i].epc.froot_cn = getDoubleParam(&paramCnt, &paramPtr, "epc.froot_cn", "%lf", 139.7, 1);
 		default_object_list[i].epc.livewood_cn = getDoubleParam(&paramCnt, &paramPtr, "epc.livewood_cn", "%lf", 200.0, 1);
         default_object_list[i].epc.livewood_cn = default_object_list[i].epc.froot_cn; // BGC suggested (White et al. 2000) -- testing
         

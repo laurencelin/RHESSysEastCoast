@@ -56,7 +56,7 @@ int	compute_deadleaf_turnover(
 	double c1,c2,c3,c4;
 	double n1,n2,n3,n4;
 	double turnover, avg_cn;
-	turnover = epv->day_deadleaf_turnover;
+	turnover = epv->day_deadleaf_turnover; // calculated by compute_annual_turnover
     avg_cn = cs->dead_leafc/ns->dead_leafn;
     
 	c1 = turnover * epc.leaflitr_flab;
