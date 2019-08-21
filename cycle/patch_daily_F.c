@@ -1467,25 +1467,29 @@ void		patch_daily_F(
 //        }
     // new fertilizer code
     if(command_line[0].fertilizer_flag==1 && patch[0].drainage_type>0 && patch[0].drainage_type % actionFERTILIZE==0){
-        //patch[0].fertilizerDaysCount = 0;
+        
         int fertilizerAdded = 0;
-        //---------------------------- lawn
         for ( j=0 ; j<patch[0].num_canopy_strata ; j++ ){
             
             if(patch[0].canopy_strata[j][0].defaults[0][0].epc.veg_type == GRASS && patch[0].canopy_strata[j][0].phen.gwseasonday>0){
                 //gwseasonday > 0 when plant is growing; its -1 otherwise.
-                // fertilizer_NO3 is areal rate (gN/m2) set in LULC def
+                // fertilizer_NO3/fertilizer_NH4 is areal rate (gN/m2) set in LULC def, not from time series.
                 if(patch[0].fertilizerDaysCount % patch[0].landuse_defaults[0][0].fertilizer_freq == 0){
-                    patch[0].soil_ns.nitrate +=  0.6 * fertilizer_NO3 * patch[0].canopy_strata[j][0].cover_fraction;
-                    patch[0].surface_NO3 += 0.4 * fertilizer_NO3 * patch[0].canopy_strata[j][0].cover_fraction;
-                    patch[0].soil_ns.sminn += 0.6 * fertilizer_NH4 * patch[0].canopy_strata[j][0].cover_fraction;
-                    patch[0].surface_NH4 += 0.4 * fertilizer_NH4 * patch[0].canopy_strata[j][0].cover_fraction;
+                    patch[0].stored_fertilizer_NO3 += fertilizer_NO3 * patch[0].canopy_strata[j][0].cover_fraction;
+                    patch[0].stored_fertilizer_NH4 += fertilizer_NH4 * patch[0].canopy_strata[j][0].cover_fraction;
                 }//fertilizer
                 fertilizerAdded++;
             }
         }// for loop j
         if(fertilizerAdded>0) patch[0].fertilizerDaysCount++;
         else patch[0].fertilizerDaysCount = 0;
+        
+        patch[0].soil_ns.nitrate +=  0.6 * patch[0].stored_fertilizer_NO3 * patch[0].landuse_defaults[0][0].fertilizer_decay_rate;
+        patch[0].surface_NO3 += 0.4 * patch[0].stored_fertilizer_NO3 * patch[0].landuse_defaults[0][0].fertilizer_decay_rate;
+        patch[0].stored_fertilizer_NO3 *= 1.0 - patch[0].landuse_defaults[0][0].fertilizer_decay_rate; // remaining
+        patch[0].soil_ns.sminn += 0.6 * patch[0].stored_fertilizer_NH4 * patch[0].landuse_defaults[0][0].fertilizer_decay_rate;
+        patch[0].surface_NH4 += 0.4 * patch[0].stored_fertilizer_NH4 * patch[0].landuse_defaults[0][0].fertilizer_decay_rate;
+        patch[0].stored_fertilizer_NH4 *= 1.0 - patch[0].landuse_defaults[0][0].fertilizer_decay_rate; // remaining
     }// fertilizer_flag
 		
 	/*--------------------------------------------------------------*/

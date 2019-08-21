@@ -310,6 +310,8 @@ struct patch_object *construct_patch(
 	
 	patch[0].fertilizer_NO3 = 0.0;
 	patch[0].fertilizer_NH4 = 0.0;
+    patch[0].stored_fertilizer_NO3 = 0.0;
+    patch[0].stored_fertilizer_NH4 = 0.0;
 	patch[0].grazing_Closs = 0.0;
 
 	/*--------------------------------------------------------------*/

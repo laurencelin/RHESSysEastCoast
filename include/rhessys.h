@@ -880,6 +880,7 @@ struct  landuse_default
         double  fertilizer_NO3;                                 /* kg/m2/day    */
         double  fertilizer_NH4;                                 /* kg/m2/day    */
         int fertilizer_freq;
+        double fertilizer_decay_rate; // no unit
         double  irrigation;                                     /* m/day        */
         double  PH;                                     /* DIM  */
         double  septic_NO3_load;                                        /* kg/m2/day */
@@ -1562,7 +1563,8 @@ struct patch_object
             //locally produced solute follows the profile decay; and that would contribute to sat_solute
             //sat_solute and local_profile_solute are laterally transferred to 1) neighour sat_solute and then fraction to neighour local_profile_solute when appropriated:
             // appropriate condition: when sat enters the rtz at neighour; when elevation diff
-            
+            double stored_fertilizer_NO3;
+            double stored_fertilizer_NH4;
 /*----------------------------------------------------------*/
 /*      Surface Hydrology  stuff                        */
 /*----------------------------------------------------------*/

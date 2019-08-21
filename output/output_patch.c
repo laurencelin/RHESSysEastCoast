@@ -96,7 +96,7 @@ void	output_patch(
 		}
 	}
 //    if(totalcoverf>1.0){ mean_gl/=totalcoverf; gl_scalar/=totalcoverf;  }
-	check = fprintf(outfile,"%d %d %d %d %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf\n", // \
+	check = fprintf(outfile,"%d %d %d %d %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf\n", // \
                              //%lf %lf %lf %lf %lf \
                              //%lf %lf %lf %lf %lf \
                              //%lf %lf %lf\n",
@@ -110,13 +110,16 @@ void	output_patch(
                     patch[0].rain_throughfall*1000.0, //10
 					(patch[0].rain_throughfall - patch[0].recharge)*1000.0,//11
                     (patch[0].cap_rise - patch[0].unsat_drainage)*1000.0,//12
-                    patch[0].sat_deficit_z*1000.0,//13
-                    (patch[0].sat_deficit>0)? (patch[0].sat_deficit>patch[0].rootzone.potential_sat? (patch[0].rz_storage+patch[0].unsat_storage)/patch[0].sat_deficit : patch[0].rz_storage/patch[0].sat_deficit) : 1.0, //14
-                    (patch[0].sat_deficit>0)? (patch[0].sat_deficit>patch[0].rootzone.potential_sat? patch[0].rz_storage/patch[0].rootzone.potential_sat : patch[0].rz_storage/patch[0].sat_deficit) : 1.0, //15
+                    patch[0].sat_deficit_z*1000.0,//13 wtz
+                    (patch[0].sat_deficit>0)? (patch[0].sat_deficit>patch[0].rootzone.potential_sat? (patch[0].rz_storage+patch[0].unsat_storage)/patch[0].sat_deficit : patch[0].rz_storage/patch[0].sat_deficit) : 1.0, //14 total subS
+                    (patch[0].sat_deficit>0)? (patch[0].sat_deficit>patch[0].rootzone.potential_sat? patch[0].rz_storage/patch[0].rootzone.potential_sat : patch[0].rz_storage/patch[0].sat_deficit) : 1.0, //15 rtS;
+                        // no rtz issue
+                        // rz_storage<0 issue!! (cells with tree on it!)
                     
                     (patch[0].transpiration_sat_zone + patch[0].transpiration_unsat_zone + patch[0].evaporation + patch[0].evaporation_surf  + patch[0].exfiltration_sat_zone + patch[0].exfiltration_unsat_zone)*1000.0, //16 ET mm
                     treeLAI, //17
-                    nontreeLAI //18
+                    nontreeLAI, //18
+                    patch[0].grassIrrigation_m
                     );
  
     

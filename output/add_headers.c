@@ -432,7 +432,7 @@ void add_headers(struct world_output_file_object *world_output_files,
 	outfile = world_output_files[0].patch[0].daily;
 		check = fprintf(outfile,
 //                        "%s-%s-%s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s\n" ,
-                        "%s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s\n",
+                        "%s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s\n",
                         
                         // we are looking for hydrology behavoirs
 						"year", //1
@@ -452,7 +452,8 @@ void add_headers(struct world_output_file_object *world_output_files,
                         "rtS", //15 (sat_def>0)? rz_storage/potential_rz_store : -1
                         "ET",
                         "treeLAI",//17
-                        "nontreeLAI"//18
+                        "nontreeLAI",//18
+                        "SmartIrrigation"
 						); 
                         // patch daily
 	/*--------------------------------------------------------------*/
