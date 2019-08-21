@@ -233,9 +233,7 @@ struct soil_default *construct_soil_defaults(
 		default_object_list[i].DON_adsorption_rate = 	getDoubleParam(&paramCnt, &paramPtr, "DON_adsorption_rate", "%lf", 0.000001, 1);
 		default_object_list[i].interval_size = 		getDoubleParam(&paramCnt, &paramPtr, "interval_size", "%lf", INTERVAL_SIZE, 1);
 
-        
-        default_object_list[i].NH4_adsorption_rate = default_object_list[i].DOC_adsorption_rate;//testing
-        default_object_list[i].DON_adsorption_rate = default_object_list[i].DOC_adsorption_rate;//testing
+        default_object_list[i].DON_adsorption_rate = default_object_list[i].DOC_adsorption_rate;//should keep them the same
         
 		/*--------------------------------------------------------------*/
 		/* sensitivity adjustment of vertical drainage  soil paramters	*/
