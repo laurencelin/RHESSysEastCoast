@@ -177,8 +177,8 @@ double	compute_vascular_stratum_conductance(
 	/*--------------------------------------------------------------*/
 	/*	Apply multipliers to max stomatal conductance		*/
 	/*--------------------------------------------------------------*/
-	m_final = m_APAR * m_tavg * m_LWP * m_CO2 * m_tmin * m_vpd;
-	//stomatal_conductance = stomatal_conductance_max * m_final;
+	m_final = m_APAR * m_LWP * m_CO2 * m_tmin * m_vpd;
+    //m_final *= m_tavg; current literature does not support that! Aug 27, 2019
     stomatal_conductance = (stomatal_conductance_max-cuticular_cond) * m_final + cuticular_cond;
     
 	/*--------------------------------------------------------------*/
