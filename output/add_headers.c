@@ -283,30 +283,33 @@ void add_headers(struct world_output_file_object *world_output_files,
 	/*	Daily 							*/
 	/*--------------------------------------------------------------*/
 	outfile = world_output_files[0].hillslope[0].daily;
-	fprintf(outfile,"%s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s\n" ,
-		"day",
-		"month",
-		"year",
-		"basinID",
-		"hillID",
-		"rain_thr",
-		"snow_thr",
-		"sat_def_z",
-		"sat_def",
-		"unsat_stor",
-		"unsat_drain",
-		"cap",
-		"evap",
-		"snow",
-		"trans",
-		"baseflow",
-		"return",
-		"streamflow",
-		"psn",
-		"lai",
-		"gw.Qout",
-		"gw.storage",
-		"area"
+	//fprintf(outfile,"%s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s\n,"
+    fprintf(outfile,"%s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s\n" ,
+		"day", //1
+		"month", //2
+		"year", //3
+		"basinID", //4
+		"hillID", //5
+        "area", //6
+		"sat_def_z", //7
+		"sat_def", //8
+        "detention_store", //9
+        "sat_area",//10
+		"rz_storage",//11
+		"cap", //12
+        "drainage",//13
+        "baseflow",//14
+		"return",//15
+		"streamflow",//16
+        "gw.Qout",//17
+        "gw.storage",//18
+        "snowmelt",//19
+		"psn",//20
+        "evap",//21
+        "trans",//22
+		"laiTREE",//23
+        "laiGRASS",//24
+        "lawnirrigated"//25
 		);
 
 	/*--------------------------------------------------------------*/
