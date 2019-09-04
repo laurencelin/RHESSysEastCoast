@@ -54,6 +54,7 @@ void	output_hillslope(				int basinID,
 	double aevaporation;
 	double atranspiration;
 	double abase_flow;
+    double astormdrain;
     double apsn;
     double alaitree;
     double alaigrass;
@@ -63,6 +64,9 @@ void	output_hillslope(				int basinID,
 	double aarea;
     double arz_storage;
     double asnowmelt;
+    double arecharge;
+    double zone_area;
+    double apcp;
 	struct	patch_object  *patch;
 	struct	zone_object	*zone;
 
@@ -78,6 +82,7 @@ void	output_hillslope(				int basinID,
 	aevaporation = 0.0 ;
 	atranspiration = 0.0  ;
 	abase_flow = 0.0;
+    astormdrain = 0.0;
 	apsn = 0.0 ;
 	alaitree = 0.0;
     alaigrass = 0.0;
@@ -87,9 +92,14 @@ void	output_hillslope(				int basinID,
     asnowmelt = 0.0;
     adetention_store = 0.0;
     asat_area = 0.0;
-    
+    arecharge = 0.0;
+    zone_area = 0.0;
+    apcp = 0.0;
 	for (z=0; z<hillslope[0].num_zones; z++){
 		zone = hillslope[0].zones[z];
+        apcp += (zone[0].rain_hourly_total+zone[0].rain+zone[0].snow)*zone[0].area;
+        zone_area += zone[0].area;
+        
 		for (p=0; p< zone[0].num_patches; p++){
 			patch = zone[0].patches[p];
 			//arain_throughfall += patch[0].rain_throughfall * patch[0].area;
@@ -113,9 +123,11 @@ void	output_hillslope(				int basinID,
 			acap_rise += patch[0].cap_rise * patch[0].area;
 			abase_flow += patch[0].base_flow * patch[0].area;
 			areturn_flow += patch[0].return_flow * patch[0].area;
+            astormdrain += patch[0].stormdrained * patch[0].area;
 			aevaporation += patch[0].evaporation * patch[0].area;
 			aarea += patch[0].area;
-            asat_area += patch[0].area;
+            arecharge += patch[0].recharge * patch[0].area;
+            if (patch[0].sat_deficit <= ZERO) asat_area += patch[0].area;
             alawnirrigation += patch[0].grassIrrigation_m * patch[0].area;
 			atranspiration += (patch[0].transpiration_sat_zone
 				+ patch[0].transpiration_unsat_zone)  *  patch[0].area;
@@ -150,6 +162,7 @@ void	output_hillslope(				int basinID,
 	aunsat_drainage *= aarea ;
 	acap_rise *= aarea ;
 	areturn_flow *= aarea ;
+    astormdrain *= aarea ;
 	aevaporation *= aarea ;
 	abase_flow *= aarea;
 	atranspiration *= aarea  ;
@@ -161,10 +174,12 @@ void	output_hillslope(				int basinID,
     adetention_store *= aarea ;
     asat_area *= aarea ;
     alawnirrigation *= aarea ;
+    arecharge *= aarea;
+    apcp /= zone_area;
 	abase_flow += hillslope[0].base_flow;
 
 
-	fprintf(outfile,"%d %d %d %d %d %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf\n",
+	fprintf(outfile,"%d %d %d %d %d %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf\n",
 		date.day, //1
 		date.month, //2
 		date.year, //3
@@ -174,13 +189,13 @@ void	output_hillslope(				int basinID,
 		asat_deficit_z * 1000.0, //7 mm
 		asat_deficit * 1000.0, //8 mm
         adetention_store * 1000.0, //9 mm
-        asat_area * 100.0, // 10 %
+        asat_area * 100.0, // 10 % <<----------- problem, alwaya 100
 		arz_storage * 1000.0,// 11
         acap_rise * 1000.0, //12 mm
 		aunsat_drainage * 1000.0, //13 mm
         abase_flow * 1000.0, // 14 mm
         areturn_flow * 1000.0, // 15 mm
-        (areturn_flow + abase_flow)* 1000.0, // 16 mm
+        (areturn_flow + abase_flow + astormdrain)* 1000.0, // 16 mm
         hillslope[0].gw.Qout *1000.0, // 17 mm
         hillslope[0].gw.storage *1000.0, //18 mm
         asnowmelt * 1000.0, // 19 mm
@@ -189,7 +204,9 @@ void	output_hillslope(				int basinID,
 		atranspiration * 1000.0, //22 mm
 		alaitree, // 23
 		alaigrass, //24
-		alawnirrigation*1000.0 // 25 mm
+		alawnirrigation*1000.0, // 25 mm
+        apcp*1000.0, //26 mm
+        arecharge*1000.0 // 27 mm
 		);
 	return;
 } /*end output_hillslope*/

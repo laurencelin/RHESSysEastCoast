@@ -284,7 +284,7 @@ void add_headers(struct world_output_file_object *world_output_files,
 	/*--------------------------------------------------------------*/
 	outfile = world_output_files[0].hillslope[0].daily;
 	//fprintf(outfile,"%s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s\n,"
-    fprintf(outfile,"%s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s\n" ,
+    fprintf(outfile,"%s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s\n" ,
 		"day", //1
 		"month", //2
 		"year", //3
@@ -309,7 +309,9 @@ void add_headers(struct world_output_file_object *world_output_files,
         "trans",//22
 		"laiTREE",//23
         "laiGRASS",//24
-        "lawnirrigated"//25
+        "lawnirrigated",//25
+        "precip", // 26
+        "infiltration" //27
 		);
 
 	/*--------------------------------------------------------------*/
