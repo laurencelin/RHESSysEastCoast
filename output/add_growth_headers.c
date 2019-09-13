@@ -182,48 +182,42 @@ void add_growth_headers(struct world_output_file_object *world_output_files,
 	/*--------------------------------------------------------------*/
 	outfile = world_output_files[0].hillslope[0].daily;
 
-	fprintf(outfile,"%s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s\n" ,
-		"day",
-		"month",
-		"year",
-		"basinID",
-		"lai",
-		"gpsn",
-		"plant_resp",
-		"soil_resp",
-		"nitrate",
-		"sminn",
-		"surfaceN",
-		"plantc",
-		"plantn",
-		"cpool",
-		"npool",
-		"litrc",
-		"litrn",
-		"soilc",
-		"soiln",
-		"gwNO3",
-		"gwNH4",
-		"gwDON",
-		"gwDOC",
-		"streamflow_NO3",
-		"streamflow_NH4",
-		"streamflow_DON",
-		"streamflow_DOC",
-		"gwNO3out",
-		"gwNH4out",
-		"gwDONout",
-		"gwDOCout",
-		"denitrif",
-		"nitrif",
-		"DOC",
-		"DON",
-		"root_depth",
-		"nfix",
-		"nuptake",
-		"grazingC",
-		"StreamNO3_from_surface",
-		"StreamNO3_from_sub");
+	fprintf(outfile,"%s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s\n" ,
+		"day", //1
+		"month", //2
+		"year", //3
+		"basinID", //4
+		"gpsn", //5
+		"plant_resp", //6
+		"soil_resp", //7
+		"nitrate", //8
+		"sminn", //9
+		"surfaceN", //10
+		"plantc", //11
+		"plantn", //12
+		"litrc", //13
+		"litrn", //14
+		"soilc", //15
+		"soiln", //16
+		"gwNO3", //17
+		"gwNH4", //18
+		"gwDON", //19
+		"gwDOC", //20
+		"streamflow_NO3", //21
+		"streamflow_NH4", //22
+		"streamflow_DON", //23
+		"streamflow_DOC", //24
+		"gwNO3out", //25
+		"gwNH4out", //26
+		"gwDONout", //27
+		"gwDOCout", //28
+		"denitrif", //29
+		"nitrif", //30
+		"DOC", //31
+		"DON", //32
+		"root_depth", //33
+		"nfix", //34
+		"nuptake"); //35
 	}
 
 	/*--------------------------------------------------------------*/
