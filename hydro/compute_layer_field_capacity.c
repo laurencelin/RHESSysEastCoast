@@ -86,7 +86,7 @@ double	compute_layer_field_capacity(
 							   double	p3,
 							   double	p4,
 							   double	p_0,
-							   double	p,
+							   double	p_decay,
 							   double	z_water_table,
 							   double	z_layer,
 							   double	z_surface)
@@ -129,7 +129,7 @@ double	compute_layer_field_capacity(
 						p3,
 						p4,
 						p_0,
-						p,
+						p_decay,
 						z_water_table,
 						z_water_table,
 						z_surface);
@@ -142,7 +142,7 @@ double	compute_layer_field_capacity(
 						p3,
 						p4,
 						p_0,
-						p,
+						p_decay,
 						z_water_table,
 						z_water_table,
 						z_layer);

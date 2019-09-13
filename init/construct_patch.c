@@ -491,8 +491,10 @@ struct patch_object *construct_patch(
 	/*	use the maximum of the two									*/
 	/*--------------------------------------------------------------*/
 	patch[0].soil_defaults[0][0].detention_store_size = 
-				max(patch[0].landuse_defaults[0][0].detention_store_size,
-				patch[0].soil_defaults[0][0].detention_store_size);
+				patch[0].soil_defaults[0][0].detention_store_size * (1.0 - patch[0].Ksat_vertical);
+                // need to clean up
+                // this use as detention_store_size cap to constrain patch[0].detention_store
+                // this cap should be corrected by imperviousness of a patch (Sept 10, 2019)
 	/*--------------------------------------------------------------*/
 	/*	Read in the number of  patch base stations 					*/
 	/*--------------------------------------------------------------*/

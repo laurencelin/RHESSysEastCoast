@@ -80,7 +80,7 @@
 double	compute_z_final(
 						int	verbose_flag,
 						double	p_0,
-						double	p, //<<----- patch[0].soil_defaults[0][0].porosity_decay
+						double	p_decay, //<<----- patch[0].soil_defaults[0][0].porosity_decay
 						double	soil_depth,
 						double	z_initial,
 						double	delta_water)
@@ -160,7 +160,8 @@ double	compute_z_final(
 	/*--------------------------------------------------------------*/
 	/*	Ensure that p and p_0 is not zero 			*/
 	/*--------------------------------------------------------------*/
-	p = max(p,0.00000001); //forcing the model to take
+    // p_decay is "meter"
+	p_decay = max(p_decay,0.00000001); //forcing the model to take
 	p_0 = max(p_0,0.00000001);
 	
 	/*--------------------------------------------------------------*/
@@ -182,9 +183,9 @@ double	compute_z_final(
 			/*	Make sure we dont drain more than there is.		*/
 			/*--------------------------------------------------------------*/
 			delta_water = -1 * z_final;
-			if (p < 999.9) {
-				if ( z_final < (p*p_0) ){
-					z_final = -1 * p * log( 1 +  delta_water / ( p * p_0) );
+			if (p_decay < 999.9) {
+				if ( z_final < (p_decay*p_0) ){  // what check is this?
+					z_final = -1 * p_decay * log( 1 +  delta_water / ( p_decay * p_0) );
 				} else {
 					z_final = soil_depth;
 				}
@@ -209,7 +210,7 @@ double	compute_z_final(
 			compute_delta_water(
 			verbose_flag,
 			p_0,
-			p,
+			p_decay,
 			soil_depth,
 			z_initial,
 			0);
@@ -223,9 +224,9 @@ double	compute_z_final(
 			/*	make sure if delta_water is negative we dont blow up	*/
 			/*	the logarithm						*/
 			/*--------------------------------------------------------------*/
-			arguement = ( exp( -1 * z_initial/p) + delta_water / (p*p_0));
+			arguement = ( exp( -1 * z_initial/p_decay) + delta_water / (p_decay*p_0));
 			if ( arguement > 0 ){
-				z_final = -1 * p * log(arguement);
+				z_final = -1 * p_decay * log(arguement);
 			}
 			else{
 				z_final = soil_depth;

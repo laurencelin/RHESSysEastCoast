@@ -93,7 +93,7 @@ double	compute_soil_water_potential(
 							double  p3,
 							double  p4,
 							double  p_0,
-							double  p,
+							double  p_decay,
 							double	S) //<<------ rtS
 {
 	/*--------------------------------------------------------------*/
@@ -106,7 +106,7 @@ double	compute_soil_water_potential(
 	/*--------------------------------------------------------------*/
 	/*      Make sure p and p_0 are non zero.                       */
 	/*--------------------------------------------------------------*/
-	p = max(p,0.00000001);
+	p_decay = max(p_decay,0.00000001);
 	p_0 = max(p_0,0.00000001);
 	/*--------------------------------------------------------------*/
 	/*	compute soil water storage				*/

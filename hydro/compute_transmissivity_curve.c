@@ -95,13 +95,14 @@ double 	*compute_transmissivity_curve(
 	/*--------------------------------------------------------------*/
 
 	int didx,initial;
-	double	lower, depth, m;
+    double	lower, depth;
+    //double horizontal_ksat_decay;
 	double	lower_z, depth_z;
 	double start, fclayer, potential_sat;
 	double transmissivity_layer;
 	double *transmissivity;
 
-    m = patch[0].soil_defaults[0][0].m; // * patch[0].horizontal_k_SCALE;
+    //horizontal_ksat_decay = patch[0].soil_defaults[0][0].m; // * patch[0].horizontal_k_SCALE;
 
 	transmissivity = (double *) alloc((patch[0].num_soil_intervals+1) * sizeof(double),
 					"trans","compute_transmissivity_cuve");
@@ -170,8 +171,10 @@ double 	*compute_transmissivity_curve(
 
             // this block here is doing some field capacity correction, involving gamma.
             // m = patch[0].soil_defaults[0][0].m;
-            if (m > ZERO) transmissivity_layer = gamma * (exp ( -1.0 * (max(depth, 0.0)/ m)) - exp ( -1.0 * (lower/m))); // multipled by gamma
+            if (patch[0].soil_defaults[0][0].m > ZERO) transmissivity_layer = gamma * (exp ( -1.0 * (max(depth, 0.0)/patch[0].soil_defaults[0][0].m)) - exp ( -1.0 * (lower/patch[0].soil_defaults[0][0].m)));   // multipled by gamma
+                // wrong !!!! horizontal_ksat_decay or m or patch[0].soil_defaults[0][0].m is "1/meter" Sept 12, 2019
             else transmissivity_layer =  gamma * (lower-depth);
+                // this function is called during initial!
 
             fclayer = max(patch[0].soil_defaults[0][0].interval_size-fclayer,0.0);// volumn space after accounted for field capacity
             transmissivity_layer = min(fclayer, transmissivity_layer/patch[0].area);
@@ -190,8 +193,8 @@ double 	*compute_transmissivity_curve(
 		transmissivity[initial]=0.0;
 		lower = patch[0].soil_defaults[0][0].soil_water_cap;
 		depth = 0;
-		if (m > ZERO)
-			transmissivity[initial-1] =   (exp ( -1.0 * (max(depth, 0.0)/ m)) - exp ( -1.0 * (lower/m))); 
+		if (patch[0].soil_defaults[0][0].m > ZERO)
+			transmissivity[initial-1] =   (exp ( -1.0 * (max(depth, 0.0)*patch[0].soil_defaults[0][0].m)) - exp ( -1.0 * (lower*patch[0].soil_defaults[0][0].m)));
 		else
 			transmissivity[initial-1] =  (lower-depth);
 		

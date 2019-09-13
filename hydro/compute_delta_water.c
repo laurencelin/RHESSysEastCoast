@@ -51,7 +51,7 @@
 double	compute_delta_water(
 							int	verbose_flag,
 							double	n_0,
-							double	p,
+							double	p_decay,
 							double	soil_depth,
 							double	z_initial, //deeper when passing
 							double	z_final) //shallow when passing
@@ -94,8 +94,8 @@ double	compute_delta_water(
 	/*--------------------------------------------------------------*/
 	z_final = min(max(z_final,0),soil_depth);
 	z_initial = max(z_initial,0);
-	if ( ( p != 0 ) && (p < 999.0) ){
-		delta_water += n_0 * p * (exp(-z_final/p) - exp(-z_initial/p));
+	if ( ( p_decay <= 0 ) && (p_decay < 999.0) ){
+		delta_water += n_0 * p_decay * (exp(-z_final/p_decay) - exp(-z_initial/p_decay));
         // people make concepts of initial and final wrong.
         
 	}

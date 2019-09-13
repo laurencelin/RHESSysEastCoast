@@ -59,7 +59,7 @@ double	compute_lwp_predawn(
 							double  p3,
 							double  p4,
 							double  p_0,
-							double  p,
+							double  p_decay,
 							double	S)
 {
 	/*--------------------------------------------------------------*/
@@ -95,7 +95,7 @@ double	compute_lwp_predawn(
 		p3,
 		p4,
 		p_0,
-		p,
+		p_decay,
 		S);
 
 	return(LWP_predawn);

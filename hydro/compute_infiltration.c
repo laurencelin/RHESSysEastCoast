@@ -92,9 +92,10 @@ double	compute_infiltration(int verbose_flag,
         /*	depth							*/
         /*--------------------------------------------------------------*/
         if (m_z > ZERO)
-            Ksat = m_z * Ksat_0 *  (1-exp(-z/m_z))/z; //<<---------------- check formula, divided by z for average?
+            Ksat =  Ksat_0*m_z *  (1-exp(-z/m_z))/z; // divided by z for average
         else
             Ksat = Ksat_0;
+        
         if (p < 999.9)
             porosity = p*p_0*(1-exp(-z/p))/z;
         else

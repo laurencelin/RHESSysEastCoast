@@ -112,13 +112,13 @@ double recompute_gamma(
             if(patch[0].drainage_type != STREAM){
                 revised_total_gamma /= totaledge;
                 revised_total_gamma *= patch[0].area;
-                revised_total_gamma *= patch[0].soil_defaults[0][0].m * patch[0].soil_defaults[0][0].Ksat_0;
+                revised_total_gamma *= patch[0].soil_defaults[0][0].Ksat_0 * (patch[0].soil_defaults[0][0].m>0? patch[0].soil_defaults[0][0].m : 1.0);
                 //revised_total_gamma *= patch[0].horizontal_k_SCALE;
                 //revised_total_gamma *= patch[0].horizontal_k_SCALE;
             }else{
                 //stream; no change at all
                 revised_total_gamma = patch[0].tanSlope * patch[0].area;
-                revised_total_gamma *= patch[0].soil_defaults[0][0].m * patch[0].soil_defaults[0][0].Ksat_0;
+                revised_total_gamma *= patch[0].soil_defaults[0][0].Ksat_0 * (patch[0].soil_defaults[0][0].m>0? patch[0].soil_defaults[0][0].m : 1.0);
                 //revised_total_gamma *= patch[0].horizontal_k_SCALE;
                 //revised_total_gamma *= patch[0].horizontal_k_SCALE;
             }

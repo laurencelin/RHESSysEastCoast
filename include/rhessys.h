@@ -901,12 +901,12 @@ struct	soil_default
 	double	interval_size;					/* m */
 	double	Ksat_0;						/* meters/day */
 	double	Ksat_0_v;					/* meters/day */
-	double	m;						/* m^-1	*/
-	double	m_v;						/* m^-1	*/
-	double	m_z;						/* m^-1	*/
-	double	mz_v;						/* m^-1	*/
+	double	m;						/* m */
+	double	m_v;						/* m */
+	double	m_z;						/* m	*/
+	double	mz_v;						/* m */
 	double	porosity_0;						/* unitless */
-	double	porosity_decay;						/* m^-1 */
+	double	porosity_decay;						/* m  */
 	double	p3;						/* unitless */
 	double	p4;						/* unitless */
 	double	pore_size_index;				/* unitless */

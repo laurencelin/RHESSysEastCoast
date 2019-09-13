@@ -59,7 +59,7 @@ double	compute_unsat_zone_drainage(
 									int	curve,
 									double	p2,
 									double	S,
-									double	m,
+									double	m_z,
 									double	z, //<--- rootzone.depth or sat_deficit_z
 									double	Ksat_0,
 									double	potential_drainage )
@@ -87,7 +87,7 @@ double	compute_unsat_zone_drainage(
 	/*--------------------------------------------------------------*/
 	Ksat1  = Ksat_z_curve(
 		verbose_flag,
-		m,
+		m_z, // consistent to other vertical k processes, caprise, infiltrate
 		z,
 		Ksat_0);
 

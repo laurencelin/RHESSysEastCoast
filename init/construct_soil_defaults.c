@@ -102,7 +102,9 @@ struct soil_default *construct_soil_defaults(
 		default_object_list[i].theta_psi_curve = 	getIntParam(&paramCnt, &paramPtr, "theta_psi_curve", "%d", 1.0, 1);
 		default_object_list[i].Ksat_0 = 		getDoubleParam(&paramCnt, &paramPtr, "Ksat_0", "%lf", 3.0, 1);
         default_object_list[i].Ksat_0_v =         getDoubleParam(&paramCnt, &paramPtr, "Ksat_0_v", "%lf", -3.0, 1);// neagtive is to detect user enter value or not; set to Ksat_0 down bottom if Ksat_0_v <0
-		default_object_list[i].m = 			getDoubleParam(&paramCnt, &paramPtr, "m", "%lf", 0.12, 1);
+		default_object_list[i].m = 			getDoubleParam(&paramCnt, &paramPtr, "m", "%lf", 0.12, 1); // "meter"
+        default_object_list[i].m_z =             getDoubleParam(&paramCnt, &paramPtr, "m_z", "%lf", 0.4, 1); // "meter"
+        
 		default_object_list[i].porosity_0 = 		getDoubleParam(&paramCnt, &paramPtr, "porosity_0", "%lf", 0.435, 1);
 		default_object_list[i].porosity_decay = 	getDoubleParam(&paramCnt, &paramPtr, "porosity_decay", "%lf", 4000.0, 1); // m-1, that seems very large!!
 		default_object_list[i].p3 = 			getDoubleParam(&paramCnt, &paramPtr, "P3", "%lf", 0.0, 1); // param name upper case in param file
@@ -110,8 +112,8 @@ struct soil_default *construct_soil_defaults(
 		default_object_list[i].psi_air_entry = 		getDoubleParam(&paramCnt, &paramPtr, "psi_air_entry", "%lf", 0.218, 1);
 		default_object_list[i].psi_max = 		getDoubleParam(&paramCnt, &paramPtr, "psi_max", "%lf", 0.01, 1);
 		default_object_list[i].soil_depth = 		getDoubleParam(&paramCnt, &paramPtr, "soil_depth", "%lf", 200.0, 1);
-		default_object_list[i].m_z = 			getDoubleParam(&paramCnt, &paramPtr, "m_z", "%lf", 0.4, 1);
-		default_object_list[i].detention_store_size = 	getDoubleParam(&paramCnt, &paramPtr, "detention_store_size", "%lf", 0.0, 1);
+		
+		default_object_list[i].detention_store_size = 	getDoubleParam(&paramCnt, &paramPtr, "detention_store_size", "%lf", 0.0, 1); // non sense
 		default_object_list[i].deltaz = 		getDoubleParam(&paramCnt, &paramPtr, "deltaZ", "%lf", 1.0, 1); // param name contains uppercase "Z" in param file
 		default_object_list[i].active_zone_z = 		getDoubleParam(&paramCnt, &paramPtr, "active_zone_z", "%lf", 5.0, 1);
 		if(default_object_list[i].active_zone_z > default_object_list[i].soil_depth){
@@ -182,30 +184,63 @@ struct soil_default *construct_soil_defaults(
 		/*--------------------------------------------------------------*/
 			default_object_list[i].m_v = default_object_list[i].m;
 			default_object_list[i].mz_v = default_object_list[i].m_z;
-            if(default_object_list[i].Ksat_0_v < 0){default_object_list[i].Ksat_0_v = default_object_list[i].Ksat_0;}
-        printf("soil (%d) ksat=%lf ksat_v=%lf/n",
-               default_object_list[i].ID,
-               default_object_list[i].Ksat_0,
-               default_object_list[i].Ksat_0_v);
+            if(default_object_list[i].Ksat_0_v < 0){
+                default_object_list[i].Ksat_0_v = default_object_list[i].Ksat_0; // what if Ksat_0 is <0?
+            }//if
+            printf("soil (%d) ksat=%lf ksat_v=%lf/n",
+                   default_object_list[i].ID,
+                   default_object_list[i].Ksat_0,
+                   default_object_list[i].Ksat_0_v);
 
 		/*--------------------------------------------------------------*/
 		/* sensitivity adjustment of vertical drainage  soil paramters	*/
 		/*--------------------------------------------------------------*/
 		if (command_line[0].vsen_flag > 0) {
-				default_object_list[i].m_v *= command_line[0].vsen[M];
-				default_object_list[i].mz_v *= command_line[0].vsen[M];
-				default_object_list[i].Ksat_0_v *= command_line[0].vsen[K];
-		}
+				default_object_list[i].m_v *= command_line[0].vsen[M]; // I cannot find any use of this variable "m_v"
+                // patch[0].soil_defaults[0][0].m_v
+				default_object_list[i].mz_v *= command_line[0].vsen[M]; // passing into infiltration, unsat_drainage, pot_caprise, exfiltration,
+                // patch[0].soil_defaults[0][0].mz_v
+				default_object_list[i].Ksat_0_v *= command_line[0].vsen[K]; // passing into infiltration, unsat_drainage, pot_caprise, exfiltration,
+                //patch[0].soil_defaults[0][0].Ksat_0_v
+            
+                // what happens when "mz_v" is zero or negative? this should be "m"
+                // 1) infiltration -- detect negative and use ksat0
+                // 2) unsat_drainage -- calling "Ksat_z_curve" -- detect negative and use ksat0
+                // 3) pot_caprise -- calling "Ksat_z_curve" -- detect negative and use ksat0
+                // 4) exfiltration -- detect negative and use ksat0
+            
+            // for porosity (p decay is m; large = small rate) porosity_decay
+                // 1) infiltration* -- sort of detect negative (<999) and use p0
+                // 2) exfiltration* -- cannot handle p_decay<0 , p * p_0 * (1-exp(-1*sat_deficit_z/p)) / sat_deficit_z;
+                // 3) compute_z_final* -- sort of detect negative (<999) and use p0, forcing p_decay>=0.0000001
+                // 4) compute_lwp_predawn -- compute_soil_water_potential -- not using p0 / p_decay at all
+                // 5) compute_field_capacity -- sort of detect negative (<999)
+                // 5.5) compute_layer_field_capacity -- calling "compute_field_capacity"
+                // 6) compute_varbased_flow -- cannot handle negative p_decay
+                // 7) compute_delta_water -- detect negative and use p0
+            
+                // compute_N_leached
+                // patch_daily_F: cap_rise : satSolute transfer
+                // resolve_sminn_competition
+            
+		}//if
 
 		/*--------------------------------------------------------------*/
 		/* sensitivity adjustment of soil drainage paramters		*/
 		/*--------------------------------------------------------------*/
 		if (command_line[0].sen_flag > 0) {
-				default_object_list[i].m *= command_line[0].sen[M];
-				default_object_list[i].m_z *= command_line[0].sen[M];
+				default_object_list[i].m *= command_line[0].sen[M]; // gamma, transmissivity
+                // patch[0].soil_defaults[0][0].m
+				default_object_list[i].m_z *= command_line[0].sen[M]; // no use
+                // patch[0].soil_defaults[0][0].m_z
 				default_object_list[i].Ksat_0 *= command_line[0].sen[K];
 				default_object_list[i].soil_depth *= command_line[0].sen[SOIL_DEPTH];
-		}
+            
+                // what happenes when "m" is zero or negative? this should be "meter"
+                // 1) gamma -- detect negative and use ksat0; And, the initial gamma was protected in "construct_routing_topology.c"
+                // 2) transmissivity -- detect negative and use ksat0;
+            
+		}//if
 
 		/*--------------------------------------------------------------*/
 		/*      calculate water_equivalent depth of soil                */

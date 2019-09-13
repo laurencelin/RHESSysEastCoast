@@ -74,7 +74,7 @@ double	compute_potential_exfiltration(
 									   double	m_z,
 									   double	psi_air_entry,
 									   double	pore_size_index,
-									   double 	p,
+									   double 	p, // porosity decay
 									   double	p_0)
 {
 	/*--------------------------------------------------------------*/

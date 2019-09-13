@@ -38,7 +38,7 @@
 
 double	Ksat_z_curve(	
 					 int	verbose_flag,
-					 double	m,
+					 double	m_z,
 					 double	z,
 					 double	Ksat_0 )
 {
@@ -54,8 +54,8 @@ double	Ksat_z_curve(
 	/*--------------------------------------------------------------*/
 	/*	Specify curve						*/
 	/*--------------------------------------------------------------*/
-	if ( m > ZERO ){
-		Ksat_z = Ksat_0 * exp( -1 * z / m );
+	if ( m_z > ZERO ){
+		Ksat_z = Ksat_0 * exp( -1 * z / m_z );
 	}
 	else{
 		Ksat_z = Ksat_0;

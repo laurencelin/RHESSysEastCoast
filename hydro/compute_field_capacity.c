@@ -86,9 +86,9 @@ double	compute_field_capacity(
 							   double	p3,
 							   double	p4,
 							   double	p_0,
-							   double	p,
+							   double	p_decay,
 							   double	z_water_table,
-							   double	z,
+							   double	z, // what is it? could be water_table
 							   double	z_surface)
 {
 	/*--------------------------------------------------------------*/
@@ -118,7 +118,7 @@ double	compute_field_capacity(
 	/*--------------------------------------------------------------*/
 	/*	Make sure p and p_0 are non zero.			*/
 	/*--------------------------------------------------------------*/
-	p = max(p,0.00000001);
+	p_decay = max(p_decay,0.00000001);
 	p_0 = max(p_0,0.00000001);
 	if (z < ZERO) z = 0.0;
 	if (z_surface < ZERO) z_surface = 0.0;
@@ -127,7 +127,7 @@ double	compute_field_capacity(
 	/*	Only do numerical int. if porosity varies with depth    */
 	/*	otherwise use analytical solution 		 	*/
 	/*--------------------------------------------------------------*/
-	if ( p < 999.0 ) { 
+	if ( p_decay < 999.0 ) {
 		/*--------------------------------------------------------------*/
 		/*	Loop through each interval.				*/
 		/*	Only if the water table is not at or above the surface.	*/
@@ -154,7 +154,7 @@ double	compute_field_capacity(
 				else{
 					theta = 1;
 				}
-				porosity = p_0 * exp( -1 * depth / p);
+				porosity = p_0 * exp( -1 * depth / p_decay);
 				theta_actual = theta * porosity ;
 				field_capacity += theta_actual * INTERVAL_SIZE;
 			}//for
@@ -175,7 +175,7 @@ double	compute_field_capacity(
 	max_field_capacity = compute_delta_water(
 		verbose_flag,
 		p_0,
-		p,
+		p_decay,
 		z_water_table,
 		z,
 		z_surface);
