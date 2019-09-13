@@ -47,6 +47,7 @@ int update_septic(
 
 	patch[0].soil_ns.nitrate += patch[0].landuse_defaults[0][0].septic_NO3_load; 
 	patch[0].unsat_storage += patch[0].landuse_defaults[0][0].septic_water_load;
+    // wow it's so wrong here.
 		
 	return (!ok);
 } /* end update_septic.c */
