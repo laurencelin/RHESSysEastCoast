@@ -184,7 +184,8 @@ void	basin_hourly(
 	/*--------------------------------------------------------------*/
 	/* this part is nearly the same as in the basin_daily_F		*/
 
-	if ( command_line[0].routing_flag == 1 && zone_p[0].hourly_rain_flag==1) { 
+	if ( command_line[0].routing_flag == 1 && zone_p[0].hourly_rain_flag==1) {
+        printf("WTF: compute_subsurface_routing_hourly [%d]\n", zone_p[0].hourly_rain_flag);
 		compute_subsurface_routing_hourly(command_line,
 			basin,
 			basin[0].defaults[0][0].n_routing_timesteps,

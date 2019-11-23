@@ -32,7 +32,7 @@
 /*	depths between z and D; assumes an exponential decay	*/
 /*	of Ksat with depth (decay given by m) until z_layer1	*/
 /*	and then a constant conductivity below that layer	*/
-/*	given by Ksat at the surface				*/
+/*	given by Ksat at the surface?				*/
 /*	Note that if m is 0, we assume that Ksat is constant    */
 /*	with depth						*/
 /*								*/
@@ -119,41 +119,38 @@ double 	*compute_transmissivity_curve(
 //                                              soildepth - z(interval_size)
 //    |num_soil_intervals   0                   soildepth
 
-    //    transmissivity table is a look up table for a relative value [0-1] for surface gamma at depth with considerate of field capacity
     
     
 	if (patch[0].soil_defaults[0][0].soil_water_cap > patch[0].soil_defaults[0][0].interval_size){
         //whole column water space usually larger than layor space!
+        // soil_water_cap is volumn of water
         
         // looks like looping from bottom to up
-		initial = patch[0].num_soil_intervals;
-		depth = patch[0].soil_defaults[0][0].soil_water_cap;
-		transmissivity[initial]=0.0;
+		initial = patch[0].num_soil_intervals; // last index
+		depth = patch[0].soil_defaults[0][0].soil_water_cap; // full soil vol
+		transmissivity[initial]=0.0; // last index; at the bottom; from D to D --> 0 trans
 		initial = initial-1;
 		for (didx=initial; didx >= 0; didx -= 1) {
             lower = depth;//initially whole column water;
-			depth = depth-patch[0].soil_defaults[0][0].interval_size; //is soil_defaults[0][0].interval_size a volumme? looks like yes
+			depth = depth-patch[0].soil_defaults[0][0].interval_size; // set up for next step
 
-			
 			lower_z = compute_z_final(
 				command_line[0].verbose_flag,
 				patch[0].soil_defaults[0][0].porosity_0,
 				patch[0].soil_defaults[0][0].porosity_decay,
 				patch[0].soil_defaults[0][0].soil_depth,
 				0.0,// initial depth
-				-1.0*lower); //delta water
-            // first version: returns amt of water loss/gain due to the change of water table from (0.0) to (-1.0*lower)
-            // second version: returns the new water water height due to the changes of (-1.0*lower)
+				-1.0*lower); // the sat_def_z @ vol=lower (bottom)
             
-
 			depth_z = compute_z_final(
 				command_line[0].verbose_flag,
 				patch[0].soil_defaults[0][0].porosity_0,
 				patch[0].soil_defaults[0][0].porosity_decay,
 				patch[0].soil_defaults[0][0].soil_depth,
 				0.0,
-				-1.0*depth);
-
+				-1.0*depth); // the sat_def_z @ vol=lower-intervals (top)
+            
+            
             // field capacity: from water table to surface
             // lower_z and depth_z are the limits on the integration about theta-psi
             fclayer = compute_field_capacity(
@@ -166,17 +163,20 @@ double 	*compute_transmissivity_curve(
 				patch[0].soil_defaults[0][0].porosity_0,
 				patch[0].soil_defaults[0][0].porosity_decay,
 				patch[0].soil_defaults[0][0].soil_depth,
-				lower_z,
-				depth_z);// field capacity in a layer
+				lower_z, // bottom
+				depth_z);// top
 
             // this block here is doing some field capacity correction, involving gamma.
             // m = patch[0].soil_defaults[0][0].m;
-            if (patch[0].soil_defaults[0][0].m > ZERO) transmissivity_layer = gamma * (exp ( -1.0 * (max(depth, 0.0)/patch[0].soil_defaults[0][0].m)) - exp ( -1.0 * (lower/patch[0].soil_defaults[0][0].m)));   // multipled by gamma
-                // wrong !!!! horizontal_ksat_decay or m or patch[0].soil_defaults[0][0].m is "1/meter" Sept 12, 2019
-            else transmissivity_layer =  gamma * (lower-depth);
+            if (patch[0].soil_defaults[0][0].m > ZERO) transmissivity_layer = gamma *
+                ( exp( -1.0 * max(depth, 0.0)/patch[0].soil_defaults[0][0].m ) -
+                  exp ( -1.0 * lower/patch[0].soil_defaults[0][0].m) );   // multipled by gamma
+            else transmissivity_layer =  gamma * (lower-depth); // when no ksat decay
                 // this function is called during initial!
 
-            fclayer = max(patch[0].soil_defaults[0][0].interval_size-fclayer,0.0);// volumn space after accounted for field capacity
+            
+            // as if the layer_water is drained horizontially and a fc is left behind.
+            fclayer = max( patch[0].soil_defaults[0][0].interval_size - fclayer, 0.0); // volumn space after accounted for field capacity
             transmissivity_layer = min(fclayer, transmissivity_layer/patch[0].area);
 
             if (gamma > ZERO)
@@ -198,7 +198,7 @@ double 	*compute_transmissivity_curve(
 		else
 			transmissivity[initial-1] =  (lower-depth);
 		
-		}
+    }//else
 
 	return(transmissivity);
 

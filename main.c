@@ -398,25 +398,22 @@ int	main( int main_argc, char **main_argv)
 	prefix = (char *)calloc(256, sizeof(char));
 	if ( command_line[0].output_prefix != NULL ){
 		strcpy(prefix,command_line[0].output_prefix);
-	}
-	else{
+	} else{
 		strcpy(prefix,PRE);
 	}
-	output = construct_output_files( prefix, command_line );
+    output = construct_output_files( prefix, command_line );
+    add_headers(output, command_line);
+    
+    
 	if (command_line[0].grow_flag > 0) {
 		strcat(prefix,"_grow");
 		growth_output = construct_output_files(prefix, command_line );
-	}
-	else growth_output = NULL;
-
-	add_headers(output, command_line);
-		if (command_line[0].grow_flag > 0)
-			add_growth_headers(growth_output, command_line);
+	} else growth_output = NULL;
+    if (command_line[0].grow_flag > 0) add_growth_headers(growth_output, command_line);
 
 
 
-	if(command_line[0].verbose_flag > 0 )
-		fprintf(stderr,"FINISHED CON OUTPUT\n");
+	if(command_line[0].verbose_flag > 0 ) fprintf(stderr,"FINISHED CON OUTPUT\n");
 	
 	/*--------------------------------------------------------------*/
 	/*	Create the tec object (temporal event control)				*/

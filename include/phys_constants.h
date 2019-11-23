@@ -51,14 +51,14 @@ Iribane, J.V. and W.L. Godson, 1981.  Atmospheric Thermodynamics. 2nd
 #define WOOD_GRPERC    2.0  /* (DIM) growth resp per unit of woody C grown */
 
 
-#define  PARTICLE_DENSITY	2.65	/* soil particle density g/cm3 (Dingman) */
+//#define  PARTICLE_DENSITY	2.65	/* soil particle density g/cm3 (Dingman) */
 
 
-#define NUM_VAR_BASIN 17
-#define NUM_VAR_HILLSLOPE 18
-#define NUM_VAR_ZONE 22
-#define NUM_VAR_PATCH 47
-#define NUM_VAR_STRATA 66
+#define NUM_VAR_BASIN 17 // need at least 8
+#define NUM_VAR_HILLSLOPE 18 // need at least 12
+#define NUM_VAR_ZONE 22 //need at least 14
+#define NUM_VAR_PATCH 70 // need at least 51
+#define NUM_VAR_STRATA 71 // need at least 57
 
 #define NUM_fday_Pred 60
 

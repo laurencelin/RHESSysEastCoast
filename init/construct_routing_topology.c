@@ -142,35 +142,36 @@ struct routing_list_object *construct_routing_topology(char *routing_filename,
         if ( !surface ){
             patch[0].aggregate_ID = aggregate_ID;
             patch[0].aggregate_index = aggregate_index;
-            patch[0].constraintWaterTableTopDepth = wttd;
+            
             // 3m basement depth then 3*baseFrac + 0*(1-baseFrac) = wttd --> baseFrac = wttd/3.0;
-            patch[0].basementFrac = wttd/3.0;
-            patch[0].constraintWaterTableTopDepth_def = patch[0].basementFrac * compute_delta_water(
-                                                                              command_line[0].verbose_flag,
-                                                                              patch[0].soil_defaults[0][0].porosity_0,
-                                                                              patch[0].soil_defaults[0][0].porosity_decay,
-                                                                              patch[0].soil_defaults[0][0].soil_depth,
-                                                                              3.0, 0.0);
+            patch[0].constraintWaterTableTopDepth = wttd;
+            patch[0].basementFrac = 0.0; //min(1.0,wttd/3.0);
+            patch[0].constraintWaterTableTopDepth_def = 0.0; //patch[0].basementFrac * patch[0].soil_defaults[0][0].rtz2sat_def_0z[(patch[0].soil_defaults[0][0].soildepthLen>3001? 3000:patch[0].soil_defaults[0][0].soildepthLen-1)];
             
-//            patch[0].constraintWaterTableTopDepth_def = compute_delta_water(
-//                                                                            command_line[0].verbose_flag,
-//                                                                            patch[0].soil_defaults[0][0].porosity_0,
-//                                                                            patch[0].soil_defaults[0][0].porosity_decay,
-//                                                                            patch[0].soil_defaults[0][0].soil_depth,
-//                                                                            patch[0].constraintWaterTableTopDepth, 0.0);
+            if(patch[0].constraintWaterTableTopDepth_def > patch[0].soil_defaults[0][0].soil_water_cap){
+//                if(patch[0].constraintWaterTableTopDepth_def > patch[0].soil_defaults[0][0].soil_water_cap + ZERO){
+//                    printf("reading routing table (%d) %f(%f,%d)-->(%f,%f,%f) | %f(%f)\n",
+//                           patch[0].ID,
+//                           patch[0].soil_defaults[0][0].soil_water_cap,
+//                           patch[0].soil_defaults[0][0].soil_depth,
+//                           patch[0].soil_defaults[0][0].soildepthLen,
+//
+//                           patch[0].soil_defaults[0][0].rtz2sat_def_0z[0],
+//                           patch[0].soil_defaults[0][0].rtz2sat_def_0z[patch[0].soil_defaults[0][0].soildepthLen-1],
+//                           patch[0].soil_defaults[0][0].rtz2sat_def_0z[3000],
+//
+//                           patch[0].constraintWaterTableTopDepth_def, patch[0].basementFrac);
+//                }
+                patch[0].constraintWaterTableTopDepth_def = patch[0].soil_defaults[0][0].soil_water_cap;
+            }//debug
+//            patch[0].constraintWaterTableTopDepth_def = patch[0].basementFrac * compute_delta_water(
+//                                                                              command_line[0].verbose_flag,
+//                                                                              patch[0].soil_defaults[0][0].porosity_0,
+//                                                                              patch[0].soil_defaults[0][0].porosity_decay,
+//                                                                              patch[0].soil_defaults[0][0].soil_depth,
+//                                                                              3.0, 0.0);
             
-            
-            
-            patch[0].horizontal_k_SCALE = 1.0; //area;
-            
-//            patch[0].rootzone.NO3decayRate = 0.12; //k*0.01;
-//            patch[0].rootzone.NH4decayRate = 0.35; //k*0.01;
-//            patch[0].rootzone.DOMdecayRate = 0.12 ; //k*0.01; 0.35, 0.12
-//            patch[0].surface_NO3 = 0.0;
-//            patch[0].surface_NH4 = 0.0;
-//            patch[0].surface_DOC = 0.0;
-//            patch[0].surface_DON = 0.0;
-
+            // come back later
             // assume soil OM is 0.35 decay; (patch averaged) basement; disturbed soil lost 60% OM is set in worldfile.
             double remainPerc = (exp(-0.12*wttd)-exp(-0.12*patch[0].soil_defaults[0][0].soil_depth))/(1.0-exp(-0.12*patch[0].soil_defaults[0][0].soil_depth));
             
@@ -200,11 +201,11 @@ struct routing_list_object *construct_routing_topology(char *routing_filename,
 			printf("\n WARNING lateral Ksat (%lf) are close to zero for patch %d",
 				soilD->Ksat_0, patch[0].ID);
 		
-        
-		if (soilD->m < ZERO)
-		 	gamma = gamma * soilD->Ksat_0;
-		else	
-		 	gamma = gamma * soilD->m * soilD->Ksat_0;
+        // do this in tranmissivity (already done in soil.def read-in)
+//		if (soilD->m < ZERO)
+//		 	gamma = gamma * soilD->Ksat_0;
+//		else
+//		 	gamma = gamma * soilD->m * soilD->Ksat_0;
 
 		/*--------------------------------------------------------------*/
 		/*  Allocate innundation list array				*/
@@ -267,11 +268,12 @@ struct routing_list_object *construct_routing_topology(char *routing_filename,
 				&zone_ID,
 				&hill_ID,
 				&width);
-			// TODO: Decide if we need separate stream_gamma, road_cut_depth, and next_stream values for surface flow table
+			// note: Decide if we need separate stream_gamma, road_cut_depth, and next_stream values for surface flow table
 			if ( !surface ) {
                 // subsurface only!
 				patch[0].stream_gamma = gamma;
 				patch[0].road_cut_depth = width * tan(patch[0].slope);
+                patch[0].road_cut_depth_def = patch[0].soil_defaults[0][0].rtz2sat_def_0z[(int)(patch[0].road_cut_depth*1000)];
 				stream = find_patch(patch_ID, zone_ID, hill_ID, basin);
 				patch[0].next_stream = stream;
 			}
@@ -282,12 +284,14 @@ struct routing_list_object *construct_routing_topology(char *routing_filename,
 			/*--------------------------------------------------------------*/
 			/*	create a vector of transmssivities 			*/
 			/*--------------------------------------------------------------*/
-			patch[0].num_soil_intervals = (int) lround(patch[0].soil_defaults[0][0].soil_water_cap / patch[0].soil_defaults[0][0].interval_size);
-			if (patch[0].num_soil_intervals > MAX_NUM_INTERVAL) {
-				patch[0].num_soil_intervals = MAX_NUM_INTERVAL;
-				patch[0].soil_defaults[0][0].interval_size = patch[0].soil_defaults[0][0].soil_water_cap / MAX_NUM_INTERVAL;
-				}
-			patch[0].transmissivity_profile = compute_transmissivity_curve(gamma, patch, command_line);
+            // already done in soil.def read-in
+            
+//			patch[0].num_soil_intervals = (int) lround(patch[0].soil_defaults[0][0].soil_water_cap / patch[0].soil_defaults[0][0].interval_size);
+//			if (patch[0].num_soil_intervals > MAX_NUM_INTERVAL) {
+//				patch[0].num_soil_intervals = MAX_NUM_INTERVAL;
+//				patch[0].soil_defaults[0][0].interval_size = patch[0].soil_defaults[0][0].soil_water_cap / MAX_NUM_INTERVAL;
+//				}
+//			patch[0].transmissivity_profile = compute_transmissivity_curve(gamma, patch, command_line);
         }
 
         command_line[0].outletPatchID = patch[0].ID;// shortcut to save this info on commandline obj; ideally it would be basin.

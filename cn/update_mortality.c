@@ -162,11 +162,40 @@ void update_mortality(
     m_cpool = 0.0;
     m_gresp_store_to_litr1c = 0.0; // = mort.mort_cpool * cs->gresp_store; //<-------------------------
     m_gresp_transfer_to_litr1c = 0.0; //= mort.mort_cpool * cs->gresp_transfer; //<-------------------------
+    // more on "gresp_store"
+    // - SEE canopy_stratum_growth => @ 108 allocate_daily_growth --> "cpool_to_gresp_store"
+    // - SEE canopy_stratum_growth => @ 171 update_C_stratum_daily --> cs->cpool -= cdf->cpool_to_gresp_store;
+    // more on "gresp_transfer"
+    // - SEE update_C_stratum_daily
+    //
+    // In the original code, "cs->gresp_store" is double-counted; and seeing "cpool2storage" & "transfer2part" are the same respiration.
+    // original code @ allocate_annual_growth:
+    // cdf->gresp_store_to_gresp_transfer = cs->gresp_store * storage_transfer_prop;
+    // cs->cpool += cs->gresp_store * (1.0-storage_transfer_prop);
+    // cs->gresp_store = 0.0;
+    //
+    // In my view, "cpool2storage" is respiration I
+    // note: @ allocate_daily_growth: (cdf->cpool_to_leafc_store + cdf->cpool_to_frootc_store)*g1, where g1 = epc.gr_perc
+    // this is like a cost to build storage from sunlight.
+    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    // note: @ allocate_annual_growth: cdf->frootc_store_to_frootc_transfer = cs->frootc_store* epc.storage_transfer_prop;
+    // it transfer the "storage" to "transfer"; no respiration because it's kind of renaming the box.
+    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    // In my view, "transfer2part" is respiration II
+    // note: @ patch_dailyI => canopy_stratum_daily_I => @ 298 update_phenology: cdf->leafc_transfer_to_leafc = 2.0*cs->leafc_transfer / remdays_transfer during beginning of growth reason; Yes respiration; calcalated below.
+    // note: @ patch_dailyF => canopy_stratum_growth => @ 145 compute_growth_resp: cdf->transfer_leaf_gr = cdf->leafc_transfer_to_leafc * g1;
+    // note: @ patch_dailyF => canopy_stratum_growth => @ 171 update_C_stratum_daily: cs->gresp_transfer -= cdf->transfer_leaf_gr;
+    //                                                                                cs->cpool += cs->gresp_transfer;
+    //                                                                                cs->gresp_transfer = 0.0;
+    //
+    //
     // ns->retransn, on the other hands, it's a surplus storage of N, not just a transit/stage variable.
     // npool is related to "ns->retransn", and they work in pair
-    m_npool = 0.0; //mort.mort_cpool * ns->npool; // these are pure N output (decay rate is too high)
-    m_retransn_to_litr1n = 0.0; //mort.mort_cpool * ns->retransn; // these are pure N output (decay rate is too high)
-	
+    m_npool = 0.0; //mort.mort_cpool * ns->npool; // these are pure N output
+    m_retransn_to_litr1n = 0.0; //mort.mort_cpool * ns->retransn; // these are pure N output
+	//
+    
+    
     
 	m_leafc_to_litr1c = mort.mort_leafc * cs->leafc * epc.leaflitr_flab;
 	m_leafc_to_litr2c = mort.mort_leafc * cs->leafc * epc.leaflitr_fucel;
@@ -212,7 +241,21 @@ void update_mortality(
         m_deadcrootc_store_to_litr1c  = mort.mort_cpool * cs->deadcrootc_store;
 		m_deadcrootc_transfer_to_litr1c = mort.mort_cpool * cs->deadcrootc_transfer;
         // --->> all to litter 1 ?
-	}
+    }else{
+        // not TREE
+        m_livestemc_to_cwdc = 0.0;
+        m_deadstemc_to_cwdc = 0.0;
+        m_livecrootc_to_cwdc = 0.0;
+        m_deadcrootc_to_cwdc = 0.0;
+        m_livestemc_store_to_litr1c  = 0.0;
+        m_livestemc_transfer_to_litr1c = 0.0;
+        m_deadstemc_store_to_litr1c  = 0.0;
+        m_deadstemc_transfer_to_litr1c = 0.0;
+        m_livecrootc_store_to_litr1c  = 0.0;
+        m_livecrootc_transfer_to_litr1c = 0.0;
+        m_deadcrootc_store_to_litr1c  = 0.0;
+        m_deadcrootc_transfer_to_litr1c = 0.0;
+    }//if else
 
     
 	/* daily nitrogen fluxes due to mortality */
@@ -288,17 +331,32 @@ void update_mortality(
 	/* TREE-specific nitrogen fluxes */
 	if (epc.veg_type==TREE){
 
-        m_livestemn_to_cwdn = m_livestemc_to_cwdc / epc.deadwood_cn;
-        m_livecrootn_to_cwdn = m_livecrootc_to_cwdc / epc.deadwood_cn;
+        
         /* Assumes same mortality fractions as for c pools */
         if(BGC_flag==0){
+            m_livestemn_to_cwdn = m_livestemc_to_cwdc / epc.deadwood_cn;
+            m_livecrootn_to_cwdn = m_livecrootc_to_cwdc / epc.deadwood_cn;
             m_livestemn_to_litr1n = (mort.mort_livestemc * ns->live_stemn) - m_livestemn_to_cwdn;
             m_livecrootn_to_litr1n = (mort.mort_livecrootc * ns->live_crootn) - m_livecrootn_to_cwdn;
         }else{
             //BGC_flag is ON
-            m_livestemn_to_litr1n = (mort.mort_livestemc * ns->live_stemn) - m_livestemn_to_cwdn;
-            m_livecrootn_to_litr1n = (mort.mort_livecrootc * ns->live_crootn) - m_livecrootn_to_cwdn;
-        }
+            m_livestemn_to_cwdn = m_livestemc_to_cwdc / epc.deadwood_cn;
+            if( mort.mort_livestemc*ns->live_stemn > m_livestemn_to_cwdn){
+                m_livestemn_to_litr1n = (mort.mort_livestemc * ns->live_stemn) - m_livestemn_to_cwdn;
+            }else{
+                m_livestemn_to_cwdn = mort.mort_livestemc*ns->live_stemn;
+                m_livestemn_to_litr1n = 0.0;
+            }
+            
+            m_livecrootn_to_cwdn = m_livecrootc_to_cwdc / epc.deadwood_cn;
+            if( mort.mort_livecrootc*ns->live_crootn > m_livecrootn_to_cwdn){
+                m_livecrootn_to_litr1n = (mort.mort_livecrootc * ns->live_crootn) - m_livecrootn_to_cwdn;
+            }else{
+                m_livecrootn_to_cwdn = mort.mort_livecrootc*ns->live_crootn;
+                m_livecrootn_to_litr1n = 0.0;
+            }
+            
+        }//if
 		
         m_deadstemn_to_cwdn = mort.mort_deadstemc * ns->dead_stemn;
         m_deadcrootn_to_cwdn = mort.mort_deadcrootc * ns->dead_crootn;
@@ -313,7 +371,25 @@ void update_mortality(
         m_livecrootn_transfer_to_litr1n = mort.mort_cpool * ns->livecrootn_transfer; //
         m_deadcrootn_store_to_litr1n  = mort.mort_cpool * ns->deadcrootn_store;
         m_deadcrootn_transfer_to_litr1n = mort.mort_cpool * ns->deadcrootn_transfer;
-	}//TREE
+    }else{
+        m_livestemn_to_cwdn = 0.0;
+        m_livecrootn_to_cwdn = 0.0;
+        
+        m_livestemn_to_litr1n = 0.0;
+        m_livecrootn_to_litr1n = 0.0;
+        m_deadstemn_to_cwdn = 0.0;
+        m_deadcrootn_to_cwdn = 0.0;
+        
+        m_livestemn_store_to_litr1n  = 0.0; //
+        m_livestemn_transfer_to_litr1n = 0.0; //
+        m_deadstemn_store_to_litr1n  = 0.0;
+        m_deadstemn_transfer_to_litr1n = 0.0;
+        
+        m_livecrootn_store_to_litr1n  = 0.0; //
+        m_livecrootn_transfer_to_litr1n = 0.0; //
+        m_deadcrootn_store_to_litr1n  = 0.0;
+        m_deadcrootn_transfer_to_litr1n = 0.0;
+    }// if else
 	
 
     
@@ -346,14 +422,14 @@ void update_mortality(
                patch[0].ID,stratum->defaults[0][0].ID, current_date.day, current_date.month, current_date.year, BGC_flag,
                cn_l1,cn_l2,cn_l3,cn_l4,//l1CN
                // add2L1
-               add2L1c/add2L1n, // why this becomes -9.134378e+17?
-               m_leafc_to_litr1c/m_leafn_to_litr1n,//1 * nan
-               m_deadleafc_to_litr1c/m_deadleafn_to_litr1n,//2 45
-               m_frootc_to_litr1c/m_frootn_to_litr1n,//3 * 50
+               add2L1c/add2L1n, // 5.351626e-03
+               m_leafc_to_litr1c/m_leafn_to_litr1n,// 2.500000e+01
+               m_deadleafc_to_litr1c/m_deadleafn_to_litr1n,// nan
+               m_frootc_to_litr1c/m_frootn_to_litr1n,//5.000000e+01
                m_deadstemc_store_to_litr1c/m_deadstemn_store_to_litr1n,//4 nan
-               m_deadstemc_transfer_to_litr1c/m_deadstemn_transfer_to_litr1n,//5 nan
+               m_deadstemc_transfer_to_litr1c/m_deadstemn_transfer_to_litr1n,//5 0
                m_deadcrootc_store_to_litr1c/m_deadcrootn_store_to_litr1n,//6 nan
-               m_deadcrootc_transfer_to_litr1c/m_deadcrootn_transfer_to_litr1n,//7 nan
+               m_deadcrootc_transfer_to_litr1c/m_deadcrootn_transfer_to_litr1n,//7 0
                // add2DOC
                add2DOC/add2DON,
                m_leafc_store_to_litr1c/m_leafn_store_to_litr1n,// turns negative

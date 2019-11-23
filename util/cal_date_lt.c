@@ -26,7 +26,7 @@
 #include "rhessys.h"
 
 int	 cal_date_lt( struct date date1,
-				 struct date date2) 
+				 struct date date2) // world start date
 {
 	/*--------------------------------------------------------------*/
 	/*	Local function declarations.								*/

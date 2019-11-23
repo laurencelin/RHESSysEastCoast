@@ -79,6 +79,8 @@ struct	yearly_clim_object *construct_yearly_clim(
 	/*--------------------------------------------------------------*/
 	yearly_clim[0].temp = NULL;
 	
+    
+    
 	/*--------------------------------------------------------------*/
 	/*	Read the still open base station file for the number of		*/
 	/*	non-critical parameters.									*/

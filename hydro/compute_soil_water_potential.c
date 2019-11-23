@@ -92,9 +92,9 @@ double	compute_soil_water_potential(
 							double 	pore_size_index, // pore_size_index
 							double  p3,
 							double  p4,
-							double  p_0,
-							double  p_decay,
-							double	S) //<<------ rtS
+							double  storage,
+							double  storage_capacity,
+							double	sat_def) //<<------ rtS
 {
 	/*--------------------------------------------------------------*/
 	/*	Local function declaration				*/
@@ -103,11 +103,12 @@ double	compute_soil_water_potential(
 	/*	Local variable definition.				*/
 	/*--------------------------------------------------------------*/
 	double	LWP_predawn;
+    double S;
 	/*--------------------------------------------------------------*/
 	/*      Make sure p and p_0 are non zero.                       */
 	/*--------------------------------------------------------------*/
-	p_decay = max(p_decay,0.00000001);
-	p_0 = max(p_0,0.00000001);
+	//p_decay = max(p_decay,0.00000001);
+	//p_0 = max(p_0,0.00000001);
 	/*--------------------------------------------------------------*/
 	/*	compute soil water storage				*/
 	/*--------------------------------------------------------------*/
@@ -136,6 +137,15 @@ double	compute_soil_water_potential(
 	/*	this is a problem but if unsat_storage is zero there	*/
 	/*	is actually lots of water				*/
 	/*--------------------------------------------------------------*/
+    if(storage_capacity > ZERO){
+        // yes root
+        if(storage_capacity>sat_def) S = (storage + storage_capacity-sat_def) / storage_capacity;
+        else S = storage / storage_capacity;
+    }else{
+        //no root
+        S = 2.0;
+    }//if
+    
 	if (S > 1.0) {
 		LWP_predawn = LWP_min_spring;
 	}else{
@@ -148,7 +158,7 @@ double	compute_soil_water_potential(
 		switch(curve) {
 
 		case 1: 
-			LWP_predawn = min( -0.01*(psi_air_entry*pow(S, -1.0/pore_size_index)), LWP_min_spring);
+			LWP_predawn = min( -0.01*(psi_air_entry* exp(-log(S)/pore_size_index)), LWP_min_spring);
                 // LWP_predawn >= LWP_min_spring --> score 1; otherwise < 1
                 // when S > 0.5 is more likely to have LWP_predawn = LWP_min_spring
                 // when S == 1, min(-0.01*0.3, -0.8) ==> LWP_predawn=LWP_min_spring
@@ -158,14 +168,14 @@ double	compute_soil_water_potential(
 			break;
 		case 2:
 			if (S > ZERO) 
-				LWP_predawn = min( -1.0 * 0.01 * psi_air_entry
-				* pow( pow(1/S,1/(1-1/pore_size_index)) -1 , 1/pore_size_index )
+				LWP_predawn = min( -0.01 * psi_air_entry
+				* exp( log(exp(-log(S)/(1.0-1.0/pore_size_index))-1.0)/pore_size_index )
 					, LWP_min_spring);
 			else LWP_predawn = LWP_stom_closure;
 			break;
 		case 3:
 			if (S > ZERO) 
-				LWP_predawn = -1.0*exp(p3+p4*log(S));
+				LWP_predawn = -exp(p3+p4*log(S));
 			else LWP_predawn = LWP_stom_closure;
 			break;
 		}

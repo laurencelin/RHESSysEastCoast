@@ -97,7 +97,9 @@ struct landuse_default *construct_landuse_defaults(
 		default_object_list[i].fertilizer_NO3 = 	getDoubleParam(&paramCnt, &paramPtr, "fertilizer_NO3", "%lf", 0.0, 1);//kgN/m2/each time
 		default_object_list[i].fertilizer_NH4 = 	getDoubleParam(&paramCnt, &paramPtr, "fertilizer_NH4", "%lf", 0.0, 1);//kgN/m2/each time
         default_object_list[i].fertilizer_freq =     getIntParam(&paramCnt, &paramPtr, "fertilizer_freq", "%d", 30, 1); // # of days between each time
-        default_object_list[i].fertilizer_decay_rate = 1.0 - exp(-10/(1.0*default_object_list[i].fertilizer_freq));
+        default_object_list[i].fertilizer_decay_rate = -log(0.1)/(1.0*default_object_list[i].fertilizer_freq);
+        // 1.0 - exp(-10/(1.0*default_object_list[i].fertilizer_freq));
+        // for period "default_object_list[i].fertilizer_freq", the stored fertilizer should have been gone 10% N0)
         
 		default_object_list[i].septic_NO3_load = 	getDoubleParam(&paramCnt, &paramPtr, "septic_NO3_load", "%lf", 0.0, 1) / 365.0;
 		default_object_list[i].septic_water_load = 	getDoubleParam(&paramCnt, &paramPtr, "septic_water_load", "%lf", 0.0, 1) / 365.0;

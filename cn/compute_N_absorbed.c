@@ -61,7 +61,7 @@ double	compute_N_absorbed(int verbose_flag,
         //nabsorbed = N_absorption_rate *  n_0 (where is this come from?) *  (kg soil);
         //nabsorbed = N_absorption_rate *  (kg soil);
 
-        //bulk_density = PARTICLE_DENSITY * (1.0 - porosity) * 1000; <<--- 1000 is converting unit o kg/m3
+        //bulk_density = PARTICLE_DENSITY * (1.0 - porosity) * 1000; <<--- 1000 is converting unit to kg/m3
         //bulk_density = PARTICLE_DENSITY * 1000 * ( z2-z1 -n_0*(exp(-p*z2)-exp(-p*z1))/p ) / (z2-z1);
         // n_0 = patch[0].soil_defaults[0][0].porosity_0
         // p = patch[0].soil_defaults[0][0].porosity_decay

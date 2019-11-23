@@ -64,7 +64,13 @@ void	canopy_stratum_hourly(
 	rain_throughfall = 0;
 	NO3_stored = 0;
 	NO3_throughfall=0;
-
+    
+    if(stratum[0].rain_stored<0){
+        printf("bad rain_stored (H): %d,%d,%d,%lf\n",
+               patch[0].ID,stratum[0].ID, stratum[0].defaults[0][0].ID,stratum[0].rain_stored);
+        stratum[0].rain_stored = 0.0;
+    }//debug
+    
 	/*--------------------------------------------------------------*/
 	/*	Create canopy stratum hourly object.						*/
 	/*--------------------------------------------------------------*/
@@ -73,10 +79,10 @@ void	canopy_stratum_hourly(
 		"hourly","canopy_stratum_hourly");
 	rain_throughfall = patch[0].hourly[0].rain_throughfall;
 	if ((zone[0].hourly_rain_flag == 1) && ( rain_throughfall > 0.0)) {
-		stratum[0].rain_stored = compute_hourly_rain_stored(
+		stratum[0].rain_stored = max(0.0,compute_hourly_rain_stored(
 			command_line[0].verbose_flag,
 			&(rain_throughfall),
-			stratum);
+			stratum));
 		patch[0].rain_throughfall_final += rain_throughfall * stratum[0].cover_fraction;
 	}
 	/*--------------------------------------------------------------*/
@@ -85,7 +91,7 @@ void	canopy_stratum_hourly(
 
 
 	NO3_stored = 0;
-        NO3_throughfall = 0;
+    NO3_throughfall = 0;
 
 	if (stratum[0].rain_stored > 0){
         // when no hourly_rain_flag(=0), hourly[0].NO3_throughfall=0;
@@ -97,8 +103,7 @@ void	canopy_stratum_hourly(
         //tmp1 = (stratum[0].rain_stored) / (stratum[0].rain_stored + rain_throughfall) ;
 	    //tmp2 = (rain_throughfall) / (stratum[0].rain_stored + rain_throughfall) ;
 		
-	}
-	else{//stratum[0].rain_stored == 0 
+	} else{//stratum[0].rain_stored == 0
 	    if (rain_throughfall > 0){
             NO3_stored = (stratum[0].rain_stored)
                 / (stratum[0].rain_stored + rain_throughfall)
@@ -107,13 +112,13 @@ void	canopy_stratum_hourly(
             NO3_throughfall =  (rain_throughfall)
             / (stratum[0].rain_stored + rain_throughfall)
             * (stratum[0].NO3_stored + patch[0].hourly[0].NO3_throughfall);
-	    }
-	    else{// rain_throughfall == 0
+            
+	    } else{// rain_throughfall == 0
             // when no hourly_rain_flag(=0), hourly[0].NO3_throughfall=0;
-                NO3_stored = stratum[0].NO3_stored + patch[0].hourly[0].NO3_throughfall;//<<-----------
-		NO3_throughfall = 0;
+            NO3_stored = stratum[0].NO3_stored + patch[0].hourly[0].NO3_throughfall;//<<-----------
+            NO3_throughfall = 0;
 	    }
-	}
+	}//if
 
 
 

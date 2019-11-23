@@ -83,8 +83,8 @@ double *construct_clim_sequence(char *file, struct date start_date,
 	/*--------------------------------------------------------------*/
 	if ( (sequence_file = fopen(file, "r") ) == NULL ){
 		fprintf(stderr,
-			"\nFATAL ERROR: in construct_clim_sequence\nunable to open sequence file %s\n", file);
-		fprintf(stderr, "\nFile name %s", file);
+			"FATAL ERROR: in construct_clim_sequence: unable to open sequence file %s\n", file);
+		fprintf(stderr, "File name %s", file);
 		exit(EXIT_FAILURE);
 	} /*end if*/
 	/*--------------------------------------------------------------*/

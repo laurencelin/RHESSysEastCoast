@@ -106,6 +106,9 @@ void	output_24hours_basin(			int routing_flag,
 	struct	patch_object  *patch;
 	struct	zone_object	*zone;
 	struct hillslope_object *hillslope;
+    double unsat_capacity;
+    double unsat_fc;
+    double rtz_fc;
 	/*--------------------------------------------------------------*/
 	/*	Initialize Accumlating variables.								*/
 	/*--------------------------------------------------------------*/
@@ -214,7 +217,9 @@ void	output_24hours_basin(			int routing_flag,
     agsi_vps =0.0;
     agsi_dlen =0.0;
     agsi_tmin =0.0;
-
+    unsat_capacity = 0.0;
+    unsat_fc = 0.0;
+    rtz_fc = 0.0;
 	for (h=0; h < basin[0].num_hillslopes; h++){
 		hillslope = basin[0].hillslopes[h];
 		hill_area = 0.0;
@@ -241,7 +246,7 @@ void	output_24hours_basin(			int routing_flag,
 			zone_area += zone[0].area;
 			for (p=0; p< zone[0].num_patches; p++){
 				patch = zone[0].patches[p];
-				arain_throughfall += (patch[0].rain_throughfall_24hours + patch[0].rain_throughfall) * patch[0].area;
+				arain_throughfall += (patch[0].rain_throughfall_24hours + patch[0].rain_throughfall) * patch[0].area;// why two terms here?
 				asnow_throughfall += patch[0].snow_throughfall * patch[0].area;
 				apcpassim += patch[0].precip_with_assim * patch[0].area;
 				asat_deficit_z += patch[0].sat_deficit_z * patch[0].area;
@@ -249,16 +254,20 @@ void	output_24hours_basin(			int routing_flag,
 				arecharge += patch[0].recharge * patch[0].area;
 				arz_storage += patch[0].rz_storage * patch[0].area;		
 				aunsat_storage += patch[0].unsat_storage * patch[0].area;
+                unsat_capacity += (patch[0].sat_deficit-patch[0].rootzone.potential_sat) * patch[0].area;
+                unsat_fc += patch[0].field_capacity * patch[0].area;
+                rtz_fc += patch[0].rootzone.field_capacity * patch[0].area;
+                
 				arz_drainage += patch[0].rz_drainage * patch[0].area;	
 				aunsat_drainage += patch[0].unsat_drainage * patch[0].area;
 				acap_rise += patch[0].cap_rise * patch[0].area;
-				aevaporation += (patch[0].evaporation + patch[0].evaporation_surf
-					+ patch[0].exfiltration_sat_zone
-					+ patch[0].exfiltration_unsat_zone) * patch[0].area;
+				aevaporation += (patch[0].evaporation
+                                 + patch[0].evaporation_surf
+                                 + patch[0].exfiltration_sat_zone
+                                 + patch[0].exfiltration_unsat_zone) * patch[0].area;
 				aevap_can += (patch[0].evaporation) * patch[0].area;
 				aevap_lit += (patch[0].evaporation_surf) * patch[0].area;
-				aevap_soil += (patch[0].exfiltration_sat_zone
-							   + patch[0].exfiltration_unsat_zone) * patch[0].area;
+				aevap_soil += (patch[0].exfiltration_sat_zone + patch[0].exfiltration_unsat_zone) * patch[0].area;
 				asublimation += patch[0].snowpack.sublimation * patch[0].area;
 				asnowpack += patch[0].snowpack.water_equivalent_depth*patch[0].area;
 				if (patch[0].snowpack.water_equivalent_depth > 0.001)
@@ -367,9 +376,8 @@ void	output_24hours_basin(			int routing_flag,
 						   + patch[0].canopy_strata[(patch[0].layers[layer].strata[c])][0].cs.livecrootc_transfer
 						   + patch[0].canopy_strata[(patch[0].layers[layer].strata[c])][0].cs.livestemc_transfer
 						   + patch[0].canopy_strata[(patch[0].layers[layer].strata[c])][0].cs.deadcrootc_transfer
-						   + patch[0].canopy_strata[(patch[0].layers[layer].strata[c])][0].cs.deadstemc_transfer
-                           + patch[0].canopy_strata[(patch[0].layers[layer].strata[c])][0].cs.cpool)
-							* patch[0].area;
+						   + patch[0].canopy_strata[(patch[0].layers[layer].strata[c])][0].cs.deadstemc_transfer)
+							* patch[0].area; //+patch[0].canopy_strata[(patch[0].layers[layer].strata[c])][0].cs.cpool
                         
                         acwdc += patch[0].canopy_strata[(patch[0].layers[layer].strata[c])][0].cover_fraction * (patch[0].canopy_strata[(patch[0].layers[layer].strata[c])][0].cs.cwdc) * patch[0].area;
                         
@@ -498,6 +506,10 @@ void	output_24hours_basin(			int routing_flag,
 	acdrip /= aarea;
 	acga /= aarea;
     
+    unsat_capacity /= aarea;
+    unsat_fc /= aarea;
+    rtz_fc /= aarea;
+    
     agsi /= aarea;
     agsi_vps /= aarea;
     agsi_dlen /= aarea;
@@ -533,7 +545,7 @@ void	output_24hours_basin(			int routing_flag,
 	var_acctrans /= aarea;
 				
 
-	fprintf(outfile,"%d %d %d %d %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %e %e %e %e %lf %e %e %e %e %lf %e %e %e %e %lf %lf %lf\n",
+	fprintf(outfile,"%d %d %d %d %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %e %e %e %e %lf %e %e %e %e %lf %e %e %e %e %lf %lf %lf %lf %lf %lf\n", //added 3 extra
 		date.day,
 		date.month,
 		date.year,
@@ -634,7 +646,10 @@ void	output_24hours_basin(			int routing_flag,
             apipedrainDOC* 1000.0,
         alawnirrigated * 1000.0,
         alaiGRASS,
-            aPAR
+            aPAR,
+            unsat_capacity * 1000.0,
+            unsat_fc * 1000.0,
+            rtz_fc * 1000.0
 		);
 	return;
 } /*end output_basin*/

@@ -68,14 +68,14 @@
 
 double	compute_potential_exfiltration(
 									   int 	verbose_flag,
-									   double	S,
-									   double 	sat_deficit_z,
-									   double	Ksat_0,
-									   double	m_z,
-									   double	psi_air_entry,
-									   double	pore_size_index,
-									   double 	p, // porosity decay
-									   double	p_0)
+									   double	no_use,
+									   double 	wilting_point,
+									   double	Ksat_average,
+									   double	coef,
+									   double	storage,
+									   double	storage_capacity,
+									   double 	porosity_average, // porosity decay
+									   double	S_pow)
 {
 	/*--------------------------------------------------------------*/
 	/*	Local function declaration				*/
@@ -84,48 +84,45 @@ double	compute_potential_exfiltration(
 	/*--------------------------------------------------------------*/
 	/*	Local variable definition.				*/
 	/*--------------------------------------------------------------*/
-	double	porosity_average;
-	double	Ksat_average, wilting_point;
-	double	potential_exfiltration;
+	//double	porosity_average;
+	//double	Ksat_average, wilting_point;
+	
 	
 	/*--------------------------------------------------------------*/
 	/*	Estimate mean porosity.					*/
 	/*--------------------------------------------------------------*/
-	porosity_average = p * p_0 * (1-exp(-1*sat_deficit_z/p)) / sat_deficit_z;
+	//porosity_average = p * p_0 * (1-exp(-1*sat_deficit_z/p)) / sat_deficit_z;
 	
 	/*--------------------------------------------------------------*/
 	/*	Estimate mean saturated conductivity.			*/
 	/*--------------------------------------------------------------*/
-	if (m_z > ZERO)
-		Ksat_average = m_z* Ksat_0 *(1-exp(-1*sat_deficit_z/m_z)) / sat_deficit_z;
-	else
-		Ksat_average = Ksat_0;
-	S = max(0,min(S,1));
+//	if (m_z > ZERO)
+//		Ksat_average = m_z* Ksat_0 *(1-exp(-1*sat_deficit_z/m_z)) / sat_deficit_z;
+//	else
+//		Ksat_average = Ksat_0;
+    
+    //wilting_point = exp(-pore_size_index * log(2.5/psi_air_entry)); // what's that 2.5?
+    // should make this "wilting_point" as exfiltration_wilting_point
+    
 	
 	/*--------------------------------------------------------------*/
 	/*	Plug everything into the equation for max infiltration  */
 	/*--------------------------------------------------------------*/
-	potential_exfiltration =
-		pow(S,(1/(2*pore_size_index))+2) * sqrt(  (8 * porosity_average
-		* Ksat_average * psi_air_entry ) / (3 * (1 + 3 * pore_size_index)
-		* (1 + 4 * pore_size_index) ) );
-
-
-	wilting_point = exp(-1.0*log(2.5/psi_air_entry) 
-			* pore_size_index) * porosity_average;
-
-	if ( verbose_flag == -5 ){
-		printf("\n          COMPUTE POTENTIAL EXFIL: wilpt=%lf potexfil=%lf S=%lf porosity=%lf Ksatavg=%lf psi_ae=%lf b=%lf",
-			   wilting_point,
-			   potential_exfiltration,
-			   S,
-			   porosity_average,
-			   Ksat_average,
-			   psi_air_entry,
-			   pore_size_index);
-	}
-
-	potential_exfiltration = min(max((S-wilting_point)*porosity_average,0.0), potential_exfiltration);
-
-	return(potential_exfiltration);
+    if(storage_capacity<=ZERO){
+        return(0.0); // water above
+    }else{
+        // water table is deep or at surface
+        double    potential_exfiltration;
+        double    satPct;
+        
+        //if(storage_capacity>ZERO) satPct = min(1.0, storage / storage_capacity);
+        //else satPct = 1.0;
+        satPct = min(1.0, storage / storage_capacity);
+        
+        potential_exfiltration = exp( S_pow * log(satPct)) * coef;
+        //sqrt( (8 * porosity_average * Ksat_average * psi_air_entry ) / (3 * (1 + 3 * pore_size_index) * (1 + 4 * pore_size_index)));
+        
+        potential_exfiltration = min( max(0.0,(satPct-wilting_point)*porosity_average), potential_exfiltration);
+        return(potential_exfiltration);
+    }
 } /*potential_exfiltration*/

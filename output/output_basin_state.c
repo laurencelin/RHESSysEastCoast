@@ -53,9 +53,7 @@ void	output_basin_state(
 	/*--------------------------------------------------------------*/
 
 	printf("\n Beginning basin output state");
-	fprintf(outfile,"\n   ");
-	fprintf(outfile,"%-30ld %s",basin[0].ID, "basin_ID");
-	fprintf(outfile,"\n   ");
+	fprintf(outfile,"%d %s\n",basin[0].ID, "basin_ID");
 	fprintf(outfile,"%-30.8f %s",basin[0].x, "x");
 	fprintf(outfile,"\n   ");
 	fprintf(outfile,"%-30.8f %s",basin[0].y, "y");

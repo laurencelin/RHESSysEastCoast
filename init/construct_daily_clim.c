@@ -173,7 +173,7 @@ struct	daily_clim_object *construct_daily_clim(
 	fscanf(base_station_file,"%d", &num_non_critical_sequences);
 	read_record(base_station_file, record);
 
-	printf("\n Non critical sequences %d", num_non_critical_sequences); 
+	printf(" Non critical sequences %d\n", num_non_critical_sequences);
 	/*--------------------------------------------------------------*/
 	/*	Loop through all of the non-critical sequences and attempt	*/
 	/*	to construct them.											*/
@@ -183,7 +183,7 @@ struct	daily_clim_object *construct_daily_clim(
 		/*		read in the non-critical_sequence name.					*/
 		/*--------------------------------------------------------------*/
 		fscanf(base_station_file,"%s",sequence_name);
-		printf(" \n %s", sequence_name);
+		printf(" %s\n", sequence_name);
 		read_record(base_station_file, record);
 		/*--------------------------------------------------------------*/
 		/*		test the sequence name and create it if it is valid.	*/
@@ -191,7 +191,7 @@ struct	daily_clim_object *construct_daily_clim(
 		/*--------------------------------------------------------------*/
 		if ( strcmp(sequence_name,"dayl") == 0 ){
 			strcpy(file_name, file_prefix);
-			printf("\n Reading day length sequence ");
+			printf(" Reading day length sequence \n");
 			daily_clim[0].dayl = construct_clim_sequence(
 				(char *)strcat(file_name,".dayl"),
 				start_date,
@@ -199,7 +199,7 @@ struct	daily_clim_object *construct_daily_clim(
 		}
 		else if ( strcmp(sequence_name,"daytime_rain_duration") == 0 ){
 			strcpy(file_name, file_prefix);
-			printf("\n Reading rain duration sequence");
+			printf(" Reading rain duration sequence \n");
 			daily_clim[0].daytime_rain_duration = construct_clim_sequence(
 				(char *)strcat(file_name,".daytime_rain_duration"),
 				start_date,

@@ -164,8 +164,8 @@ struct stratum_default *construct_stratum_defaults(
 			default_object_list[i].epc.livewood_turnover = getDoubleParam(&paramCnt, &paramPtr, "epc.livewood_turnover", "%lf", 0.7, 1);
 		}
 
-		default_object_list[i].epc.kfrag_base = 		getDoubleParam(&paramCnt, &paramPtr, "epc.kfrag_base", "%lf", 0.01, 1);
-		default_object_list[i].epc.daily_mortality_turnover = 	getFloatParam(&paramCnt, &paramPtr, "epc.daily_mortality_turnover", "%f", 0.005, 1) / 365; ///<<------- replacing the old "mortality"
+		default_object_list[i].epc.kfrag_base = getDoubleParam(&paramCnt, &paramPtr, "epc.kfrag_base", "%lf", 0.01, 1);
+		default_object_list[i].epc.daily_mortality_turnover = getDoubleParam(&paramCnt, &paramPtr, "epc.daily_mortality_turnover", "%f", 0.005, 1) / 365.0; ///<<------- replacing the old "mortality"
 		default_object_list[i].epc.froot_cn = getDoubleParam(&paramCnt, &paramPtr, "epc.froot_cn", "%lf", 139.7, 1);
 		default_object_list[i].epc.livewood_cn = getDoubleParam(&paramCnt, &paramPtr, "epc.livewood_cn", "%lf", 200.0, 1);
         default_object_list[i].epc.livewood_cn = default_object_list[i].epc.froot_cn; // BGC suggested (White et al. 2000) -- testing

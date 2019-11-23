@@ -67,7 +67,7 @@ void update_phenology(struct zone_object  *zone,
 					  struct soil_c_object *cs_soil,
 					  struct soil_n_object *ns_soil,
 					  struct rooting_zone_object *rootzone,
-					  double	effective_soil_depth,
+					  double	maxrootdepth,
 					  double	cover_fraction,
 					  double	gap_fraction,
 					  double	theta_noon,
@@ -554,12 +554,13 @@ void update_phenology(struct zone_object  *zone,
        //plantcarbon = cs->leafc + cs->live_stemc + cs->livestemc_store + cs->dead_stemc + cs->deadstemc_store + cs->cwdc;
        if ((cs->cwdc > ZERO) && (cover_fraction > ZERO)) {
 			if (ok && compute_cwd_decay(&(epc),cover_fraction, cs,ns,cs_litr,
-				ns_litr,cdf_patch,ndf_patch, ndf, stratum, patch, 0.02, BGC_flag)){
+				ns_litr,cdf_patch,ndf_patch, ndf, stratum, patch, 0.0, BGC_flag)){
 				fprintf(stderr,
 					"FATAL ERROR: in cwd_decay() from update_phenology()\n");
 				exit(EXIT_FAILURE);
-			}
-		}
+                // passing 0.02, but change to 0.0
+			}//if
+		}//if
 		/*--------------------------------------------------------------*/
 		/*	compute live steam and coarse root turnover		*/
 		/* 	excess n from live stem turnover is added to retranslocated N */
@@ -628,7 +629,7 @@ void update_phenology(struct zone_object  *zone,
 	if ((grow_flag > 0) && (rootc > ZERO) && (dynRtZoff_flag == 0) ){
 		if (ok && update_rooting_depth(
 			rootzone, rootc, epc.root_growth_direction, epc.root_distrib_parm,
-			effective_soil_depth)){
+			maxrootdepth)){
 			fprintf(stderr,
 				"FATAL ERROR: in compute_rooting_depth() from update_phenology()\n");
 			exit(EXIT_FAILURE);

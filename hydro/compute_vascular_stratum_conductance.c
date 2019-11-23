@@ -117,7 +117,7 @@ double	compute_vascular_stratum_conductance(
 	
 	/* wilting point as volumetric water content, so needs to be multiplied by rz depth to get water depth */
 	wilting_point = exp(
-        -1.0*patch[0].soil_defaults[0][0].pore_size_index *
+        -patch[0].soil_defaults[0][0].pore_size_index *
         log(-100.0*LWP_stom_closure/patch[0].soil_defaults[0][0].psi_air_entry)
         );
         // this exp(log(a)*b)is fast then pow(a,b)!

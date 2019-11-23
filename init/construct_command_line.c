@@ -104,6 +104,8 @@ struct	command_line_object	*construct_command_line(
 	command_line[0].version_flag = 0;
 	command_line[0].vsen[M] = 1.0;
 	command_line[0].vsen[K] = 1.0;
+    command_line[0].psen[M] = 1.0;
+    command_line[0].psen[K] = 1.0;
 	command_line[0].sen[M] = 1.0;
 	command_line[0].sen[K] = 1.0;
 	command_line[0].sen[SOIL_DEPTH] = 1.0;
@@ -148,7 +150,7 @@ struct	command_line_object	*construct_command_line(
     command_line[0].fracDirectNdep = 0.0; // % directly hit dep N hit the ground, passing canopy
     command_line[0].soilDecayScalar = 1.0;// scale to litter/soilc decay rate base values
     command_line[0].BGC_flag = 0; // BGC decomposition flag
-    command_line[0].soilCNadaptation_falg = 0; // current soil4CN is fixed <<---- still confusing!
+    command_line[0].soilCNadaptation_flag = 0; // current soil4CN is fixed <<---- still confusing!
     
     command_line[0].rootNdecayRate = 0;// (flag) <<---- still confusing!
     command_line[0].root2active = -1.0; // scale (x) <<---- still confusing!
@@ -396,11 +398,11 @@ struct	command_line_object	*construct_command_line(
             }/* end if */
             
             /*-------------------------------------------------*/
-            /*    soilCNadaptation_falg option */
+            /*    soilCNadaptation_flag option */
             /*-------------------------------------------------*/
-            else if ( strcmp(main_argv[i],"-soilCNadaptation_falg") == 0 ){
-                printf("\n Running with soilCNadaptation_falg turned on\n");
-                command_line[0].soilCNadaptation_falg = 1;
+            else if ( strcmp(main_argv[i],"-soilCNadaptation_flag") == 0 ){
+                printf("\n Running with soilCNadaptation_flag turned on\n");
+                command_line[0].soilCNadaptation_flag = 1;
                 i++;
             }/* end if */
             
@@ -921,7 +923,27 @@ struct	command_line_object	*construct_command_line(
 				command_line[0].vsen[K] = (double)atof(main_argv[i]);
 				i++;
 			} /* end if */
-
+            
+            else if ( strcmp(main_argv[i],"-spor") == 0 ){
+                i++;
+                if (  (i == main_argc) || (valid_option(main_argv[i])==1) ){
+                    fprintf(stderr,
+                        "FATAL ERROR: Sensitivity perturbation not specified\n");
+                    exit(EXIT_FAILURE);
+                }/*end if*/
+                /*--------------------------------------------------------------*/
+                /*            Read in the sensitivity parameter values. */
+                /*--------------------------------------------------------------*/
+                command_line[0].psen[M] = (double)atof(main_argv[i]);
+                i++;
+                if (  (i == main_argc) || (valid_option(main_argv[i])==1) ){
+                    fprintf(stderr,
+                        "FATAL ERROR: Sensitivity perturbation not specified\n");
+                    exit(EXIT_FAILURE);
+                }/*end if*/
+                command_line[0].psen[K] = (double)atof(main_argv[i]);
+                i++;
+            } /* end if */
 
 			/*-------------------------------------------------------*/
 			/*Check if the precip scaling (using random dist) flag is next.           */

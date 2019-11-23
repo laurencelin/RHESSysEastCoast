@@ -159,7 +159,7 @@ void add_headers(struct world_output_file_object *world_output_files,
 	/*--------------------------------------------------------------*/
     ///<<<---------- here basin daily
 	outfile = world_output_files[0].basin[0].daily;
-	fprintf(outfile,"%s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s\n" ,
+	fprintf(outfile,"%s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s\n" , // added 3 extra
 		"day",
 		"month",
 		"year",
@@ -235,7 +235,7 @@ void add_headers(struct world_output_file_object *world_output_files,
             "apipedrainNH4",
             "apipedrainDON",
             "apipedrainDOC",
-        "lawnIrrigated","laiNontree","PAR"); // basin daily
+        "lawnIrrigated","laiNontree","PAR","unsat_cap","unsat_fc","rtz_fc"); // basin daily
 
 	/*--------------------------------------------------------------*/
 	/*	Monthly							*/
@@ -437,7 +437,7 @@ void add_headers(struct world_output_file_object *world_output_files,
 	outfile = world_output_files[0].patch[0].daily;
 		check = fprintf(outfile,
 //                        "%s-%s-%s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s\n" ,
-                        "%s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s\n",
+                        "%s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s\n", // added 4 extra
                         
                         // we are looking for hydrology behavoirs
 						"year", //1
@@ -453,12 +453,20 @@ void add_headers(struct world_output_file_object *world_output_files,
                         "thr_recharge", //11 rain_thr - recharge -  [+ = source; - = sink]
                         "cap_drain", //12 patch[0].cap_rise - patch[0].unsat_drainage  [+ = rise; - = down]
                         "sat_def_z", //13
-                        "unsatS", //14 (sat_def>0)? (rz_storage+unsat_stor)/sat_def : -1
-                        "rtS", //15 (sat_def>0)? rz_storage/potential_rz_store : -1
+                        "sat_def", //14 (sat_def>0)? (rz_storage+unsat_stor)/sat_def : -1
+                        "rtzStorage", //15 (sat_def>0)? rz_storage/potential_rz_store : -1
                         "ET",
                         "treeLAI",//17
                         "nontreeLAI",//18
-                        "SmartIrrigation"
+                        "SmartIrrigation",
+                        "rtz_totalvol",
+                        "unsat_fc",
+                        "rtz_fc",
+                        "unsat_storage",
+                        "top12cm_storage",
+                        "top12cm_potential_sat",
+                        "rootdepth",
+                        "soildepth"
 						); 
                         // patch daily
 	/*--------------------------------------------------------------*/

@@ -272,7 +272,7 @@ void	execute_daily_output_event(
 
             // still have no idea why LAI is lower and yet the ET is much higher and yet more flows while psn and root.S are the same!
             
-            aroots[MyPatch->aggregate_index] += MyPatch[0].rootzone.S *MyPatch[0].area;
+            aroots[MyPatch->aggregate_index] += MyPatch[0].rootzone.SatPct *MyPatch[0].area;
             nlimit[MyPatch->aggregate_index] += MyPatch[0].soil_ns.nlimit *MyPatch[0].area;
             for ( layer=0 ; layer<MyPatch[0].num_layers; layer++ ){
                 for ( c=0 ; c<MyPatch[0].layers[layer].count; c++ ){
@@ -311,16 +311,20 @@ void	execute_daily_output_event(
             //sat_q[MyPatch->aggregate_index] += MyPatch[0].area * (MyPatch[0].potential_sat - MyPatch[0].sat_deficit);//m
             sat_q[MyPatch->aggregate_index] += MyPatch[0].area * p0 * qq * (exp(-wtz/qq) - exp(-wtz2m/qq));//m just sample water 2.0 m down from wtz
             
-            double N_decay_rate = (command_line[0].rootNdecayRate > 0? MyPatch[0].rootzone.DOMdecayRate : MyPatch[0].soil_defaults[0][0].DOM_decay_rate);
-            double activedepthz = (command_line[0].rootNdecayRate > 0? MyPatch[0].soil_defaults[0][0].soil_depth : (command_line[0].root2active > 0.0? MyPatch[0].rootzone.depth * command_line[0].root2active : MyPatch[0].soil_defaults[0][0].active_zone_z));
+            //double N_decay_rate = (command_line[0].rootNdecayRate > 0? MyPatch[0].rootzone.DOMdecayRate : MyPatch[0].soil_defaults[0][0].DOM_decay_rate);
+            //double activedepthz = (command_line[0].rootNdecayRate > 0? MyPatch[0].soil_defaults[0][0].soil_depth : (command_line[0].root2active > 0.0? MyPatch[0].rootzone.depth * command_line[0].root2active : MyPatch[0].soil_defaults[0][0].active_zone_z));
+            double N_decay_rate = MyPatch[0].soil_defaults[0][0].NO3decayRate;
+            double activedepthz = MyPatch[0].soil_defaults[0][0].active_zone_z;
             satNO3[MyPatch->aggregate_index] += MyPatch[0].area * MyPatch[0].soil_ns.nitrate * (exp(-N_decay_rate*MyPatch[0].sat_deficit_z)-exp(-N_decay_rate*wtz2m)) / (1.0 - exp(-N_decay_rate*activedepthz));//kgN
             
-            N_decay_rate = (command_line[0].NH4root2active>0.0? MyPatch[0].soil_defaults[0][0].N_decay_rate : (command_line[0].rootNdecayRate > 0? MyPatch[0].rootzone.NH4decayRate : MyPatch[0].soil_defaults[0][0].N_decay_rate));
-            activedepthz = (command_line[0].NH4root2active>0.0? MyPatch[0].rootzone.depth * command_line[0].NH4root2active : (command_line[0].rootNdecayRate > 0? MyPatch[0].soil_defaults[0][0].soil_depth : (command_line[0].root2active>0.0? MyPatch[0].rootzone.depth * command_line[0].root2active : MyPatch[0].soil_defaults[0][0].active_zone_z)));
+            //N_decay_rate = (command_line[0].NH4root2active>0.0? MyPatch[0].soil_defaults[0][0].N_decay_rate : (command_line[0].rootNdecayRate > 0? MyPatch[0].rootzone.NH4decayRate : MyPatch[0].soil_defaults[0][0].N_decay_rate));
+            //activedepthz = (command_line[0].NH4root2active>0.0? MyPatch[0].rootzone.depth * command_line[0].NH4root2active : (command_line[0].rootNdecayRate > 0? MyPatch[0].soil_defaults[0][0].soil_depth : (command_line[0].root2active>0.0? MyPatch[0].rootzone.depth * command_line[0].root2active : MyPatch[0].soil_defaults[0][0].active_zone_z)));
+            N_decay_rate = MyPatch[0].soil_defaults[0][0].NH4decayRate;
             satNH4[MyPatch->aggregate_index] += MyPatch[0].area * MyPatch[0].soil_ns.sminn * (exp(-N_decay_rate*MyPatch[0].sat_deficit_z)-exp(-N_decay_rate*wtz2m)) / (1.0 - exp(-N_decay_rate*activedepthz));//kgN
             
-            N_decay_rate = (command_line[0].rootNdecayRate > 0? MyPatch[0].rootzone.DOMdecayRate : MyPatch[0].soil_defaults[0][0].DOM_decay_rate);
-            activedepthz = (command_line[0].rootNdecayRate > 0? MyPatch[0].soil_defaults[0][0].soil_depth : (command_line[0].root2active > 0.0? MyPatch[0].rootzone.depth * command_line[0].root2active : MyPatch[0].soil_defaults[0][0].active_zone_z));
+            //N_decay_rate = (command_line[0].rootNdecayRate > 0? MyPatch[0].rootzone.DOMdecayRate : MyPatch[0].soil_defaults[0][0].DOM_decay_rate);
+            //activedepthz = (command_line[0].rootNdecayRate > 0? MyPatch[0].soil_defaults[0][0].soil_depth : (command_line[0].root2active > 0.0? MyPatch[0].rootzone.depth * command_line[0].root2active : MyPatch[0].soil_defaults[0][0].active_zone_z));
+            N_decay_rate = MyPatch[0].soil_defaults[0][0].DOMdecayRate;
             satDON[MyPatch->aggregate_index] += MyPatch[0].area * MyPatch[0].soil_ns.DON * (exp(-N_decay_rate*MyPatch[0].sat_deficit_z)-exp(-N_decay_rate*wtz2m)) / (1.0 - exp(-N_decay_rate*activedepthz));//kgN
             satDOC[MyPatch->aggregate_index] += MyPatch[0].area * MyPatch[0].soil_cs.DOC * (exp(-N_decay_rate*MyPatch[0].sat_deficit_z)-exp(-N_decay_rate*wtz2m)) / (1.0 - exp(-N_decay_rate*activedepthz));//kgN
             

@@ -170,16 +170,22 @@ void	output_growth_patch(
 	}//layor
 	check = fprintf(outfile,
                     //"%ld %ld %ld %ld %d %d %d %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf\n",
-                    "%d %d %d %d %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf\n",
+                    "%d %d %d %d %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf\n",
                     current_date.year,//1
                     current_date.month,//2
                     current_date.day,//3
                     patch[0].ID,//4
                     patch[0].soil_ns.nitrate*1000.0, //5 --> gN/m2
                     patch[0].sat_NO3*1000.0, //6 --> gN/m2
-                    (patch[0].soil_ns.NO3_Qout_total - patch[0].soil_ns.DON_Qin_total)*1000.0,// --> gN/m2/d
+                    (patch[0].soil_ns.NO3_Qout_total - patch[0].soil_ns.NO3_Qin_total)*1000.0,// --> gN/m2/d
                     patch[0].soil_cs.DOC*1000.0, // --> gC/m2
                     patch[0].sat_DOC*1000.0, // --> gN/m2
+                    
+                    patch[0].soil_ns.sminn*1000.0, //5 --> gN/m2
+                    patch[0].sat_NH4*1000.0, //6 --> gN/m2
+                    (patch[0].soil_ns.NH4_Qout_total - patch[0].soil_ns.NH4_Qin_total)*1000.0,// --> gN/m2/d
+                    
+                    
                     (patch[0].soil_cs.DOC_Qout_total - patch[0].soil_cs.DOC_Qin_total)*1000.0,// --> gC/m2/d
                     patch[0].soil_cs.soil1c+patch[0].soil_cs.soil2c+patch[0].soil_cs.soil3c+patch[0].soil_cs.soil4c, // --> kgC/m2
                     patch[0].soil_ns.soil1n+patch[0].soil_ns.soil2n+patch[0].soil_ns.soil3n+patch[0].soil_ns.soil4n, // --> kgC/m2

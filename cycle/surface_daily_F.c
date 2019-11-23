@@ -1,4 +1,3 @@
-
 /*--------------------------------------------------------------*/
 /* 								*/
 /*			surface_daily_F			*/
@@ -256,7 +255,7 @@ void		surface_daily_F(
 	
 	/* Case where detention store sits on top of litter */
 	if ( (patch[0].detention_store > (max(litter[0].rain_capacity - litter[0].rain_stored, 0.0)))
-			&& (patch[0].soil_defaults[0][0].detention_store_size >= 0.0) ) {
+			&& (patch[0].landuse_defaults[0][0].detention_store_size* (1.0 - patch[0].Ksat_vertical) >= 0.0) ) {
 		
 		/* assume if det store over litter then litter is saturated */
 		patch[0].detention_store -= (litter[0].rain_capacity - litter[0].rain_stored);
@@ -343,7 +342,7 @@ void		surface_daily_F(
 		//   (e.g. impervious surface) by gating ET by detention_store_size
 		detention_store_evaporation = min(detention_store_potential_evaporation,
 				min(patch[0].detention_store,
-						patch[0].soil_defaults[0][0].detention_store_size));
+						patch[0].landuse_defaults[0][0].detention_store_size* (1.0 - patch[0].Ksat_vertical)));
 
 		patch[0].detention_store -= detention_store_evaporation;
 
@@ -439,7 +438,7 @@ void		surface_daily_F(
 	/*--------------------------------------------------------------*/
 	
 	if ( patch[0].detention_store <= (max(litter[0].rain_capacity - litter[0].rain_stored, 0.0))){
-			//| (patch[0].soil_defaults[0][0].detention_store_size == 0.0)) {
+			//| (patch[0].landuse_defaults[0][0].detention_store_size == 0.0)) {
 		
 		litter[0].NO3_stored = patch[0].surface_NO3;
 		patch[0].surface_NO3 = 0;
@@ -872,6 +871,14 @@ void		surface_daily_F(
 				* rain_duration_day);
 		soil_potential_evaporation = soil_potential_evaporation_night + soil_potential_evaporation_day;
 
+        //debug
+        if(soil_potential_dry_evaporation_rate_night<0 || soil_potential_dry_evaporation_rate_day<0 ||soil_potential_evaporation_night<0 || soil_potential_evaporation_day<0){
+            printf("patch dailyI negative evap rates (%d) %f %f %f %f\n",
+                   patch[0].ID,
+                   soil_potential_dry_evaporation_rate_night, soil_potential_dry_evaporation_rate_day,
+                   soil_potential_evaporation_night, soil_potential_evaporation_day);
+        }//
+        
 		/*--------------------------------------------------------------*/
 		/*	BARE SOIL EVAPORATION:									*/
 		/*	base soil evapotration/ exfiltration will only occur 	*/
@@ -951,10 +958,10 @@ void		surface_daily_F(
 	/*--------------------------------------------------------------*/
 
 	patch[0].litter.T = patch[0].surface_energy_profile[0].T;
-	if (patch[0].sat_deficit > patch[0].rootzone.potential_sat) 
-		patch[0].rootzone.T = patch[0].surface_energy_profile[1].T;
+	if (patch[0].sat_deficit > patch[0].rootzone.potential_sat || patch[0].rootzone.potential_sat<ZERO)
+		patch[0].rootzone.Temperature = patch[0].surface_energy_profile[1].T;
 	else
-		patch[0].rootzone.T = (patch[0].surface_energy_profile[1].T * (patch[0].sat_deficit) + 
+		patch[0].rootzone.Temperature = (patch[0].surface_energy_profile[1].T * (patch[0].sat_deficit) + 
 					patch[0].surface_energy_profile[2].T * (patch[0].rootzone.potential_sat - patch[0].sat_deficit)) 
 					/ (patch[0].rootzone.potential_sat);
 

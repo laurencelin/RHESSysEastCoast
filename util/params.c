@@ -449,7 +449,8 @@ double getDoubleWorldfile(int *paramCnt, param **paramPtr, char *paramName, char
             strcpy(params[iParam].format, readFormat);
             break;
         }
-    }
+    }// for iParam
+    //if(found) printf("%s -> %lf\n",paramName, doubleVal); // debug
 
     if (found) {
         return doubleVal;

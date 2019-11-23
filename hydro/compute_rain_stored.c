@@ -72,6 +72,7 @@ double	compute_rain_stored(
 		verbose_flag,
 		*rain,
 		stratum );
+    
 	if( verbose_flag >2)
 		printf("%8.6f %8.6f ",*rain, stratum[0].rain_stored);
 	if( verbose_flag >2)
@@ -93,38 +94,65 @@ double	compute_rain_stored(
 	/*	Compute amount of storage evaporated.			*/
 	/*	m = m							*/
 	/*--------------------------------------------------------------*/
-	storage_evaporated =	min(potential_evaporation,stratum[0].rain_stored);
-	/*--------------------------------------------------------------*/
-	/*	Update amount of rain in storage after evaporation.	*/
-	/*	m = m							*/
-	/*--------------------------------------------------------------*/
-	stratum[0].rain_stored  -= storage_evaporated;
-	/*--------------------------------------------------------------*/
-	/*	Update potentail evaporation.				*/
-	/*	m = m							*/
-	/*--------------------------------------------------------------*/
-	potential_evaporation -= storage_evaporated;
-	/*--------------------------------------------------------------*/
-	/*	Compute amount of potential interception evaporated.	*/
-	/* 	m = m							*/
-	/*--------------------------------------------------------------*/
-	potential_interception_evaporated  =
-		min( potential_evaporation, potential_interception);
-	/*--------------------------------------------------------------*/
-	/*	Update the potential interception after evaporation.	*/
-	/* 	m -= m							*/
-	/*--------------------------------------------------------------*/
-	potential_interception -= potential_interception_evaporated;
+    if(potential_evaporation >= stratum[0].rain_stored){
+        stratum[0].rain_stored = 0.0;
+        storage_evaporated = stratum[0].rain_stored;
+    }else{
+        stratum[0].rain_stored  -= potential_evaporation;
+        storage_evaporated = potential_evaporation;
+        // potential_evaporation ?
+    }//if else
+    
+    if(potential_evaporation > storage_evaporated){
+        potential_interception_evaporated = min(potential_interception, potential_evaporation - storage_evaporated);
+    }else{
+        potential_interception_evaporated = 0.0;
+    }//if
+    
+//	storage_evaporated =	min(potential_evaporation,stratum[0].rain_stored);
+//	/*--------------------------------------------------------------*/
+//	/*	Update amount of rain in storage after evaporation.	*/
+//	/*	m = m							*/
+//	/*--------------------------------------------------------------*/
+//	stratum[0].rain_stored  -= storage_evaporated;
+//	/*--------------------------------------------------------------*/
+//	/*	Update potentail evaporation.				*/
+//	/*	m = m							*/
+//	/*--------------------------------------------------------------*/
+//	potential_evaporation -= storage_evaporated; // not following this logic here
+    
+//	/*--------------------------------------------------------------*/
+//	/*	Compute amount of potential interception evaporated.	*/
+//	/* 	m = m							*/
+//	/*--------------------------------------------------------------*/
+//	potential_interception_evaporated  = min( potential_evaporation, potential_interception);
+//	/*--------------------------------------------------------------*/
+//	/*	Update the potential interception after evaporation.	*/
+//	/* 	m -= m							*/
+//	/*--------------------------------------------------------------*/
+//	potential_interception -= potential_interception_evaporated; // not following this logic here
+     
+    
 	/*--------------------------------------------------------------*/
 	/*	Compute amount of evaporation that happened.		*/
 	/* 	m = m + m						*/
 	/*--------------------------------------------------------------*/
-	stratum[0].evaporation =  storage_evaporated +
-		potential_interception_evaporated;
+	stratum[0].evaporation =  storage_evaporated + potential_interception_evaporated;
+    stratum[0].potential_evaporation -= stratum[0].evaporation; //(see below)
+    if(stratum[0].evaporation<0 || stratum[0].potential_evaporation<0){
+        printf("compute_rain_stored [%d] %e %e\n", stratum[0].ID, stratum[0].evaporation, stratum[0].potential_evaporation);
+    }//debug
+    // potential_evaporation = stratum[0].potential_evaporation; <--- total potential_evaporation
+    // total potential_evaporation = potential_interception_evaporated + storage_evaporated + trans
+    
+    // stratum[0].potential_evaporation = potential_evaporation_night + potential_evaporation_day; @LINE 1351 (stratumF)
+    // passing into here @ LINE 1398
+    // using for trans @ LINE 1495
+    
+    
 	/*--------------------------------------------------------------*/
 	/*	Adjust the amount of remaining potential evaporation	*/
 	/*--------------------------------------------------------------*/
-	stratum[0].potential_evaporation -= stratum[0].evaporation;
 	if( verbose_flag >2)
 		printf("%8.6f ",stratum[0].evaporation);
 	if( verbose_flag >2)

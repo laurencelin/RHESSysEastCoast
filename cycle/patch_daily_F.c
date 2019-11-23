@@ -200,7 +200,7 @@ void		patch_daily_F(
 		double,
 		double,
 		double,
-		double);
+		double, double);
 	
 	double  compute_radiative_fluxes(
 		int,
@@ -378,7 +378,7 @@ void		patch_daily_F(
 	int	vegtype;
 	int dum;
     int j;
-	double	cap_rise, tmp, wilting_point;
+	double	cap_rise, cap_rise_unsat, tmp, wilting_point;
 	double	delta_unsat_zone_storage;
 	double  infiltration, lhvap;
 	double	infiltration_ini;
@@ -411,7 +411,7 @@ void		patch_daily_F(
 	struct	canopy_strata_object	*strata;
 	struct	litter_object	*litter;
 	struct  dated_sequence	clim_event;
-	
+    double totalfc;
 	/*--------------------------------------------------------------*/
 	/*	We assume the zone soil temp applies to the patch as well.	*/
 	/* 	unless we are using the surface energy iteration code 	in which */
@@ -526,25 +526,23 @@ void		patch_daily_F(
 				patch[0].base_stations[0][0].dated_input[0].irrigation.inx += 1;
 				inx = patch[0].base_stations[0][0].dated_input[0].irrigation.inx;
 				clim_event = patch[0].base_stations[0][0].dated_input[0].irrigation.seq[inx];
-				}
+            }//while
 			if ((clim_event.edate.year != 0) && ( julday(clim_event.edate) == julday(current_date)) ) {
 				irrigation = clim_event.value;
-				}
-			else irrigation = 0.0;
-			} 
-        else irrigation = 0.0;//patch[0].landuse_defaults[0][0].irrigation;
-		}
-    else irrigation = 0.0;//patch[0].landuse_defaults[0][0].irrigation;
-    
+            }else irrigation = 0.0;
+        }else irrigation = 0.0;
+    }else irrigation = 0.0;
+    //patch[0].landuse_defaults[0][0].irrigation; format change;
+    //patch[0].landuse_defaults[0][0].irrigation is used below
     
     
     patch[0].grassIrrigation_m = 0.0;
     if(command_line[0].grassIrrigation_flag==1 && patch[0].drainage_type>0 && patch[0].drainage_type % actionIRRIGRATION==0){
         //---------------------------- lawn
+        double grassET, grassPET;
         for ( j=0 ; j<patch[0].num_canopy_strata ; j++ ){
             if(patch[0].canopy_strata[j][0].defaults[0][0].epc.veg_type == GRASS && patch[0].canopy_strata[j][0].phen.gwseasonday>0){
                 //gwseasonday > 0 when plant is growing; its -1 otherwise.
-                double grassET, grassPET;
                 grassET = patch[0].canopy_strata[j][0].evaporation + patch[0].canopy_strata[j][0].sublimation;
                 grassPET = grassET;
                 grassET += patch[0].canopy_strata[j][0].transpiration_sat_zone + patch[0].canopy_strata[j][0].transpiration_unsat_zone;
@@ -565,11 +563,24 @@ void		patch_daily_F(
     patch[0].sewerdrained_NH4 = 0.0;
     patch[0].sewerdrained_DOC = 0.0;
     patch[0].sewerdrained_DON = 0.0;
-    if(patch[0].soil_ns.nitrate!=patch[0].soil_ns.nitrate||patch[0].soil_ns.nitrate<0 || patch[0].soil_ns.sminn!=patch[0].soil_ns.sminn||patch[0].soil_ns.sminn<0 || patch[0].soil_ns.DON!=patch[0].soil_ns.DON||patch[0].soil_ns.DON<0 || patch[0].soil_cs.DOC!=patch[0].soil_cs.DOC||patch[0].soil_cs.DOC<0 || patch[0].sat_NO3!=patch[0].sat_NO3 || patch[0].sat_NO3<0)
-        printf("patch daily F0 after irrigation [%d(%d,%d,%d),%d,%d,%d]{%e,%e,%e,%e,%e}\n",
-            patch[0].ID,current_date.day,current_date.month,current_date.year,
-            patch[0].drainage_type, actionPIPEDRAIN, actionSEWER,
-            patch[0].soil_ns.nitrate,patch[0].soil_ns.sminn,patch[0].soil_cs.DOC, patch[0].soil_ns.DON, patch[0].sat_NO3);
+    if(patch[0].soil_ns.nitrate!=patch[0].soil_ns.nitrate ||
+    patch[0].soil_ns.nitrate<0 ||
+    patch[0].soil_ns.sminn!=patch[0].soil_ns.sminn ||
+    patch[0].soil_ns.sminn<0 ||
+    patch[0].soil_ns.DON!=patch[0].soil_ns.DON ||
+    patch[0].soil_ns.DON<0 ||
+    patch[0].soil_cs.DOC!=patch[0].soil_cs.DOC ||
+    patch[0].soil_cs.DOC<0 ||
+    patch[0].sat_NO3!=patch[0].sat_NO3 ||
+    patch[0].sat_NO3<0 || patch[0].sat_NH4!=patch[0].sat_NH4 ||
+    patch[0].sat_NH4<0 || patch[0].sat_DOC!=patch[0].sat_DOC ||
+    patch[0].sat_DOC<0) printf("patch daily F0N [%d,%d,%d,%d]{%e,%e,%e,%e}[%e,%e,%e,%e]\n",
+       patch[0].ID, patch[0].drainage_type, actionPIPEDRAIN, actionSEWER,
+       patch[0].soil_ns.nitrate,
+       patch[0].soil_ns.sminn,
+       patch[0].soil_cs.DOC,
+       patch[0].soil_ns.DON,
+       patch[0].sat_NO3, patch[0].sat_NH4, patch[0].sat_DOC, patch[0].sat_DON);
     
     if(command_line[0].sewer_flag==1 && patch[0].drainage_type>0 && patch[0].drainage_type % actionSEWER==0){
         //---------------------------- lawn / impervious drainage (sewerage)
@@ -582,8 +593,8 @@ void		patch_daily_F(
                 // note that it should drain UNSAT first and then SAT
                 // double sewerDrainage = 0.0005 * patch[0].canopy_strata[j][0].cover_fraction;
                 if(patch[0].sat_deficit_z < 3.0){
-                    patch[0].sewerdrained += 0.0005*max(0.0, 1.0-patch[0].sat_deficit_z*0.333)*patch[0].canopy_strata[j][0].cover_fraction;
-                }
+                    patch[0].sewerdrained += min(patch[0].available_soil_water, 0.0005*max(0.0, 1.0-patch[0].sat_deficit_z*0.333)*patch[0].canopy_strata[j][0].cover_fraction);
+                }// if
                 
                 
             }// if
@@ -596,8 +607,8 @@ void		patch_daily_F(
                                      command_line[0].verbose_flag,
                                      patch[0].sat_NO3, //patch[0].soil_ns.nitrate,
                                      patch[0].sewerdrained,
-                                     (command_line[0].rootNdecayRate > 0? patch[0].rootzone.NO3decayRate : patch[0].soil_defaults[0][0].N_decay_rate),
-                                     (command_line[0].rootNdecayRate > 0? patch[0].soil_defaults[0][0].soil_depth : (command_line[0].root2active > 0.0? patch[0].rootzone.depth * command_line[0].root2active : patch[0].soil_defaults[0][0].active_zone_z)),
+                                     patch[0].soil_defaults[0][0].NO3decayRate,
+                                     patch[0].soil_defaults[0][0].active_zone_z,
                                      patch[0].soil_defaults[0][0].NO3_adsorption_rate,
                                      29, patch);
             //printf("patch [%d] sewerdrained(%e) NO3{%e - > %e}\n", patch[0].ID, patch[0].sewerdrained, patch[0].soil_ns.nitrate, tmpNout);
@@ -612,8 +623,8 @@ void		patch_daily_F(
                                      command_line[0].verbose_flag,
                                      patch[0].sat_NH4, //patch[0].soil_ns.sminn,
                                      patch[0].sewerdrained,
-                                     (command_line[0].NH4root2active>0.0? patch[0].soil_defaults[0][0].N_decay_rate : (command_line[0].rootNdecayRate > 0? patch[0].rootzone.NH4decayRate : patch[0].soil_defaults[0][0].N_decay_rate)),
-                                     (command_line[0].NH4root2active>0.0? patch[0].rootzone.depth * command_line[0].NH4root2active : (command_line[0].rootNdecayRate > 0? patch[0].soil_defaults[0][0].soil_depth : (command_line[0].root2active>0.0? patch[0].rootzone.depth * command_line[0].root2active : patch[0].soil_defaults[0][0].active_zone_z))),
+                                     patch[0].soil_defaults[0][0].NH4decayRate,
+                                     patch[0].soil_defaults[0][0].active_zone_z,
                                      patch[0].soil_defaults[0][0].NH4_adsorption_rate,
                                      32,patch);
             //printf("patch [%d] sewerdrained(%e) NH4{%e - > %e}\n", patch[0].ID,patch[0].sewerdrained,patch[0].soil_ns.sminn,tmpNout);
@@ -624,8 +635,8 @@ void		patch_daily_F(
                                      command_line[0].verbose_flag,
                                      patch[0].sat_DON, //patch[0].soil_ns.DON,
                                      patch[0].sewerdrained,
-                                     (command_line[0].rootNdecayRate > 0? patch[0].rootzone.DOMdecayRate : patch[0].soil_defaults[0][0].DOM_decay_rate),
-                                     (command_line[0].rootNdecayRate > 0? patch[0].soil_defaults[0][0].soil_depth : (command_line[0].root2active > 0.0? patch[0].rootzone.depth * command_line[0].root2active : patch[0].soil_defaults[0][0].active_zone_z)),
+                                     patch[0].soil_defaults[0][0].DOMdecayRate,
+                                     patch[0].soil_defaults[0][0].active_zone_z,
                                      patch[0].soil_defaults[0][0].DON_adsorption_rate,
                                      35,patch);
             //printf("patch [%d] sewerdrained(%e) DON{%e - > %e}\n", patch[0].ID,patch[0].sewerdrained,patch[0].soil_ns.DON,tmpNout);
@@ -636,8 +647,8 @@ void		patch_daily_F(
                                      command_line[0].verbose_flag,
                                      patch[0].sat_DOC,//patch[0].soil_cs.DOC,
                                      patch[0].sewerdrained,
-                                     (command_line[0].rootNdecayRate > 0? patch[0].rootzone.DOMdecayRate : patch[0].soil_defaults[0][0].DOM_decay_rate),
-                                     (command_line[0].rootNdecayRate > 0? patch[0].soil_defaults[0][0].soil_depth : (command_line[0].root2active > 0.0? patch[0].rootzone.depth * command_line[0].root2active : patch[0].soil_defaults[0][0].active_zone_z)),
+                                     patch[0].soil_defaults[0][0].DOMdecayRate,
+                                     patch[0].soil_defaults[0][0].active_zone_z,
                                      patch[0].soil_defaults[0][0].DOC_adsorption_rate,
                                      38,patch);
             //printf("patch [%d] sewerdrained(%e) DOC{%e - > %e}\n", patch[0].ID,patch[0].sewerdrained,patch[0].soil_cs.DOC,tmpNout);
@@ -645,43 +656,90 @@ void		patch_daily_F(
             patch[0].sat_DOC -= tmpNout; //patch[0].soil_cs.DOC -= tmpNout;
             
         }// growth_flag
-        if(patch[0].soil_ns.nitrate!=patch[0].soil_ns.nitrate||patch[0].soil_ns.nitrate<0 || patch[0].soil_ns.sminn!=patch[0].soil_ns.sminn||patch[0].soil_ns.sminn<0 || patch[0].soil_ns.DON!=patch[0].soil_ns.DON||patch[0].soil_ns.DON<0 || patch[0].soil_cs.DOC!=patch[0].soil_cs.DOC||patch[0].soil_cs.DOC<0 || patch[0].sat_NO3!=patch[0].sat_NO3 || patch[0].sat_NO3<0) printf("patch daily F1 after sewerdrain [%d,%d,%d,%d]{%e,%e,%e,%e,%e}\n",
-                                            patch[0].ID, patch[0].drainage_type, actionPIPEDRAIN, actionSEWER,
-                                            patch[0].soil_ns.nitrate,patch[0].soil_ns.sminn,patch[0].soil_cs.DOC, patch[0].soil_ns.DON,patch[0].sat_NO3);
+        if(patch[0].soil_ns.nitrate!=patch[0].soil_ns.nitrate || patch[0].soil_ns.nitrate<0 ||
+        patch[0].soil_ns.sminn!=patch[0].soil_ns.sminn || patch[0].soil_ns.sminn<0 ||
+        patch[0].soil_cs.DOC!=patch[0].soil_cs.DOC || patch[0].soil_cs.DOC<0 ||
+        patch[0].sat_NO3!=patch[0].sat_NO3 || patch[0].sat_NO3<0 ||
+        patch[0].sat_NH4!=patch[0].sat_NH4 || patch[0].sat_NH4<0 ||
+        patch[0].sat_DOC!=patch[0].sat_DOC || patch[0].sat_DOC<0 ||
+        patch[0].surface_NO3!=patch[0].surface_NO3 || patch[0].surface_NO3<0 ||
+        patch[0].surface_NH4!=patch[0].surface_NH4 || patch[0].surface_NH4<0 ||
+        patch[0].surface_DOC!=patch[0].surface_DOC || patch[0].surface_DOC<0) printf("patch daily F1N [%d,%d,%d,%d] [%e %e %e] [%e %e %e] [%e %e %e]\n",
+           patch[0].ID, patch[0].drainage_type, actionPIPEDRAIN, actionSEWER,
+           patch[0].soil_ns.nitrate,patch[0].soil_ns.sminn,patch[0].soil_cs.DOC,
+           patch[0].sat_NO3,patch[0].sat_NH4,patch[0].sat_DOC,
+           patch[0].surface_NO3,patch[0].surface_NH4,patch[0].surface_DOC);
         
         patch[0].sat_deficit += patch[0].sewerdrained;
-        patch[0].sat_deficit_z = compute_z_final(
-                                                 command_line[0].verbose_flag,
-                                                 patch[0].soil_defaults[0][0].porosity_0,
-                                                 patch[0].soil_defaults[0][0].porosity_decay,
-                                                 patch[0].soil_defaults[0][0].soil_depth,
-                                                 0.0,
-                                                 -1.0 * patch[0].sat_deficit);
         
-        patch[0].rootzone.field_capacity = compute_layer_field_capacity(
-                                                                        command_line[0].verbose_flag,
-                                                                        patch[0].soil_defaults[0][0].theta_psi_curve,
-                                                                        patch[0].soil_defaults[0][0].psi_air_entry,
-                                                                        patch[0].soil_defaults[0][0].pore_size_index,
-                                                                        patch[0].soil_defaults[0][0].p3,
-                                                                        patch[0].soil_defaults[0][0].p4,
-                                                                        patch[0].soil_defaults[0][0].porosity_0,
-                                                                        patch[0].soil_defaults[0][0].porosity_decay,
-                                                                        patch[0].sat_deficit_z,
-                                                                        patch[0].rootzone.depth, 0.0);
+        if(patch[0].sat_deficit >= 0){
+            patch[0].available_soil_water = patch[0].soil_defaults[0][0].soil_water_cap - patch[0].sat_deficit;
+            patch[0].sat_def_pct = patch[0].sat_deficit * patch[0].soil_defaults[0][0].max_sat_def_1;
+            patch[0].sat_def_pct_index = (int)(patch[0].sat_def_pct*1000);
+            patch[0].sat_def_pct_indexM = 1000*(patch[0].sat_def_pct - patch[0].sat_def_pct_index*0.001);
+            
+            patch[0].sat_deficit_z = patch[0].sat_def_pct_indexM * patch[0].soil_defaults[0][0].sat_def_z[patch[0].sat_def_pct_index+1] + (1.0-patch[0].sat_def_pct_indexM) * patch[0].soil_defaults[0][0].sat_def_z[patch[0].sat_def_pct_index];
+        }else{
+            // surface
+            patch[0].available_soil_water = patch[0].soil_defaults[0][0].soil_water_cap;
+            patch[0].sat_deficit_z = patch[0].sat_deficit;
+            patch[0].sat_def_pct = 0.0;
+            patch[0].sat_def_pct_index = 0;
+            patch[0].sat_def_pct_indexM = 0;
+        }
         
-        patch[0].field_capacity = compute_layer_field_capacity(
-                                                               command_line[0].verbose_flag,
-                                                               patch[0].soil_defaults[0][0].theta_psi_curve,
-                                                               patch[0].soil_defaults[0][0].psi_air_entry,
-                                                               patch[0].soil_defaults[0][0].pore_size_index,
-                                                               patch[0].soil_defaults[0][0].p3,
-                                                               patch[0].soil_defaults[0][0].p4,
-                                                               patch[0].soil_defaults[0][0].porosity_0,
-                                                               patch[0].soil_defaults[0][0].porosity_decay,
-                                                               patch[0].sat_deficit_z,
-                                                               patch[0].sat_deficit_z, 0.0) - patch[0].rootzone.field_capacity;
-        patch[0].rootzone.field_capacity *= (1.0-patch[0].basementFrac);
+        totalfc = patch[0].sat_def_pct_indexM * patch[0].soil_defaults[0][0].fc1_0z[patch[0].sat_def_pct_index+1] + (1.0-patch[0].sat_def_pct_indexM) * patch[0].soil_defaults[0][0].fc1_0z[patch[0].sat_def_pct_index];
+        totalfc *= (1.0-patch[0].basementFrac); // <---- second thought on this, Oct 8, 2019; basement is 3m at most
+        if (patch[0].sat_deficit < ZERO) {
+            //patch[0].aboveWT_SatPct = 1.0;
+            //patch[0].rootzone.SatPct = 1.0;
+            patch[0].rootzone.field_capacity = 0.0;
+            patch[0].field_capacity = 0.0;
+        } else {
+            patch[0].rootzone.field_capacity = totalfc * patch[0].zeroRootCoef * (patch[0].rootzone_scale_ref*patch[0].rootzone_end_reffc[patch[0].sat_def_pct_index] + (1.0-patch[0].rootzone_scale_ref)*patch[0].rootzone_start_reffc[patch[0].sat_def_pct_index]);
+            patch[0].rootzone.field_capacity = min(patch[0].rootzone.field_capacity,patch[0].rootzone.potential_sat);
+            patch[0].field_capacity = max(0.0,min(patch[0].sat_deficit-patch[0].rootzone.potential_sat, totalfc - patch[0].rootzone.field_capacity));
+        }//if else
+        
+        if(patch[0].sat_deficit!=patch[0].sat_deficit || patch[0].sat_deficit_z!=patch[0].sat_deficit_z || patch[0].rootzone.field_capacity!=patch[0].rootzone.field_capacity || patch[0].field_capacity!=patch[0].field_capacity){
+            printf("patch_daily_F(1): (%d,%d,%d) %lf %lf %lf %lf\n",
+                   patch[0].ID, patch[0].soil_defaults[0][0].ID, patch[0].sat_def_pct_index,
+                   patch[0].sat_deficit, patch[0].sat_deficit_z,
+                   patch[0].rootzone.field_capacity, patch[0].field_capacity);
+        }//debug
+        
+//        patch[0].sat_deficit_z = compute_z_final(
+//                                                 command_line[0].verbose_flag,
+//                                                 patch[0].soil_defaults[0][0].porosity_0,
+//                                                 patch[0].soil_defaults[0][0].porosity_decay,
+//                                                 patch[0].soil_defaults[0][0].soil_depth,
+//                                                 0.0,
+//                                                 -1.0 * patch[0].sat_deficit);
+//
+//        patch[0].rootzone.field_capacity = compute_layer_field_capacity(
+//                                                                        command_line[0].verbose_flag,
+//                                                                        patch[0].soil_defaults[0][0].theta_psi_curve,
+//                                                                        patch[0].soil_defaults[0][0].psi_air_entry,
+//                                                                        patch[0].soil_defaults[0][0].pore_size_index,
+//                                                                        patch[0].soil_defaults[0][0].p3,
+//                                                                        patch[0].soil_defaults[0][0].p4,
+//                                                                        patch[0].soil_defaults[0][0].porosity_0,
+//                                                                        patch[0].soil_defaults[0][0].porosity_decay,
+//                                                                        patch[0].sat_deficit_z,
+//                                                                        patch[0].rootzone.depth, 0.0);
+//
+//        patch[0].field_capacity = compute_layer_field_capacity(
+//                                                               command_line[0].verbose_flag,
+//                                                               patch[0].soil_defaults[0][0].theta_psi_curve,
+//                                                               patch[0].soil_defaults[0][0].psi_air_entry,
+//                                                               patch[0].soil_defaults[0][0].pore_size_index,
+//                                                               patch[0].soil_defaults[0][0].p3,
+//                                                               patch[0].soil_defaults[0][0].p4,
+//                                                               patch[0].soil_defaults[0][0].porosity_0,
+//                                                               patch[0].soil_defaults[0][0].porosity_decay,
+//                                                               patch[0].sat_deficit_z,
+//                                                               patch[0].sat_deficit_z, 0.0) - patch[0].rootzone.field_capacity;
+//        patch[0].rootzone.field_capacity *= (1.0-patch[0].basementFrac);
     }// Laurence: this is for SLB
     
     patch[0].pipedrainYield = 0.0;
@@ -692,7 +750,7 @@ void		patch_daily_F(
     if(patch[0].drainage_type>0 && patch[0].drainage_type % actionPIPEDRAIN==0){
         
         if(patch[0].sat_deficit_z < 1.0){
-            patch[0].pipedrainYield += 0.0005*max(0.0, 1.0-patch[0].sat_deficit_z*0.143);
+            patch[0].pipedrainYield += min(patch[0].available_soil_water, 0.0005*max(0.0, 1.0-patch[0].sat_deficit_z*0.143));
         }
         if(patch[0].pipedrainYield>0 && command_line[0].grow_flag > 0){
             // how? compute_N_leached?
@@ -701,8 +759,8 @@ void		patch_daily_F(
                                      command_line[0].verbose_flag,
                                      patch[0].sat_NO3, //patch[0].soil_ns.nitrate,
                                      patch[0].pipedrainYield,
-                                     (command_line[0].rootNdecayRate > 0? patch[0].rootzone.NO3decayRate : patch[0].soil_defaults[0][0].N_decay_rate),
-                                     (command_line[0].rootNdecayRate > 0? patch[0].soil_defaults[0][0].soil_depth : (command_line[0].root2active > 0.0? patch[0].rootzone.depth * command_line[0].root2active : patch[0].soil_defaults[0][0].active_zone_z)),
+                                     patch[0].soil_defaults[0][0].NO3decayRate,
+                                     patch[0].soil_defaults[0][0].active_zone_z,
                                      patch[0].soil_defaults[0][0].NO3_adsorption_rate,
                                      29,patch);
             //printf("patch [%d] pipedrainYield(%e) NO3{%e - > %e}\n", patch[0].ID,patch[0].pipedrainYield,patch[0].soil_ns.nitrate,tmpNout);
@@ -717,8 +775,8 @@ void		patch_daily_F(
                                      command_line[0].verbose_flag,
                                      patch[0].sat_NH4, //patch[0].soil_ns.sminn,
                                      patch[0].pipedrainYield,
-                                     (command_line[0].NH4root2active>0.0? patch[0].soil_defaults[0][0].N_decay_rate : (command_line[0].rootNdecayRate > 0? patch[0].rootzone.NH4decayRate : patch[0].soil_defaults[0][0].N_decay_rate)),
-                                     (command_line[0].NH4root2active>0.0? patch[0].rootzone.depth * command_line[0].NH4root2active : (command_line[0].rootNdecayRate > 0? patch[0].soil_defaults[0][0].soil_depth : (command_line[0].root2active>0.0? patch[0].rootzone.depth * command_line[0].root2active : patch[0].soil_defaults[0][0].active_zone_z))),
+                                     patch[0].soil_defaults[0][0].NH4decayRate,
+                                     patch[0].soil_defaults[0][0].active_zone_z,
                                      patch[0].soil_defaults[0][0].NH4_adsorption_rate,
                                      32,patch);
             //printf("patch [%d] pipedrainYield(%e) NH4{%e - > %e}\n", patch[0].ID,patch[0].pipedrainYield,patch[0].soil_ns.sminn,tmpNout);
@@ -729,8 +787,8 @@ void		patch_daily_F(
                                      command_line[0].verbose_flag,
                                      patch[0].sat_DON, //patch[0].soil_ns.DON,
                                      patch[0].pipedrainYield,
-                                     (command_line[0].rootNdecayRate > 0? patch[0].rootzone.DOMdecayRate : patch[0].soil_defaults[0][0].DOM_decay_rate),
-                                     (command_line[0].rootNdecayRate > 0? patch[0].soil_defaults[0][0].soil_depth : (command_line[0].root2active > 0.0? patch[0].rootzone.depth * command_line[0].root2active : patch[0].soil_defaults[0][0].active_zone_z)),
+                                     patch[0].soil_defaults[0][0].DOMdecayRate,
+                                     patch[0].soil_defaults[0][0].active_zone_z,
                                      patch[0].soil_defaults[0][0].DON_adsorption_rate,
                                      35,patch);
             //printf("patch [%d] pipedrainYield(%e) DON{%e - > %e}\n", patch[0].ID,patch[0].pipedrainYield,patch[0].soil_ns.DON,tmpNout);
@@ -741,8 +799,8 @@ void		patch_daily_F(
                                      command_line[0].verbose_flag,
                                      patch[0].sat_DOC, //patch[0].soil_cs.DOC,
                                      patch[0].pipedrainYield,
-                                     (command_line[0].rootNdecayRate > 0? patch[0].rootzone.DOMdecayRate : patch[0].soil_defaults[0][0].DOM_decay_rate),
-                                     (command_line[0].rootNdecayRate > 0? patch[0].soil_defaults[0][0].soil_depth : (command_line[0].root2active > 0.0? patch[0].rootzone.depth * command_line[0].root2active : patch[0].soil_defaults[0][0].active_zone_z)),
+                                     patch[0].soil_defaults[0][0].DOMdecayRate,
+                                     patch[0].soil_defaults[0][0].active_zone_z,
                                      patch[0].soil_defaults[0][0].DOC_adsorption_rate,
                                      38,patch);
             //printf("patch [%d] pipedrainYield(%e) DOC{%e - > %e}\n", patch[0].ID,patch[0].pipedrainYield,patch[0].soil_cs.DOC,tmpNout);
@@ -752,40 +810,87 @@ void		patch_daily_F(
         }// growth flag
 
         patch[0].sat_deficit += patch[0].pipedrainYield;
-        patch[0].sat_deficit_z = compute_z_final(
-                                                 command_line[0].verbose_flag,
-                                                 patch[0].soil_defaults[0][0].porosity_0,
-                                                 patch[0].soil_defaults[0][0].porosity_decay,
-                                                 patch[0].soil_defaults[0][0].soil_depth,
-                                                 0.0,
-                                                 -1.0 * patch[0].sat_deficit);
-
-        patch[0].rootzone.field_capacity = compute_layer_field_capacity(
-                                                                        command_line[0].verbose_flag,
-                                                                        patch[0].soil_defaults[0][0].theta_psi_curve,
-                                                                        patch[0].soil_defaults[0][0].psi_air_entry,
-                                                                        patch[0].soil_defaults[0][0].pore_size_index,
-                                                                        patch[0].soil_defaults[0][0].p3,
-                                                                        patch[0].soil_defaults[0][0].p4,
-                                                                        patch[0].soil_defaults[0][0].porosity_0,
-                                                                        patch[0].soil_defaults[0][0].porosity_decay,
-                                                                        patch[0].sat_deficit_z,
-                                                                        patch[0].rootzone.depth, 0.0);
-
-        patch[0].field_capacity = compute_layer_field_capacity(
-                                                               command_line[0].verbose_flag,
-                                                               patch[0].soil_defaults[0][0].theta_psi_curve,
-                                                               patch[0].soil_defaults[0][0].psi_air_entry,
-                                                               patch[0].soil_defaults[0][0].pore_size_index,
-                                                               patch[0].soil_defaults[0][0].p3,
-                                                               patch[0].soil_defaults[0][0].p4,
-                                                               patch[0].soil_defaults[0][0].porosity_0,
-                                                               patch[0].soil_defaults[0][0].porosity_decay,
-                                                               patch[0].sat_deficit_z,
-                                                               patch[0].sat_deficit_z, 0.0) - patch[0].rootzone.field_capacity;
-        patch[0].rootzone.field_capacity *= (1.0-patch[0].basementFrac);
+        
+        if(patch[0].sat_deficit >= 0){
+             patch[0].available_soil_water = patch[0].soil_defaults[0][0].soil_water_cap - patch[0].sat_deficit;
+             patch[0].sat_def_pct = patch[0].sat_deficit * patch[0].soil_defaults[0][0].max_sat_def_1;
+             patch[0].sat_def_pct_index = (int)(patch[0].sat_def_pct*1000);
+             patch[0].sat_def_pct_indexM = 1000*(patch[0].sat_def_pct - patch[0].sat_def_pct_index*0.001);
+             
+             patch[0].sat_deficit_z = patch[0].sat_def_pct_indexM * patch[0].soil_defaults[0][0].sat_def_z[patch[0].sat_def_pct_index+1] + (1.0-patch[0].sat_def_pct_indexM) * patch[0].soil_defaults[0][0].sat_def_z[patch[0].sat_def_pct_index];
+         }else{
+             // surface
+             patch[0].available_soil_water = patch[0].soil_defaults[0][0].soil_water_cap;
+             patch[0].sat_deficit_z = patch[0].sat_deficit;
+             patch[0].sat_def_pct = 0.0;
+             patch[0].sat_def_pct_index = 0;
+             patch[0].sat_def_pct_indexM = 0;
+         }
+         
+        totalfc = patch[0].sat_def_pct_indexM * patch[0].soil_defaults[0][0].fc1_0z[patch[0].sat_def_pct_index+1] + (1.0-patch[0].sat_def_pct_indexM) * patch[0].soil_defaults[0][0].fc1_0z[patch[0].sat_def_pct_index];
+         totalfc *= (1.0-patch[0].basementFrac); // <---- second thought on this, Oct 8, 2019; basement is 3m at most
+         if (patch[0].sat_deficit < ZERO) {
+             //patch[0].aboveWT_SatPct = 1.0;
+             //patch[0].rootzone.SatPct = 1.0;
+             patch[0].rootzone.field_capacity = 0.0;
+             patch[0].field_capacity = 0.0;
+         } else {
+             patch[0].rootzone.field_capacity = totalfc * patch[0].zeroRootCoef * (patch[0].rootzone_scale_ref*patch[0].rootzone_end_reffc[patch[0].sat_def_pct_index] + (1.0-patch[0].rootzone_scale_ref)*patch[0].rootzone_start_reffc[patch[0].sat_def_pct_index]);
+             patch[0].rootzone.field_capacity = min(patch[0].rootzone.field_capacity,patch[0].rootzone.potential_sat);
+             patch[0].field_capacity = max(0.0,min(patch[0].sat_deficit-patch[0].rootzone.potential_sat, totalfc - patch[0].rootzone.field_capacity));
+         }//if else
+         if(patch[0].sat_deficit!=patch[0].sat_deficit || patch[0].sat_deficit_z!=patch[0].sat_deficit_z || patch[0].rootzone.field_capacity!=patch[0].rootzone.field_capacity || patch[0].field_capacity!=patch[0].field_capacity){
+             printf("patch_daily_I(2): (%d,%d,%d) %lf %lf %lf %lf\n", patch[0].ID,
+                    patch[0].sat_deficit, patch[0].sat_deficit_z,
+                    patch[0].rootzone.field_capacity, patch[0].field_capacity);
+         }//debug
+         
+//        patch[0].sat_deficit_z = compute_z_final(
+//                                                 command_line[0].verbose_flag,
+//                                                 patch[0].soil_defaults[0][0].porosity_0,
+//                                                 patch[0].soil_defaults[0][0].porosity_decay,
+//                                                 patch[0].soil_defaults[0][0].soil_depth,
+//                                                 0.0,
+//                                                 -1.0 * patch[0].sat_deficit);
+//
+//        patch[0].rootzone.field_capacity = compute_layer_field_capacity(
+//                                                                        command_line[0].verbose_flag,
+//                                                                        patch[0].soil_defaults[0][0].theta_psi_curve,
+//                                                                        patch[0].soil_defaults[0][0].psi_air_entry,
+//                                                                        patch[0].soil_defaults[0][0].pore_size_index,
+//                                                                        patch[0].soil_defaults[0][0].p3,
+//                                                                        patch[0].soil_defaults[0][0].p4,
+//                                                                        patch[0].soil_defaults[0][0].porosity_0,
+//                                                                        patch[0].soil_defaults[0][0].porosity_decay,
+//                                                                        patch[0].sat_deficit_z,
+//                                                                        patch[0].rootzone.depth, 0.0);
+//
+//        patch[0].field_capacity = compute_layer_field_capacity(
+//                                                               command_line[0].verbose_flag,
+//                                                               patch[0].soil_defaults[0][0].theta_psi_curve,
+//                                                               patch[0].soil_defaults[0][0].psi_air_entry,
+//                                                               patch[0].soil_defaults[0][0].pore_size_index,
+//                                                               patch[0].soil_defaults[0][0].p3,
+//                                                               patch[0].soil_defaults[0][0].p4,
+//                                                               patch[0].soil_defaults[0][0].porosity_0,
+//                                                               patch[0].soil_defaults[0][0].porosity_decay,
+//                                                               patch[0].sat_deficit_z,
+//                                                               patch[0].sat_deficit_z, 0.0) - patch[0].rootzone.field_capacity;
+//        patch[0].rootzone.field_capacity *= (1.0-patch[0].basementFrac);
     }// Laurence: this is for SLB
-    if(patch[0].soil_ns.nitrate!=patch[0].soil_ns.nitrate||patch[0].soil_ns.nitrate<0 || patch[0].soil_ns.sminn!=patch[0].soil_ns.sminn||patch[0].soil_ns.sminn<0 || patch[0].soil_ns.DON!=patch[0].soil_ns.DON||patch[0].soil_ns.DON<0 || patch[0].soil_cs.DOC!=patch[0].soil_cs.DOC||patch[0].soil_cs.DOC<0 || patch[0].sat_NO3!=patch[0].sat_NO3 || patch[0].sat_NO3<0) printf("patch daily F2 after pipedrain [%d,%d,%d,%d]{%e,%e,%e,%e, %e}\n", patch[0].ID, patch[0].drainage_type,actionPIPEDRAIN,actionSEWER, patch[0].soil_ns.nitrate,patch[0].soil_ns.sminn,patch[0].soil_cs.DOC, patch[0].soil_ns.DON, patch[0].sat_NO3);
+    if(patch[0].soil_ns.nitrate!=patch[0].soil_ns.nitrate || patch[0].soil_ns.nitrate<0 ||
+    patch[0].soil_ns.sminn!=patch[0].soil_ns.sminn || patch[0].soil_ns.sminn<0 ||
+    patch[0].soil_cs.DOC!=patch[0].soil_cs.DOC || patch[0].soil_cs.DOC<0 ||
+    patch[0].sat_NO3!=patch[0].sat_NO3 || patch[0].sat_NO3<0 ||
+    patch[0].sat_NH4!=patch[0].sat_NH4 || patch[0].sat_NH4<0 ||
+    patch[0].sat_DOC!=patch[0].sat_DOC || patch[0].sat_DOC<0 ||
+    patch[0].surface_NO3!=patch[0].surface_NO3 || patch[0].surface_NO3<0 ||
+    patch[0].surface_NH4!=patch[0].surface_NH4 || patch[0].surface_NH4<0 ||
+    patch[0].surface_DOC!=patch[0].surface_DOC || patch[0].surface_DOC<0) printf("patch daily F2N [%d,%d,%d,%d] [%e %e %e] [%e %e %e] [%e %e %e]\n",
+       patch[0].ID, patch[0].drainage_type, actionPIPEDRAIN, actionSEWER,
+       patch[0].soil_ns.nitrate,patch[0].soil_ns.sminn,patch[0].soil_cs.DOC,
+       patch[0].sat_NO3,patch[0].sat_NH4,patch[0].sat_DOC,
+       patch[0].surface_NO3,patch[0].surface_NH4,patch[0].surface_DOC);
     
 	/*--------------------------------------------------------------*/
 	/*	process any daily rainfall				*/
@@ -802,23 +907,34 @@ void		patch_daily_F(
 	patch[0].NO3_throughfall = 0; // this is updated by the hourly accumulated stratum[0].NO3_stored in the canopy_stratum_dailyF.c
 
 
-	if (command_line[0].snow_scale_flag == 1) {
+	if (command_line[0].snow_scale_flag == 1)
 		patch[0].snow_throughfall = zone[0].snow * patch[0].snow_redist_scale;
-		}
-	else	patch[0].snow_throughfall = zone[0].snow;
+    else
+        patch[0].snow_throughfall = zone[0].snow;
 
 	patch[0].wind = zone[0].wind;
 	patch[0].windsnow = zone[0].wind;
 
 	patch[0].precip_with_assim += patch[0].rain_throughfall + patch[0].snow_throughfall;
 
-	if ((patch[0].landuse_defaults[0][0].septic_water_load > ZERO) 
-		|| (patch[0].landuse_defaults[0][0].septic_NO3_load > ZERO)) {
+	if ((patch[0].landuse_defaults[0][0].septic_water_load > ZERO) || (patch[0].landuse_defaults[0][0].septic_NO3_load > ZERO)) {
 		if (update_septic( current_date, patch) != 0) {
 			printf("\n Error in update_septic ...exiting");
 			exit(EXIT_FAILURE);
-			}
-		}
+        }
+        
+//        if (patch[0].sat_deficit < ZERO) {
+//            patch[0].aboveWT_SatPct = 1.0;
+//            patch[0].rootzone.SatPct = 1.0;
+//        } else if (patch[0].sat_deficit_z > patch[0].rootzone.depth)  {
+//            patch[0].rootzone.SatPct = min(patch[0].rz_storage/patch[0].rootzone.potential_sat/(1.0-patch[0].basementFrac), 1.0);
+//            patch[0].aboveWT_SatPct = (patch[0].rz_storage+patch[0].unsat_storage)/patch[0].sat_deficit;
+//        } else {
+//            // sat_deficit_z <= rootzone.depth
+//            patch[0].rootzone.SatPct = min((patch[0].rz_storage + patch[0].rootzone.potential_sat - patch[0].sat_deficit)/patch[0].rootzone.potential_sat/(1.0-patch[0].basementFrac),1.0);
+//            patch[0].aboveWT_SatPct = (patch[0].rz_storage+patch[0].unsat_storage)/patch[0].sat_deficit;
+//        }//if else
+    }//if
 
 
 
@@ -900,7 +1016,7 @@ void		patch_daily_F(
 	/*--------------------------------------------------------------*/
 	
 	/*	Calculate initial pond height		*/
-	pond_height = max(0.0,-1 * patch[0].sat_deficit_z + patch[0].detention_store);
+	pond_height = max(0.0, -patch[0].sat_deficit_z + patch[0].detention_store);
 	
 	/*--------------------------------------------------------------*/
 	/* Layers above snowpack and pond */
@@ -915,22 +1031,25 @@ void		patch_daily_F(
 			patch[0].snowpack.overstory_height = max(patch[0].snowpack.overstory_height,  patch[0].layers[layer].height);
 			patch[0].overstory_fraction = max(patch[0].overstory_fraction, (1.0 - patch[0].layers[layer].null_cover));
 			
-            patch[0].Kdown_direct_final = patch[0].layers[layer].null_cover * patch[0].Kdown_direct; //modified by canopy_stratum_dailyF()
-            patch[0].Kdown_diffuse_final = patch[0].layers[layer].null_cover * patch[0].Kdown_diffuse; //modified by canopy_stratum_dailyF()
+            patch[0].Kdown_direct_final = patch[0].layers[layer].null_cover * patch[0].Kdown_direct; //modified by canopy_stratum_dailyF() //<<--- zone[0].
+            patch[0].Kdown_diffuse_final = patch[0].layers[layer].null_cover * patch[0].Kdown_diffuse; //modified by canopy_stratum_dailyF() //<<--- zone[0].
             // Kup_direct_final is 0 initially; calculated in canopy_stratum_dailyF() and accumulated
             // Kup_diffuse_final is 0 initially; calculated in canopy_stratum_dailyF() and accumulated
-			patch[0].PAR_direct_final = patch[0].layers[layer].null_cover * patch[0].PAR_direct; //modified by canopy_stratum_dailyF()
-			patch[0].PAR_diffuse_final = patch[0].layers[layer].null_cover * patch[0].PAR_diffuse; //modified by canopy_stratum_dailyF()
+			patch[0].PAR_direct_final = patch[0].layers[layer].null_cover * patch[0].PAR_direct; //modified by canopy_stratum_dailyF() //<<--- zone[0].
+			patch[0].PAR_diffuse_final = patch[0].layers[layer].null_cover * patch[0].PAR_diffuse; //modified by canopy_stratum_dailyF() //<<--- zone[0].
 			
-            patch[0].Ldown_final = patch[0].layers[layer].null_cover * patch[0].Ldown;
-			patch[0].Ldown_final_night = patch[0].layers[layer].null_cover * patch[0].Ldown_night;
-			patch[0].Ldown_final_day = patch[0].layers[layer].null_cover * patch[0].Ldown_day;
+            patch[0].Ldown_final = patch[0].layers[layer].null_cover * patch[0].Ldown; //<<--- zone[0].Ldown
+			patch[0].Ldown_final_night = patch[0].layers[layer].null_cover * patch[0].Ldown_night; //<<--- zone[0].Ldown_night
+			patch[0].Ldown_final_day = patch[0].layers[layer].null_cover * patch[0].Ldown_day; //<<--- zone[0].Ldown_day
+            
 			patch[0].Kstar_canopy_final = patch[0].Kstar_canopy;
 			patch[0].LE_canopy_final = patch[0].LE_canopy;
+            
 			patch[0].rain_throughfall_final = patch[0].layers[layer].null_cover * patch[0].rain_throughfall;
 			patch[0].snow_throughfall_final = patch[0].layers[layer].null_cover * patch[0].snow_throughfall;
 			patch[0].NO3_throughfall_final = patch[0].layers[layer].null_cover * patch[0].NO3_throughfall;
 			patch[0].T_canopy_final = patch[0].layers[layer].null_cover * patch[0].T_canopy;
+            
 			if (dum == 0) {
 				patch[0].ga_final = patch[0].layers[layer].null_cover * tmpga;
 				patch[0].gasnow_final = patch[0].layers[layer].null_cover * tmpgasnow;
@@ -971,12 +1090,22 @@ void		patch_daily_F(
 						current_date );
 				dum += 1;
 			}
-			patch[0].Kdown_direct = patch[0].Kdown_direct_final; //modified by canopy_stratum_dailyF() and update to patch
-			patch[0].Kup_direct = patch[0].Kup_direct_final; //modified by canopy_stratum_dailyF() and update to patch
-			patch[0].Kdown_diffuse = patch[0].Kdown_diffuse_final; //modified by canopy_stratum_dailyF() and update to patch
-			patch[0].Kup_diffuse = patch[0].Kup_diffuse_final; //modified by canopy_stratum_dailyF() and update to patch
-			patch[0].PAR_direct = patch[0].PAR_direct_final; //modified by canopy_stratum_dailyF() and update to patch
-			patch[0].PAR_diffuse = patch[0].PAR_diffuse_final; //modified by canopy_stratum_dailyF() and update to patch
+            
+            if(patch[0].PAR_direct_final + patch[0].PAR_diffuse_final < 0.0){
+                printf("patch dailyF abovesnow & pond (%d, %d, %d, %d) %lf,%lf -> %lf,%lf  %lf,%lf -> %lf,%lf  %lf,%lf -> %lf,%lf\n",
+                       patch[0].ID, layer, layer, stratum,
+                       patch[0].Kdown_direct, patch[0].Kup_direct, patch[0].Kdown_direct_final, patch[0].Kup_direct_final,
+                       patch[0].Kdown_diffuse, patch[0].Kup_diffuse, patch[0].Kdown_diffuse_final, patch[0].Kup_diffuse_final,
+                       patch[0].PAR_direct, patch[0].PAR_diffuse, patch[0].PAR_direct_final, patch[0].PAR_diffuse_final
+                       );
+            }//debug
+            
+			patch[0].Kdown_direct = patch[0].Kdown_direct_final; //modified by += canopy_stratum_dailyF() and update to patch
+			patch[0].Kup_direct = patch[0].Kup_direct_final; //modified by += canopy_stratum_dailyF() and update to patch
+			patch[0].Kdown_diffuse = patch[0].Kdown_diffuse_final; //modified by += canopy_stratum_dailyF() and update to patch
+			patch[0].Kup_diffuse = patch[0].Kup_diffuse_final; //modified by += canopy_stratum_dailyF() and update to patch
+			patch[0].PAR_direct = patch[0].PAR_direct_final; //modified by += canopy_stratum_dailyF() and update to patch
+			patch[0].PAR_diffuse = patch[0].PAR_diffuse_final; //modified by += canopy_stratum_dailyF() and update to patch
             
 			patch[0].Ldown = patch[0].Ldown_final;
 			patch[0].Ldown_night = patch[0].Ldown_final_night;
@@ -1002,7 +1131,7 @@ void		patch_daily_F(
 		compute_Lstar(command_line[0].verbose_flag,
 					  basin,
 					  zone,
-					  patch);
+					  patch); // what?
 	}
 	
 	
@@ -1189,6 +1318,7 @@ void		patch_daily_F(
 			patch[0].Kup_diffuse += Kup_diffuse_snow_exposed * (1 - patch[0].snowpack.overstory_fraction);
 		
 			patch[0].snowpack.water_equivalent_depth -= patch[0].snow_melt;
+            patch[0].snowpack.water_equivalent_depth = max(0.0, patch[0].snowpack.water_equivalent_depth);
 			patch[0].snowpack.sublimation = min(patch[0].snowpack.sublimation, patch[0].snowpack.water_equivalent_depth);
 			patch[0].snowpack.height = patch[0].snowpack.water_equivalent_depth / 0.1; /* snow density ~ 0.1 */
 
@@ -1200,19 +1330,17 @@ void		patch_daily_F(
 			}
 			patch[0].snow_throughfall = 0.0;
 			patch[0].snowpack.water_equivalent_depth -= patch[0].snowpack.sublimation;
+            patch[0].snowpack.water_equivalent_depth = max(0.0, patch[0].snowpack.water_equivalent_depth);
 			/* Force turbulent fluxes to 0 under snowpack */
 			patch[0].ga = 0.0;
 			patch[0].wind = 0.0;
-		}
-		
-		else {
+		} else {
 			patch[0].rain_throughfall += patch[0].snowpack.water_equivalent_depth;
 			patch[0].snow_throughfall = 0.0;
 			patch[0].snowpack.water_equivalent_depth = 0.0;
 			patch[0].snowpack.height = 0.0;
 		}
-	}
-	else{
+	}else{
 		/*--------------------------------------------------------------*/
 		/*	Just to create symmetrical output for snow and no snow	*/
 		/*	days we do some fake calls which snowpack_daily_F does	*/
@@ -1300,6 +1428,16 @@ void		patch_daily_F(
 						event,
 						current_date );
 			}
+            
+//            if(patch[0].PAR_direct_final<=ZERO || patch[0].PAR_diffuse_final<=ZERO){
+//                printf("patch dailyF under snow but above pond (%d, %d, %d) %lf,%lf -> %lf,%lf  %lf,%lf -> %lf,%lf  %lf,%lf -> %lf,%lf\n",
+//                       patch[0].ID, layer, patch[0].canopy_strata[(patch[0].layers[layer].strata[stratum])]->ID,
+//                       patch[0].Kdown_direct, patch[0].Kup_direct, patch[0].Kdown_direct_final, patch[0].Kup_direct_final,
+//                       patch[0].Kdown_diffuse, patch[0].Kup_diffuse, patch[0].Kdown_diffuse_final, patch[0].Kup_diffuse_final,
+//                       patch[0].PAR_direct, patch[0].PAR_diffuse, patch[0].PAR_direct_final, patch[0].PAR_diffuse_final
+//                       );
+//            }//debug
+            
 			patch[0].Kdown_direct = patch[0].Kdown_direct_final;
 			patch[0].Kdown_diffuse = patch[0].Kdown_diffuse_final;
 			patch[0].PAR_direct = patch[0].PAR_direct_final;
@@ -1348,6 +1486,16 @@ void		patch_daily_F(
 						event,
 						current_date );
 			}
+            
+//            if(patch[0].PAR_direct_final<=ZERO || patch[0].PAR_diffuse_final<=ZERO){
+//                printf("patch dailyF under snow and under pond (%d, %d, %d) %lf,%lf -> %lf,%lf  %lf,%lf -> %lf,%lf  %lf,%lf -> %lf,%lf\n",
+//                       patch[0].ID, layer, patch[0].canopy_strata[(patch[0].layers[layer].strata[stratum])]->ID,
+//                       patch[0].Kdown_direct, patch[0].Kup_direct, patch[0].Kdown_direct_final, patch[0].Kup_direct_final,
+//                       patch[0].Kdown_diffuse, patch[0].Kup_diffuse, patch[0].Kdown_diffuse_final, patch[0].Kup_diffuse_final,
+//                       patch[0].PAR_direct, patch[0].PAR_diffuse, patch[0].PAR_direct_final, patch[0].PAR_diffuse_final
+//                       );
+//            }//debug
+            
 			patch[0].Kdown_direct = patch[0].Kdown_direct_final;
 			patch[0].Kdown_diffuse = patch[0].Kdown_diffuse_final;
 			patch[0].PAR_direct = patch[0].PAR_direct_final;
@@ -1484,11 +1632,11 @@ void		patch_daily_F(
         if(fertilizerAdded>0) patch[0].fertilizerDaysCount++;
         else patch[0].fertilizerDaysCount = 0;
         
-        patch[0].soil_ns.nitrate +=  0.6 * patch[0].stored_fertilizer_NO3 * patch[0].landuse_defaults[0][0].fertilizer_decay_rate;
-        patch[0].surface_NO3 += 0.4 * patch[0].stored_fertilizer_NO3 * patch[0].landuse_defaults[0][0].fertilizer_decay_rate;
+        patch[0].soil_ns.nitrate +=  0.8 * patch[0].stored_fertilizer_NO3 * patch[0].landuse_defaults[0][0].fertilizer_decay_rate;
+        patch[0].surface_NO3 += 0.2 * patch[0].stored_fertilizer_NO3 * patch[0].landuse_defaults[0][0].fertilizer_decay_rate;
         patch[0].stored_fertilizer_NO3 *= 1.0 - patch[0].landuse_defaults[0][0].fertilizer_decay_rate; // remaining
-        patch[0].soil_ns.sminn += 0.6 * patch[0].stored_fertilizer_NH4 * patch[0].landuse_defaults[0][0].fertilizer_decay_rate;
-        patch[0].surface_NH4 += 0.4 * patch[0].stored_fertilizer_NH4 * patch[0].landuse_defaults[0][0].fertilizer_decay_rate;
+        patch[0].soil_ns.sminn += 0.8 * patch[0].stored_fertilizer_NH4 * patch[0].landuse_defaults[0][0].fertilizer_decay_rate;
+        patch[0].surface_NH4 += 0.2 * patch[0].stored_fertilizer_NH4 * patch[0].landuse_defaults[0][0].fertilizer_decay_rate;
         patch[0].stored_fertilizer_NH4 *= 1.0 - patch[0].landuse_defaults[0][0].fertilizer_decay_rate; // remaining
     }// fertilizer_flag
 		
@@ -1538,7 +1686,23 @@ void		patch_daily_F(
 	
 	patch[0].detention_store += 0.5 * patch[0].rain_throughfall + irrigation + patch[0].grassIrrigation_m;
 	
-    if(patch[0].soil_ns.nitrate!=patch[0].soil_ns.nitrate||patch[0].soil_ns.nitrate<0 || patch[0].soil_ns.sminn!=patch[0].soil_ns.sminn||patch[0].soil_ns.sminn<0 || patch[0].soil_ns.DON!=patch[0].soil_ns.DON||patch[0].soil_ns.DON<0 || patch[0].soil_cs.DOC!=patch[0].soil_cs.DOC||patch[0].soil_cs.DOC<0 || patch[0].sat_NO3!=patch[0].sat_NO3 || patch[0].sat_NO3<0) printf("patch daily F3 [%d,%d,%d,%d]{%e,%e,%e,%e,%e}\n", patch[0].ID, patch[0].drainage_type,actionPIPEDRAIN,actionSEWER, patch[0].soil_ns.nitrate,patch[0].soil_ns.sminn,patch[0].soil_cs.DOC, patch[0].soil_ns.DON, patch[0].sat_NO3);
+    if(patch[0].soil_ns.nitrate!=patch[0].soil_ns.nitrate ||
+    patch[0].soil_ns.nitrate<0 ||
+    patch[0].soil_ns.sminn!=patch[0].soil_ns.sminn ||
+    patch[0].soil_ns.sminn<0 ||
+    patch[0].soil_ns.DON!=patch[0].soil_ns.DON ||
+    patch[0].soil_ns.DON<0 ||
+    patch[0].soil_cs.DOC!=patch[0].soil_cs.DOC ||
+    patch[0].soil_cs.DOC<0 ||
+    patch[0].sat_NO3!=patch[0].sat_NO3 ||
+    patch[0].sat_NO3<0 || patch[0].sat_NH4!=patch[0].sat_NH4 ||
+    patch[0].sat_NH4<0 ) printf("patch daily F3N [%d,%d,%d,%d]{%e,%e,%e,%e}[%e,%e,%e,%e]\n",
+       patch[0].ID, patch[0].drainage_type, actionPIPEDRAIN, actionSEWER,
+       patch[0].soil_ns.nitrate,
+       patch[0].soil_ns.sminn,
+       patch[0].soil_cs.DOC,
+       patch[0].soil_ns.DON,
+       patch[0].sat_NO3, patch[0].sat_NH4, patch[0].sat_DOC, patch[0].sat_DON);
 	/*--------------------------------------------------------------*/
 	/* if there is hourly rain input, don't run the daily infiltration	*/
 	/*--------------------------------------------------------------*/
@@ -1573,63 +1737,30 @@ void		patch_daily_F(
 			/*      - if rain duration is zero, then input is from snow     */
 			/*      melt  assume full daytime duration                      */
 			/*--------------------------------------------------------------*/
-			if (zone[0].rain_duration <= ZERO) {
-				duration = zone[0].metv.dayl/(86400);
-				}
-			else duration = zone[0].rain_duration/(86400);
-			
+            // this is the first patch[0].S call in patch_daily_F
+            // in patch_daily_I.c, patch[0].S = (patch[0].rz_storage+patch[0].unsat_storage)/patch[0].sat_deficit;
+            // 1/86400 = 1.15741e-05
+            duration = 0.00001157407 * (zone[0].rain_duration <= ZERO? zone[0].metv.dayl : zone[0].rain_duration ); //makes rain all daytime
+            infiltration = compute_infiltration(
+                command_line[0].verbose_flag,
+                patch[0].sat_deficit_z,
+                0.0, //patch[0].aboveWT_SatPct,
+                patch[0].Ksat_vertical,
+                patch[0].sat_def_pct_indexM * patch[0].soil_defaults[0][0].vksat_0zm[patch[0].sat_def_pct_index+1] + (1.0-patch[0].sat_def_pct_indexM) * patch[0].soil_defaults[0][0].vksat_0zm[patch[0].sat_def_pct_index],
+                patch[0].rz_storage+patch[0].unsat_storage,
+                patch[0].sat_def_pct_indexM * patch[0].soil_defaults[0][0].sat_def_0zm[patch[0].sat_def_pct_index+1] + (1.0-patch[0].sat_def_pct_indexM) * patch[0].soil_defaults[0][0].sat_def_0zm[patch[0].sat_def_pct_index],
+                patch[0].sat_deficit,
+                net_inflow,
+                duration,
+                patch[0].soil_defaults[0][0].psi_air_entry);
             
-			if (patch[0].rootzone.depth > ZERO)	{
-				infiltration = compute_infiltration(
-					command_line[0].verbose_flag,
-					patch[0].sat_deficit_z,
-					patch[0].rootzone.S,
-					patch[0].Ksat_vertical,
-					patch[0].soil_defaults[0][0].Ksat_0_v,
-					patch[0].soil_defaults[0][0].mz_v,
-					patch[0].soil_defaults[0][0].porosity_0,
-					patch[0].soil_defaults[0][0].porosity_decay,
-					net_inflow,
-					duration,
-					patch[0].soil_defaults[0][0].psi_air_entry);
-				}
-//                infiltration = compute_infiltration(
-//                    command_line[0].verbose_flag,
-//                    patch[0].sat_deficit_z,
-//                    patch[0].rootzone.S,
-//                    patch[0].Ksat_vertical,
-//                    patch[0].soil_defaults[0][0].Ksat_0_v,
-//                    patch[0].soil_defaults[0][0].mz_v,
-//                    patch[0].soil_defaults[0][0].porosity_0,
-//                    patch[0].soil_defaults[0][0].porosity_decay,
-//                    net_inflow,
-//                    duration,
-//                    patch[0].soil_defaults[0][0].psi_air_entry);
-//                }
-
-			else {
-				infiltration = compute_infiltration(
-					command_line[0].verbose_flag,
-					patch[0].sat_deficit_z,
-					patch[0].S,
-					patch[0].Ksat_vertical,
-					patch[0].soil_defaults[0][0].Ksat_0_v,
-					patch[0].soil_defaults[0][0].mz_v,
-					patch[0].soil_defaults[0][0].porosity_0,
-					patch[0].soil_defaults[0][0].porosity_decay,
-					net_inflow,
-					duration,
-					patch[0].soil_defaults[0][0].psi_air_entry);
-			}
-
-		}
-		else infiltration = 0.0;
+        } else infiltration = 0.0;
 
 		if (infiltration < 0.0) {
 			printf("\nInfiltration %lf < 0 for %d on %ld",
 				infiltration,
 				patch[0].ID, current_date.day);
-		}
+		}//if
 		/*--------------------------------------------------------------*/
 		/* determine fate of hold infiltration excess in detention store */
 		/* infiltration excess will removed during routing portion	*/
@@ -1663,7 +1794,14 @@ void		patch_daily_F(
 		}
 		
 		patch[0].recharge = infiltration;
-	} // end if hourly rain flag			
+	} // end if hourly rain flag
+    if(patch[0].sat_deficit!=patch[0].sat_deficit || patch[0].sat_deficit_z!=patch[0].sat_deficit_z || patch[0].rootzone.field_capacity!=patch[0].rootzone.field_capacity || patch[0].field_capacity!=patch[0].field_capacity){
+        printf("patch_daily_F(3): (%d,%d,%d) %lf %lf %lf %lf\n",
+               patch[0].ID, patch[0].soil_defaults[0][0].ID, patch[0].sat_def_pct_index,
+               patch[0].sat_deficit, patch[0].sat_deficit_z,
+               patch[0].rootzone.field_capacity, patch[0].field_capacity);
+    }//debug
+    
 	/*--------------------------------------------------------------*/
 	/*	Calculate patch level transpiration			*/
 	/*--------------------------------------------------------------*/
@@ -1701,6 +1839,12 @@ void		patch_daily_F(
 			/*--------------------------------------------------------------*/
 			patch[0].evaporation +=	strata[0].cover_fraction
 				* (strata[0].evaporation +	strata[0].sublimation) ;
+            if(strata[0].evaporation<0 || strata[0].sublimation<0){
+                printf("patch dailyF stratum [%d,%d] %e(%e,%e,%e,%e),%e(%e),\n",
+                       patch[0].ID, strata[0].ID,
+                       strata[0].evaporation,strata[0].potential_evaporation, strata[0].PET, strata[0].transpiration_sat_zone, strata[0].transpiration_unsat_zone,
+                       strata[0].sublimation,strata[0].snow_stored);
+            }//debug
 			/*--------------------------------------------------------------*/
 			/*      Add up canopy snow and rain stored for water balance.   */
 			/*--------------------------------------------------------------*/
@@ -1743,13 +1887,13 @@ void		patch_daily_F(
 		printf("\n***ET DEMANDS START: rzdepth=%lf rzstor=%lf rzS=%lf rzFC=%lf rzpotsat=%lf unsatstor=%lf FC=%lf WP=%lf\n***                  S=%lf satdefz_preday=%lf satdefz=%lf satdef=%lf exfil_unsat=%lf exfil_sat=%lf unsatdemand=%lf satdemand=%lf",
 			   patch[0].rootzone.depth,
 			   patch[0].rz_storage,
-			   patch[0].rootzone.S,
+			   0.0,//patch[0].rootzone.SatPct,
 			   patch[0].rootzone.field_capacity,
 			   patch[0].rootzone.potential_sat,
 			   patch[0].unsat_storage,
 			   patch[0].field_capacity,
 			   patch[0].wilting_point,
-			   patch[0].S,
+			   0.0,//patch[0].aboveWT_SatPct,
 			   patch[0].preday_sat_deficit_z,
 			   patch[0].sat_deficit_z,
 			   patch[0].sat_deficit,
@@ -1768,6 +1912,16 @@ void		patch_daily_F(
 	/*--------------------------------------------------------------*/
 	unsat_zone_patch_demand_initial = unsat_zone_patch_demand;
 	sat_zone_patch_demand_initial = sat_zone_patch_demand;
+    //debug
+    if(unsat_zone_patch_demand<0 || sat_zone_patch_demand<0){
+        // first
+        // unsat_zone_patch_demand = patch[0].exfiltration_unsat_zone;
+        // sat_zone_patch_demand = patch[0].exfiltration_sat_zone;
+        // then, they += veg water demand
+        printf("patch dailyF negative water demand (%d) %f %f, %f %f\n",
+               patch[0].ID, unsat_zone_patch_demand, sat_zone_patch_demand,
+               patch[0].exfiltration_unsat_zone, patch[0].exfiltration_sat_zone);
+    }//if
 	/*--------------------------------------------------------------*/
 	/*	Figure out how much of the demand for unsat and sat zone*/
 	/*	is met by supply from the zone.				*/
@@ -1798,73 +1952,135 @@ void		patch_daily_F(
 	/*-------------------------------------------------------------------------*/
 	/*	Compute current actual depth to water table				*/
 	/*-------------------------------------------------------------------------*/
-	patch[0].sat_deficit_z = compute_z_final(
-		command_line[0].verbose_flag,
-		patch[0].soil_defaults[0][0].porosity_0,
-		patch[0].soil_defaults[0][0].porosity_decay,
-		patch[0].soil_defaults[0][0].soil_depth,
-		0.0,
-		-1.0 * patch[0].sat_deficit);
-	temp = patch[0].sat_deficit_z;
+//	patch[0].sat_deficit_z = compute_z_final(
+//		command_line[0].verbose_flag,
+//		patch[0].soil_defaults[0][0].porosity_0,
+//		patch[0].soil_defaults[0][0].porosity_decay,
+//		patch[0].soil_defaults[0][0].soil_depth,
+//		0.0,
+//		-1.0 * patch[0].sat_deficit);
+    
+    // need to be careful here: patch[0].sat_deficit could be negative.
+    if(patch[0].sat_deficit >= 0){
+        patch[0].available_soil_water = patch[0].soil_defaults[0][0].soil_water_cap - patch[0].sat_deficit;
+        patch[0].sat_def_pct = patch[0].sat_deficit * patch[0].soil_defaults[0][0].max_sat_def_1;
+        patch[0].sat_def_pct_index = (int)(patch[0].sat_def_pct*1000);
+        patch[0].sat_def_pct_indexM = 1000*(patch[0].sat_def_pct - patch[0].sat_def_pct_index*0.001);
+        
+        patch[0].sat_deficit_z = patch[0].sat_def_pct_indexM * patch[0].soil_defaults[0][0].sat_def_z[patch[0].sat_def_pct_index+1] + (1.0-patch[0].sat_def_pct_indexM) * patch[0].soil_defaults[0][0].sat_def_z[patch[0].sat_def_pct_index];
+    }else{
+        // surface
+        patch[0].available_soil_water = patch[0].soil_defaults[0][0].soil_water_cap;
+        patch[0].sat_deficit_z = patch[0].sat_deficit;
+        patch[0].sat_def_pct = 0.0;
+        patch[0].sat_def_pct_index = 0;
+        patch[0].sat_def_pct_indexM = 0;
+    }
+	//temp = patch[0].sat_deficit_z;
+    temp = patch[0].sat_def_pct_indexM * patch[0].soil_defaults[0][0].fc1_0z[patch[0].sat_def_pct_index+1] + (1.0-patch[0].sat_def_pct_indexM) * patch[0].soil_defaults[0][0].fc1_0z[patch[0].sat_def_pct_index]; // total fc before ET water consumption to SAT
 	
-	available_sat_water = min((compute_delta_water(
-			0, 
-			patch[0].soil_defaults[0][0].porosity_0,
-			patch[0].soil_defaults[0][0].porosity_decay,
-			patch[0].soil_defaults[0][0].soil_depth,
-			patch[0].rootzone.depth,
-			patch[0].sat_deficit_z)), sat_zone_patch_demand);
+    //patch[0].rootzone.potential_sat //0-rtz
+    //double sat_def = patch[0].sat_def_pct_indexM * patch[0].soil_defaults[0][0].sat_def[patch[0].sat_def_pct_index+1] + (1.0-patch[0].sat_def_pct_indexM) * patch[0].soil_defaults[0][0].sat_def[patch[0].sat_def_pct_index];
+    available_sat_water = max(0.0, min(sat_zone_patch_demand, patch[0].rootzone.potential_sat-patch[0].sat_deficit));
+    available_sat_water = min(available_sat_water, patch[0].available_soil_water);
+//	available_sat_water = min(
+//                              sat_zone_patch_demand,
+//                              compute_delta_water(
+//                                    0,
+//                                    patch[0].soil_defaults[0][0].porosity_0,
+//                                    patch[0].soil_defaults[0][0].porosity_decay,
+//                                    patch[0].soil_defaults[0][0].soil_depth,
+//                                    patch[0].rootzone.depth,
+//                                    patch[0].sat_deficit_z)
+//                              );
 
-	available_sat_water = max(available_sat_water, 0.0);
-
+    
 	patch[0].sat_deficit += available_sat_water;
 	sat_zone_patch_demand -= available_sat_water;        
 
-	patch[0].sat_deficit_z = compute_z_final(
-		command_line[0].verbose_flag,
-		patch[0].soil_defaults[0][0].porosity_0,
-		patch[0].soil_defaults[0][0].porosity_decay,
-		patch[0].soil_defaults[0][0].soil_depth,
-		0.0,
-		-1.0 * patch[0].sat_deficit);
+    // need to be careful here: patch[0].sat_deficit could be negative.
+    if(patch[0].sat_deficit >= 0){
+        patch[0].available_soil_water = patch[0].soil_defaults[0][0].soil_water_cap - patch[0].sat_deficit;
+        patch[0].sat_def_pct = patch[0].sat_deficit * patch[0].soil_defaults[0][0].max_sat_def_1;
+        patch[0].sat_def_pct_index = (int)(patch[0].sat_def_pct*1000);
+        patch[0].sat_def_pct_indexM = 1000*(patch[0].sat_def_pct - patch[0].sat_def_pct_index*0.001);
+        
+        patch[0].sat_deficit_z = patch[0].sat_def_pct_indexM * patch[0].soil_defaults[0][0].sat_def_z[patch[0].sat_def_pct_index+1] + (1.0-patch[0].sat_def_pct_indexM) * patch[0].soil_defaults[0][0].sat_def_z[patch[0].sat_def_pct_index];
+    }else{
+        // surface
+        patch[0].available_soil_water = patch[0].soil_defaults[0][0].soil_water_cap;
+        patch[0].sat_deficit_z = patch[0].sat_deficit;
+        patch[0].sat_def_pct = 0.0;
+        patch[0].sat_def_pct_index = 0;
+        patch[0].sat_def_pct_indexM = 0;
+    }
+    
+    if(patch[0].sat_deficit!=patch[0].sat_deficit || patch[0].sat_deficit_z!=patch[0].sat_deficit_z || patch[0].rootzone.field_capacity!=patch[0].rootzone.field_capacity || patch[0].field_capacity!=patch[0].field_capacity){
+        printf("patch_daily_F(4): (%d,%d,%d) %lf %lf %lf %lf\n",
+               patch[0].ID, patch[0].soil_defaults[0][0].ID, patch[0].sat_def_pct_index,
+               patch[0].sat_deficit, patch[0].sat_deficit_z,
+               patch[0].rootzone.field_capacity, patch[0].field_capacity);
+    }//debug
+//	patch[0].sat_deficit_z = compute_z_final(
+//		command_line[0].verbose_flag,
+//		patch[0].soil_defaults[0][0].porosity_0,
+//		patch[0].soil_defaults[0][0].porosity_decay,
+//		patch[0].soil_defaults[0][0].soil_depth,
+//		0.0,
+//		-1.0 * patch[0].sat_deficit);
 
 
-		/*--------------------------------------------------------------*/
-		/* 	leave behind field capacity			*/
-		/*	if sat deficit has been lowered			*/
-		/*	this should be an interactive process, we will use 	*/
-		/*	0th order approximation					*/
-		/* 	we do not do this once sat def is below 0.9 soil depth	*/
-		/*     we use 0.9 to prevent numerical instability		*/
-		/*--------------------------------------------------------------*/
-		if (available_sat_water > ZERO) {
-	       		add_field_capacity = compute_layer_field_capacity(
-				command_line[0].verbose_flag,
-				patch[0].soil_defaults[0][0].theta_psi_curve,
-				patch[0].soil_defaults[0][0].psi_air_entry,
-				patch[0].soil_defaults[0][0].pore_size_index,
-				patch[0].soil_defaults[0][0].p3,
-				patch[0].soil_defaults[0][0].p4,
-				patch[0].soil_defaults[0][0].porosity_0,
-				patch[0].soil_defaults[0][0].porosity_decay,
-				patch[0].sat_deficit_z,
-				patch[0].sat_deficit_z,
-				temp);
-			add_field_capacity = max(add_field_capacity, 0.0);
-			patch[0].sat_deficit += add_field_capacity;
-			if ((patch[0].sat_deficit_z > patch[0].rootzone.depth) && (patch[0].preday_sat_deficit_z > patch[0].rootzone.depth))				
-				patch[0].unsat_storage += add_field_capacity;
-			
-			else if ((patch[0].sat_deficit_z <= patch[0].rootzone.depth) && (patch[0].preday_sat_deficit_z <= patch[0].rootzone.depth))
-				patch[0].rz_storage += add_field_capacity;
-			else  {
-				patch[0].rz_storage += add_field_capacity * (patch[0].rootzone.depth -patch[0].preday_sat_deficit_z) 
-					/ (patch[0].sat_deficit_z -patch[0].preday_sat_deficit_z);
-				patch[0].unsat_storage += add_field_capacity * (patch[0].sat_deficit_z - patch[0].rootzone.depth) 
-					/ (patch[0].sat_deficit_z -patch[0].preday_sat_deficit_z);					
-			}
-		}
-
+    /*--------------------------------------------------------------*/
+    /* 	leave behind field capacity			*/
+    /*	if sat deficit has been lowered			*/
+    /*	this should be an interactive process, we will use 	*/
+    /*	0th order approximation					*/
+    /* 	we do not do this once sat def is below 0.9 soil depth	*/
+    /*     we use 0.9 to prevent numerical instability		*/
+    /*--------------------------------------------------------------*/
+    if (available_sat_water > ZERO) {
+        // if watertable today is not in rootzone, sat_zone_patch_demand=0 & available_sat_water=0
+        // if available_sat_water>0 then watertable today must be in the rootzone
+//        add_field_capacity = compute_layer_field_capacity(
+//            command_line[0].verbose_flag,
+//            patch[0].soil_defaults[0][0].theta_psi_curve,
+//            patch[0].soil_defaults[0][0].psi_air_entry,
+//            patch[0].soil_defaults[0][0].pore_size_index,
+//            patch[0].soil_defaults[0][0].p3,
+//            patch[0].soil_defaults[0][0].p4,
+//            patch[0].soil_defaults[0][0].porosity_0,
+//            patch[0].soil_defaults[0][0].porosity_decay,
+//            patch[0].sat_deficit_z,
+//            patch[0].sat_deficit_z,// after ET consumption (bottom)
+//            temp); // before ET consumption (top) // this layer calculation is not correct for what we need.
+//        add_field_capacity = max(add_field_capacity, 0.0);
+        
+        totalfc = patch[0].sat_def_pct_indexM * patch[0].soil_defaults[0][0].fc1_0z[patch[0].sat_def_pct_index+1] + (1.0-patch[0].sat_def_pct_indexM) * patch[0].soil_defaults[0][0].fc1_0z[patch[0].sat_def_pct_index]; // total fc after ET water consumption to SAT
+        add_field_capacity = min( patch[0].available_soil_water, max(0.0, totalfc - temp));// only acount for leave-behind water *****
+        
+        patch[0].sat_deficit += add_field_capacity;
+        
+        if ((patch[0].sat_deficit_z > patch[0].rootzone.depth) && (patch[0].preday_sat_deficit_z > patch[0].rootzone.depth))
+            patch[0].unsat_storage += add_field_capacity;
+            // preday_sat_deficit_z is calculated by subsurface routing from previous day
+        else if ((patch[0].sat_deficit_z <= patch[0].rootzone.depth) && (patch[0].preday_sat_deficit_z <= patch[0].rootzone.depth))
+            patch[0].rz_storage += add_field_capacity;
+        else {
+            patch[0].rz_storage += add_field_capacity * (patch[0].rootzone.depth -patch[0].preday_sat_deficit_z)
+                / (patch[0].sat_deficit_z -patch[0].preday_sat_deficit_z);
+            patch[0].unsat_storage += add_field_capacity * (patch[0].sat_deficit_z - patch[0].rootzone.depth)
+                / (patch[0].sat_deficit_z -patch[0].preday_sat_deficit_z);
+        }//
+        
+        if(patch[0].sat_deficit!=patch[0].sat_deficit || patch[0].sat_deficit_z!=patch[0].sat_deficit_z || patch[0].rootzone.field_capacity!=patch[0].rootzone.field_capacity || patch[0].field_capacity!=patch[0].field_capacity){
+            printf("patch_daily_F(5): (%d,%d,%d) %lf %lf %lf %lf\n",
+                   patch[0].ID, patch[0].soil_defaults[0][0].ID, patch[0].sat_def_pct_index,
+                   patch[0].sat_deficit, patch[0].sat_deficit_z,
+                   patch[0].rootzone.field_capacity, patch[0].field_capacity);
+        }//debug
+        
+    }//if
+    
 	/*--------------------------------------------------------------*/
 	/*	See how much of  unsat zone demand can be 		*/
 	/*	met and still field capacity. 				*/
@@ -1885,141 +2101,184 @@ void		patch_daily_F(
 	/*--------------------------------------------------------------*/
 	/*	compute new field capacity				*/
 	/*--------------------------------------------------------------*/
-
+    
+    // need to be careful here: patch[0].sat_deficit could be negative.
+    if(patch[0].sat_deficit >= 0){
+        patch[0].available_soil_water = patch[0].soil_defaults[0][0].soil_water_cap - patch[0].sat_deficit;
+        patch[0].sat_def_pct = patch[0].sat_deficit * patch[0].soil_defaults[0][0].max_sat_def_1;
+        patch[0].sat_def_pct_index = (int)(patch[0].sat_def_pct*1000);
+        patch[0].sat_def_pct_indexM = 1000*(patch[0].sat_def_pct - patch[0].sat_def_pct_index*0.001);
+        
+        patch[0].sat_deficit_z = patch[0].sat_def_pct_indexM * patch[0].soil_defaults[0][0].sat_def_z[patch[0].sat_def_pct_index+1] + (1.0-patch[0].sat_def_pct_indexM) * patch[0].soil_defaults[0][0].sat_def_z[patch[0].sat_def_pct_index];
+    }else{
+        // surface
+        patch[0].available_soil_water = patch[0].soil_defaults[0][0].soil_water_cap;
+        patch[0].sat_deficit_z = patch[0].sat_deficit;
+        patch[0].sat_def_pct = 0.0;
+        patch[0].sat_def_pct_index = 0;
+        patch[0].sat_def_pct_indexM = 0;
+    }
+    // update fc
+    totalfc = patch[0].sat_def_pct_indexM * patch[0].soil_defaults[0][0].fc1_0z[patch[0].sat_def_pct_index+1] + (1.0-patch[0].sat_def_pct_indexM) * patch[0].soil_defaults[0][0].fc1_0z[patch[0].sat_def_pct_index];
+    totalfc *= (1.0-patch[0].basementFrac); // <---- second thought on this, Oct 8, 2019; basement is 3m at most
+    
+    
 	if (patch[0].rootzone.depth > ZERO ) { /* VEG CASE */
-		if (patch[0].sat_deficit_z < patch[0].rootzone.depth)  {
-			patch[0].rootzone.field_capacity = compute_layer_field_capacity(
-				command_line[0].verbose_flag,
-				patch[0].soil_defaults[0][0].theta_psi_curve,
-				patch[0].soil_defaults[0][0].psi_air_entry,
-				patch[0].soil_defaults[0][0].pore_size_index,
-				patch[0].soil_defaults[0][0].p3,
-				patch[0].soil_defaults[0][0].p4,
-				patch[0].soil_defaults[0][0].porosity_0,
-				patch[0].soil_defaults[0][0].porosity_decay,
-				patch[0].sat_deficit_z,
-				patch[0].rootzone.depth, 0.0)*(1.0-patch[0].basementFrac);
-				
-			patch[0].field_capacity = 0.0;
-			}
-		else  {
-			patch[0].rootzone.field_capacity = compute_layer_field_capacity(
-				command_line[0].verbose_flag,
-				patch[0].soil_defaults[0][0].theta_psi_curve,
-				patch[0].soil_defaults[0][0].psi_air_entry,
-				patch[0].soil_defaults[0][0].pore_size_index,
-				patch[0].soil_defaults[0][0].p3,
-				patch[0].soil_defaults[0][0].p4,
-				patch[0].soil_defaults[0][0].porosity_0,
-				patch[0].soil_defaults[0][0].porosity_decay,
-				patch[0].sat_deficit_z,
-				patch[0].rootzone.depth, 0.0);
-
-			patch[0].field_capacity = compute_layer_field_capacity(
-				command_line[0].verbose_flag,
-				patch[0].soil_defaults[0][0].theta_psi_curve,
-				patch[0].soil_defaults[0][0].psi_air_entry,
-				patch[0].soil_defaults[0][0].pore_size_index,
-				patch[0].soil_defaults[0][0].p3,
-				patch[0].soil_defaults[0][0].p4,
-				patch[0].soil_defaults[0][0].porosity_0,
-				patch[0].soil_defaults[0][0].porosity_decay,
-				patch[0].sat_deficit_z,
-				patch[0].sat_deficit_z, 0.0) - patch[0].rootzone.field_capacity;
-            
-            patch[0].rootzone.field_capacity *= (1.0-patch[0].basementFrac);
-			}
-
+        
+        if (patch[0].sat_deficit < ZERO) {
+            //patch[0].aboveWT_SatPct = 1.0;
+            //patch[0].rootzone.SatPct = 1.0;
+            patch[0].rootzone.field_capacity = 0.0;
+            patch[0].field_capacity = 0.0;
+        } else {
+            patch[0].rootzone.field_capacity = totalfc * patch[0].zeroRootCoef * (patch[0].rootzone_scale_ref*patch[0].rootzone_end_reffc[patch[0].sat_def_pct_index] + (1.0-patch[0].rootzone_scale_ref)*patch[0].rootzone_start_reffc[patch[0].sat_def_pct_index]);
+            patch[0].rootzone.field_capacity = min(patch[0].rootzone.field_capacity,patch[0].rootzone.potential_sat);
+            patch[0].field_capacity = max(0.0,min(patch[0].sat_deficit-patch[0].rootzone.potential_sat, totalfc - patch[0].rootzone.field_capacity));
+        }//if else
+        
+//		if (patch[0].sat_deficit_z < patch[0].rootzone.depth)  {
+//			patch[0].rootzone.field_capacity = compute_layer_field_capacity(
+//				command_line[0].verbose_flag,
+//				patch[0].soil_defaults[0][0].theta_psi_curve,
+//				patch[0].soil_defaults[0][0].psi_air_entry,
+//				patch[0].soil_defaults[0][0].pore_size_index,
+//				patch[0].soil_defaults[0][0].p3,
+//				patch[0].soil_defaults[0][0].p4,
+//				patch[0].soil_defaults[0][0].porosity_0,
+//				patch[0].soil_defaults[0][0].porosity_decay,
+//				patch[0].sat_deficit_z,
+//				patch[0].rootzone.depth, 0.0)*(1.0-patch[0].basementFrac);
+//
+//			patch[0].field_capacity = 0.0;
+//			}
+//		else  {
+//			patch[0].rootzone.field_capacity = compute_layer_field_capacity(
+//				command_line[0].verbose_flag,
+//				patch[0].soil_defaults[0][0].theta_psi_curve,
+//				patch[0].soil_defaults[0][0].psi_air_entry,
+//				patch[0].soil_defaults[0][0].pore_size_index,
+//				patch[0].soil_defaults[0][0].p3,
+//				patch[0].soil_defaults[0][0].p4,
+//				patch[0].soil_defaults[0][0].porosity_0,
+//				patch[0].soil_defaults[0][0].porosity_decay,
+//				patch[0].sat_deficit_z,
+//				patch[0].rootzone.depth, 0.0);
+//
+//			patch[0].field_capacity = compute_layer_field_capacity(
+//				command_line[0].verbose_flag,
+//				patch[0].soil_defaults[0][0].theta_psi_curve,
+//				patch[0].soil_defaults[0][0].psi_air_entry,
+//				patch[0].soil_defaults[0][0].pore_size_index,
+//				patch[0].soil_defaults[0][0].p3,
+//				patch[0].soil_defaults[0][0].p4,
+//				patch[0].soil_defaults[0][0].porosity_0,
+//				patch[0].soil_defaults[0][0].porosity_decay,
+//				patch[0].sat_deficit_z,
+//				patch[0].sat_deficit_z, 0.0) - patch[0].rootzone.field_capacity;
+//
+//            patch[0].rootzone.field_capacity *= (1.0-patch[0].basementFrac);
+//			}
+        // patch[0].rootzone.depth must be no zero
 		if (patch[0].sat_deficit_z > patch[0].rootzone.depth) 
 				water_below_field_cap = patch[0].rootzone.field_capacity - patch[0].rz_storage;
 		else
 			water_below_field_cap = patch[0].rootzone.field_capacity - patch[0].rz_storage - (patch[0].rootzone.potential_sat-patch[0].sat_deficit);
-		} /* END VEG CASE */
+    } else  {
+        /* NO VEG CASE (NEED TO CHECK THIS) */
+        patch[0].field_capacity = totalfc;
+        //patch[0].rootzone.SatPct = 0.0;
+        //patch[0].aboveWT_SatPct = (patch[0].rz_storage+patch[0].unsat_storage)/patch[0].sat_deficit;
+//        patch[0].field_capacity = compute_layer_field_capacity(
+//           command_line[0].verbose_flag,
+//           patch[0].soil_defaults[0][0].theta_psi_curve,
+//           patch[0].soil_defaults[0][0].psi_air_entry,
+//           patch[0].soil_defaults[0][0].pore_size_index,
+//           patch[0].soil_defaults[0][0].p3,
+//           patch[0].soil_defaults[0][0].p4,
+//           patch[0].soil_defaults[0][0].porosity_0,
+//           patch[0].soil_defaults[0][0].porosity_decay,
+//           patch[0].sat_deficit_z,
+//           patch[0].sat_deficit_z, 0.0);
+    
+        water_below_field_cap = patch[0].field_capacity - patch[0].unsat_storage;
+    } /* END NO VEG CASE */
 	
-	else  { /* NO VEG CASE (NEED TO CHECK THIS) */
-			patch[0].field_capacity = compute_layer_field_capacity(
-			   command_line[0].verbose_flag,
-			   patch[0].soil_defaults[0][0].theta_psi_curve,
-			   patch[0].soil_defaults[0][0].psi_air_entry,
-			   patch[0].soil_defaults[0][0].pore_size_index,
-			   patch[0].soil_defaults[0][0].p3,
-			   patch[0].soil_defaults[0][0].p4,
-			   patch[0].soil_defaults[0][0].porosity_0,
-			   patch[0].soil_defaults[0][0].porosity_decay,
-			   patch[0].sat_deficit_z,
-			   patch[0].sat_deficit_z, 0.0);
-		
-		water_below_field_cap = patch[0].field_capacity - patch[0].unsat_storage;
-		} /* END NO VEG CASE */
-	
-
-
+    if(patch[0].sat_deficit!=patch[0].sat_deficit || patch[0].sat_deficit_z!=patch[0].sat_deficit_z || patch[0].rootzone.field_capacity!=patch[0].rootzone.field_capacity || patch[0].field_capacity!=patch[0].field_capacity){
+        printf("patch_daily_F(6): (%d,%d,%d) %lf %lf %lf %lf\n",
+               patch[0].ID, patch[0].soil_defaults[0][0].ID, patch[0].sat_def_pct_index,
+               patch[0].sat_deficit, patch[0].sat_deficit_z,
+               patch[0].rootzone.field_capacity, patch[0].field_capacity);
+    }//debug
+    
 	/*--------------------------------------------------------------*/
 	/*	fill the leftover demand with cap rise.			*/
 	/*--------------------------------------------------------------*/
+    // not sure why compute this block again at here; should not have changed.
     if(patch[0].sat_deficit_z >= patch[0].rootzone.depth ){
         patch[0].unsat_deficit = patch[0].sat_deficit - patch[0].unsat_storage - patch[0].rootzone.potential_sat;
-        if(patch[0].rootzone.potential_sat > patch[0].rz_storage){patch[0].rz_deficit = patch[0].rootzone.potential_sat - patch[0].rz_storage;}else{patch[0].rz_deficit=0;}
+        if(patch[0].rootzone.potential_sat > patch[0].rz_storage){
+            patch[0].rz_deficit = patch[0].rootzone.potential_sat - patch[0].rz_storage;
+        }else{
+            patch[0].rz_deficit=0;
+        }
     }else{
         patch[0].unsat_deficit = 0.0;
-        if(patch[0].sat_deficit > patch[0].rz_storage){patch[0].rz_deficit = patch[0].sat_deficit - patch[0].rz_storage;}else{patch[0].rz_deficit=0;}
-    }
+        if(patch[0].sat_deficit > patch[0].rz_storage){
+            patch[0].rz_deficit = patch[0].sat_deficit - patch[0].rz_storage;
+        }else{
+            patch[0].rz_deficit=0;
+        }
+    }//if else
     //patch[0].UNSAT_fieldcap = patch[0].field_capacity + patch[0].rootzone.field_capacity;
     
-    if(command_line[0].newcaprise_flag == 1){ // && patch[0].constraintWaterTableTopDepth < 0.1
-        // new code
-        
-        if(command_line[0].capMax>0.0){patch[0].potential_cap_rise = min(patch[0].potential_cap_rise, command_line[0].capMax);}
-        patch[0].potential_cap_rise = min(patch[0].potential_cap_rise, patch[0].sat_deficit);
-        patch[0].potential_cap_rise = min(patch[0].potential_cap_rise, compute_delta_water(
-                                                                            0,
-                                                                            patch[0].soil_defaults[0][0].porosity_0,
-                                                                            patch[0].soil_defaults[0][0].porosity_decay,
-                                                                            patch[0].soil_defaults[0][0].soil_depth,
-                                                                            patch[0].soil_defaults[0][0].soil_depth,  //inital z
-                                                                            patch[0].sat_deficit_z));  // make sure not drawing more water than SAT has
-        if( patch[0].potential_cap_rise < 0){patch[0].potential_cap_rise = 0.0;}// stil don't know how pot can turn negative when sat_deficit=0!!
-        
-        cap_rise = patch[0].rootzone.field_capacity + patch[0].field_capacity - patch[0].rz_storage - patch[0].unsat_storage; // == "water_below_field_cap" frm above
-            // when sat_def_z is below root zone, correct
-            // when set_def_z is at root zone, patch[0].field_capacity should be 0 but could be off; patch[0].unsat_storage may not be updated yet
-            // when set_def_z < root zone, patch[0].field_capacity=0; patch[0].unsat_storage may not be updated yet
-        if( cap_rise > 0.0){cap_rise = min(patch[0].potential_cap_rise, cap_rise);}else{ cap_rise = 0.0; }
-        
-        // --- fill into unsat below rtz
-        if( cap_rise > 0.0){
-            patch[0].cap_rise += cap_rise;
-            patch[0].sat_deficit += cap_rise;
-            if( cap_rise > patch[0].field_capacity - patch[0].unsat_storage){
-                // fill "up" unsat to its FC and then split the rest to rz
-                unsat_zone_patch_demand -= (cap_rise - patch[0].field_capacity + patch[0].unsat_storage); // add to the rtz (indirectly)
-                
-                    // "cap_rise" is done here; transform "cap_rise" as water enters to rtz; moving sat_solute
-                    cap_rise -= (patch[0].field_capacity>patch[0].unsat_storage? patch[0].unsat_storage-patch[0].field_capacity : 0.0);
-                    double tmp_ratio = cap_rise;
-                    tmp_ratio /= patch[0].soil_defaults[0][0].porosity_0 * patch[0].soil_defaults[0][0].porosity_decay * (exp(-(patch[0].sat_deficit_z>0? patch[0].sat_deficit_z : 0.0)/patch[0].soil_defaults[0][0].porosity_decay) - exp(-patch[0].soil_defaults[0][0].soil_depth/patch[0].soil_defaults[0][0].porosity_decay));
-                    tmp_ratio = (tmp_ratio>1.0? 1.0 : tmp_ratio);
-                    patch[0].soil_ns.nitrate += patch[0].sat_NO3 * tmp_ratio;
-                    patch[0].soil_ns.sminn += patch[0].sat_NH4 * tmp_ratio;
-                    patch[0].soil_cs.DOC += patch[0].sat_DOC * tmp_ratio;
-                    patch[0].soil_ns.DON += patch[0].sat_DON * tmp_ratio;
-                    patch[0].sat_NO3 *= 1.0 - tmp_ratio;
-                    patch[0].sat_NH4 *= 1.0 - tmp_ratio;
-                    patch[0].sat_DOC *= 1.0 - tmp_ratio;
-                    patch[0].sat_DON *= 1.0 - tmp_ratio;
-                
-                if(unsat_zone_patch_demand<0){
-                    patch[0].rz_storage -= unsat_zone_patch_demand; // adding the leafover cap_rise to rtz
-                    unsat_zone_patch_demand=0.0;
-                }//this can turn "unsat_zone_patch_demand" negative since cap rise is not bounded by plant water use
-                patch[0].unsat_storage = patch[0].field_capacity;
-            }else{
-                //all cap rise goes to unsat
-                patch[0].unsat_storage += cap_rise;
-            }
-            
-        }// cap_rise > 0
-        
+   
+    // new cap rise code
+    // patch[0].potential_cap_rise is a daily flux without consideration of existing soil moisture;
+    // "unsat_zone_patch_demand" at this point has been -= water_above_field_cap; it's time to determine if cap_rise can satisfy it.
+    // cap_rise = (patch[0].potential_cap_rise)@rtz vs unsat_zone_patch_demand
+
+    // because cap_rise is very sensitive to the sat_def. the potential_cap_rise was calculated @ patch dailyI; here we calculate potential_cap_rise once more and take the average of the two (testing).
+    cap_rise = patch[0].sat_def_pct_indexM * patch[0].soil_defaults[0][0].pot_caprise_0z[patch[0].sat_def_pct_index+1] + (1.0-patch[0].sat_def_pct_indexM) *  patch[0].soil_defaults[0][0].pot_caprise_0z[patch[0].sat_def_pct_index];
+    cap_rise = min(cap_rise, patch[0].available_soil_water);
+    cap_rise = min(cap_rise, max(0.0,totalfc - patch[0].unsat_storage - patch[0].rz_storage));
+    patch[0].potential_cap_rise += cap_rise;
+    patch[0].potential_cap_rise *= 0.5;
+    
+    cap_rise = patch[0].potential_cap_rise * patch[0].zeroRootCoef * (patch[0].rootzone_scale_ref*patch[0].rootzone_end_refcap[patch[0].sat_def_pct_index] + (1.0-patch[0].rootzone_scale_ref)*patch[0].rootzone_start_refcap[patch[0].sat_def_pct_index]);
+    //cap_rise = max(0.0, min(cap_rise, patch[0].rootzone.field_capacity-patch[0].rz_storage)); //<<--- rz_storage <= its fc at this point
+    cap_rise_unsat = max(0.0, min(patch[0].potential_cap_rise-cap_rise, patch[0].field_capacity-patch[0].unsat_storage));// <<--- debug (same as above)
+    //cap_rise_unsat = max(0.0, min(patch[0].potential_cap_rise-cap_rise, patch[0].rootzone.field_capacity-patch[0].rz_storage));//
+    patch[0].unsat_storage += cap_rise_unsat;
+    // run into problem here. FC_0z is great when satz is deep; and most of that FC_0z is un unsat! at the same time, cap_rise becomes less as satz is deep
+    // so how to solve this? it make all satwater into unsat as satz drops
+    
+    if( cap_rise >= unsat_zone_patch_demand ){
+        cap_rise = max(0.0,min(cap_rise - unsat_zone_patch_demand, patch[0].rootzone.field_capacity-patch[0].rz_storage));
+        patch[0].rz_storage += cap_rise;
+        cap_rise += unsat_zone_patch_demand + cap_rise_unsat; // becomes total cap_rise
+        unsat_zone_patch_demand=0.0;
+    }else{
+        // cap_rise <= unsat_zone_patch_demand;
+        unsat_zone_patch_demand -= cap_rise;
+        cap_rise += cap_rise_unsat;
+        // done
+    }// if else
+    patch[0].sat_deficit += cap_rise;
+    patch[0].cap_rise = cap_rise; ///<<------------- debug
+    if(cap_rise > 0.0 && patch[0].available_soil_water > 0.0 && command_line[0].grow_flag > 0){
+        // cap_rise also carries satSolute up to unsat
+        double tmp_ratio = min(1.0, cap_rise/patch[0].available_soil_water);
+        //tmp_ratio /= patch[0].soil_defaults[0][0].porosity_0 * patch[0].soil_defaults[0][0].porosity_decay * (exp(-(patch[0].sat_deficit_z>0? patch[0].sat_deficit_z : 0.0)/patch[0].soil_defaults[0][0].porosity_decay) - exp(-patch[0].soil_defaults[0][0].soil_depth/patch[0].soil_defaults[0][0].porosity_decay));// integration of sat_z and soildepth
+        patch[0].soil_ns.nitrate += patch[0].sat_NO3 * tmp_ratio;
+        patch[0].soil_ns.sminn += patch[0].sat_NH4 * tmp_ratio;
+        patch[0].soil_cs.DOC += patch[0].sat_DOC * tmp_ratio;
+        patch[0].soil_ns.DON += patch[0].sat_DON * tmp_ratio;
+        patch[0].sat_NO3 *= 1.0 - tmp_ratio;
+        patch[0].sat_NH4 *= 1.0 - tmp_ratio;
+        patch[0].sat_DOC *= 1.0 - tmp_ratio;
+        patch[0].sat_DON *= 1.0 - tmp_ratio;
+    }// if
+    if( unsat_zone_patch_demand > 0.0){
         /*--------------------------------------------------------------*/
         /*    Now supply the remaining demand with water left in    */
         /*    the unsat zone.  We are going below field cap now!!    */
@@ -2028,9 +2287,9 @@ void		patch_daily_F(
         delta_unsat_zone_storage = min(unsat_zone_patch_demand, patch[0].rz_storage); // the ET removed water starts for RZ first, but it was previously instant reduced by CAP [related to above]!
         
         if ((patch[0].rz_storage > ZERO) && (patch[0].sat_deficit > ZERO)) {
-            patch[0].wilting_point = exp(-1.0*log(-1.0*100.0*patch[0].psi_max_veg/patch[0].soil_defaults[0][0].psi_air_entry)
-                                         * patch[0].soil_defaults[0][0].pore_size_index);
-            patch[0].wilting_point *= (min(patch[0].sat_deficit, patch[0].rootzone.potential_sat))*(1.0-patch[0].basementFrac);
+            patch[0].wilting_point = exp(-patch[0].soil_defaults[0][0].pore_size_index * log(-100.0*patch[0].psi_max_veg/patch[0].soil_defaults[0][0].psi_air_entry));
+            patch[0].wilting_point *= min(patch[0].sat_deficit, patch[0].rootzone.potential_sat);
+            //patch[0].wilting_point *= (1.0-patch[0].basementFrac); // needed here? probably no; no 'SatPct' involved here. basement effect is still massed up when interact with veg uptake. however basement effect on routing is fine.
             delta_unsat_zone_storage = min(patch[0].rz_storage-patch[0].wilting_point, delta_unsat_zone_storage); // make sure RZ does not go below wilting point!! [hard correction]
             delta_unsat_zone_storage = max(delta_unsat_zone_storage, 0.0);
         }
@@ -2040,81 +2299,29 @@ void		patch_daily_F(
         
         patch[0].rz_storage -= delta_unsat_zone_storage;
         unsat_zone_patch_demand -= delta_unsat_zone_storage;
-        
-        
-    }else{
-        // old code
-        cap_rise = max(min(patch[0].potential_cap_rise, min(unsat_zone_patch_demand, water_below_field_cap)), 0.0); //command_line[0].capreduction*
-        cap_rise = min(
-                (compute_delta_water(
-                    0,
-                    patch[0].soil_defaults[0][0].porosity_0,
-                    patch[0].soil_defaults[0][0].porosity_decay,
-                    patch[0].soil_defaults[0][0].soil_depth,
-                    patch[0].soil_defaults[0][0].soil_depth,  //inital z
-                    patch[0].sat_deficit_z)), //final z
-                cap_rise); // constrainted by 1) available MAX space above water table, 2) potential CAP,
-                           // and 3) min(unsat_zone_patch_demand, water_below_field_cap)
-
-                    // "unsat_zone_patch_demand" is the reault of ET
-                        // unsat_zone_patch_demand += strata->cover_fraction * strata->transpiration_unsat_zone;
-                        // sat_zone_patch_demand += strata->cover_fraction * strata->transpiration_sat_zone;
-                        // this term "unsat_zone_patch_demand" is being correcting throughout the process here and used with its init to form a fraction to correct "strata->transpiration_unsat_zone" at the end.
-
-                   // is "water_below_field_cap" a positive number? not really
-                         /* END VEG CASE: water table below rootzone */
-                            //water_below_field_cap = patch[0].rootzone.field_capacity - patch[0].rz_storage; (positive if rz mositure below fcap)
-                        /* END VEG CASE: water table above rootzone */
-                            //water_below_field_cap = patch[0].rootzone.field_capacity - patch[0].rz_storage - (patch[0].rootzone.potential_sat-patch[0].sat_deficit); (positive)
-                        /* END NO VEG CASE */
-                            //water_below_field_cap = patch[0].field_capacity - patch[0].unsat_storage; (positive)
-
-        cap_rise = min(cap_rise, unsat_zone_patch_demand); //<<--- rebundanced!!
-        unsat_zone_patch_demand -= (cap_rise * command_line[0].caprsplit); // reduct the actual water removed by ET! (instant fill; plus not seperate RZ and UNSAT yet[**] ); [related to below]
-        patch[0].cap_rise += cap_rise; //* command_line[0].caprsplit; //[this is new for testing, need to add the water to unsat]*****
-        //patch[0].potential_cap_rise -= cap_rise; // why reduce the potential? "update_soil_mositure.c" added the cap_rise (Line 1347). WHY?
-        patch[0].sat_deficit += cap_rise;  // correct water table
-        
-        /*--------------------------------------------------------------*/
-        /*    Now supply the remaining demand with water left in    */
-        /*    the unsat zone.  We are going below field cap now!!    */
-        /*    First guess at change in sat storage to meet demand.    */
-        /*--------------------------------------------------------------*/
-        delta_unsat_zone_storage = min(unsat_zone_patch_demand, patch[0].rz_storage); // the ET removed water starts for RZ first, but it was previously instant reduced by CAP [related to above]!
-
-        if ((patch[0].rz_storage > ZERO) && (patch[0].sat_deficit > ZERO)) {
-            patch[0].wilting_point = exp(-1.0*log(-1.0*100.0*patch[0].psi_max_veg/patch[0].soil_defaults[0][0].psi_air_entry)
-                                         * patch[0].soil_defaults[0][0].pore_size_index);
-            patch[0].wilting_point *= (min(patch[0].sat_deficit, patch[0].rootzone.potential_sat));
-            delta_unsat_zone_storage = min(patch[0].rz_storage-patch[0].wilting_point, delta_unsat_zone_storage); // make sure RZ does not go below wilting point!! [hard correction]
-            delta_unsat_zone_storage = max(delta_unsat_zone_storage, 0.0);
-            }
-        else {
-            patch[0].wilting_point = 0;
-            }
-
-        patch[0].rz_storage -= delta_unsat_zone_storage;        // actially removing water from RZ. at this point all ET remove water must come from RZ due to the "hard correction" (above)
-        patch[0].unsat_storage += cap_rise * (1 - command_line[0].caprsplit); //<<----- Laurence added this line for testing (Aug 25th)
-        unsat_zone_patch_demand -= delta_unsat_zone_storage;    // "unsat_zone_patch_demand" will turn into zero, right?
-                    // refer [**]: turns out CAP was never apply to UNSAT!
-        
-    }// command_line[0].vegspinup_flag
+    }// if
     
-    
-    //for biochemical mode accounting for basement; not a long term solution
-    unsat_zone_patch_demand -= min(unsat_zone_patch_demand, patch[0].basementSideAdjustH2O);// calculated and corrected @ patch_daily_I
-    
-    
-    
-    // unsat_storage_deficit = patch[0].sat_deficit - patch[0].unsat_storage - patch[0].rootzone.potential_sat; //note: "rootzone.potential_sat" does not update
-        // need to check if sat_def_z rises at RZ.depth; if yes then no unsat_storage anymore (i.e., unsat_storage_deficit <0)
-        // what will happen (cap_rise) when watertable is at depth 0? potential cap_rise is zero when watertable_z >= psi_1, which psi_1 = (Pa)  air_entry_pressure
-        // - (patch[0].rootzone.potential_sat-patch[0].sat_deficit)
-        // actual cap rise = 0 when water above field cap over the whole "unsat" zone
-        //
-    
+    if(patch[0].sat_deficit!=patch[0].sat_deficit || patch[0].sat_deficit_z!=patch[0].sat_deficit_z || patch[0].rootzone.field_capacity!=patch[0].rootzone.field_capacity || patch[0].field_capacity!=patch[0].field_capacity){
+        printf("patch_daily_F(7): (%d,%d,%d) %lf %lf %lf %lf\n",
+               patch[0].ID, patch[0].soil_defaults[0][0].ID, patch[0].sat_def_pct_index,
+               patch[0].sat_deficit, patch[0].sat_deficit_z,
+               patch[0].rootzone.field_capacity, patch[0].field_capacity);
+    }//debug
 	/*--------------------------------------------------------------*/
-    if(patch[0].soil_ns.nitrate!=patch[0].soil_ns.nitrate||patch[0].soil_ns.nitrate<0 || patch[0].soil_ns.sminn!=patch[0].soil_ns.sminn||patch[0].soil_ns.sminn<0 || patch[0].soil_ns.DON!=patch[0].soil_ns.DON||patch[0].soil_ns.DON<0 || patch[0].soil_cs.DOC!=patch[0].soil_cs.DOC||patch[0].soil_cs.DOC<0 || patch[0].sat_NO3!=patch[0].sat_NO3 || patch[0].sat_NO3<0) printf("patch daily F4 [%d,%d,%d,%d]{%e,%e,%e,%e,%e}\n", patch[0].ID, patch[0].drainage_type,actionPIPEDRAIN,actionSEWER, patch[0].soil_ns.nitrate,patch[0].soil_ns.sminn,patch[0].soil_cs.DOC, patch[0].soil_ns.DON, patch[0].sat_NO3);
+    // problem could be from cap_rise and gw_dainage
+    if(patch[0].soil_ns.nitrate!=patch[0].soil_ns.nitrate || patch[0].soil_ns.nitrate<0 ||
+    patch[0].soil_ns.sminn!=patch[0].soil_ns.sminn || patch[0].soil_ns.sminn<0 ||
+    patch[0].soil_cs.DOC!=patch[0].soil_cs.DOC || patch[0].soil_cs.DOC<0 ||
+    patch[0].sat_NO3!=patch[0].sat_NO3 || patch[0].sat_NO3<0 ||
+    patch[0].sat_NH4!=patch[0].sat_NH4 || patch[0].sat_NH4<0 ||
+    patch[0].sat_DOC!=patch[0].sat_DOC || patch[0].sat_DOC<0 ||
+    patch[0].surface_NO3!=patch[0].surface_NO3 || patch[0].surface_NO3<0 ||
+    patch[0].surface_NH4!=patch[0].surface_NH4 || patch[0].surface_NH4<0 ||
+    patch[0].surface_DOC!=patch[0].surface_DOC || patch[0].surface_DOC<0) printf("patch daily F4N [%d,%d,%d,%d] [%e %e %e] [%e %e %e] [%e %e %e]\n",
+       patch[0].ID, patch[0].drainage_type, actionPIPEDRAIN, actionSEWER,
+       patch[0].soil_ns.nitrate,patch[0].soil_ns.sminn,patch[0].soil_cs.DOC,
+       patch[0].sat_NO3,patch[0].sat_NH4,patch[0].sat_DOC,
+       patch[0].surface_NO3,patch[0].surface_NH4,patch[0].surface_DOC);
 	/*--------------------------------------------------------------*/
 	/* 	Resolve plant uptake and soil microbial N demands	*/
 	/*--------------------------------------------------------------*/
@@ -2134,15 +2341,25 @@ void		patch_daily_F(
 
 	patch[0].trans_reduc_perc = 1.0;
 	transpiration_reduction_percent = 1.0; // this ratio is used to "correct" plant growth!!
-    // if water demand is not satisfied, it will trigger this reduction ratio
+    // transpiration_reduction_percent = 1 means no reduction
 	
 	if (patch[0].rootzone.depth > ZERO ) {
-        if (( unsat_zone_patch_demand_initial + sat_zone_patch_demand_initial) > ZERO)
-            transpiration_reduction_percent = 1.0 - (unsat_zone_patch_demand + sat_zone_patch_demand) / (unsat_zone_patch_demand_initial + sat_zone_patch_demand_initial);
-            // when demand = initial, transpiration_reduction_percent = 0?
+        if ( unsat_zone_patch_demand_initial+sat_zone_patch_demand_initial > ZERO)
+            transpiration_reduction_percent = max(0.0, 1.0 - (unsat_zone_patch_demand + sat_zone_patch_demand) / (unsat_zone_patch_demand_initial + sat_zone_patch_demand_initial));
         else
             transpiration_reduction_percent = 1.0;
 	}
+    
+    //debug
+    if(transpiration_reduction_percent<0){
+        printf("patch_daily transpiration_reduction_percent (%d) %f = %f + %f over their inits %f + %f, %f %f %f %d, %f %f %f %f\n",
+               patch[0].ID, transpiration_reduction_percent,
+               unsat_zone_patch_demand, sat_zone_patch_demand,
+               unsat_zone_patch_demand_initial, sat_zone_patch_demand_initial,
+               patch[0].cap_rise, patch[0].potential_cap_rise, cap_rise_unsat, patch[0].sat_def_pct_index,
+               patch[0].field_capacity, patch[0].unsat_storage,
+               patch[0].rootzone.field_capacity, patch[0].rz_storage);
+    }//if debug
 
 	if ( command_line[0].verbose_flag == -5 ){
 		printf("\n***START: exfil_unsat=%lf exfil_sat=%lf unsatdemand_ini=%lf unsatdemand=%lf satdemand_ini=%lf satdemand=%lf",
@@ -2165,7 +2382,7 @@ void		patch_daily_F(
 		if ( command_line[0].verbose_flag == -5 ){
 			printf("\n***CASE1 TRIGGERED: exfil_unsat=%lf demand_ini=%lf demand=%lf",patch[0].exfiltration_unsat_zone,unsat_zone_patch_demand_initial,unsat_zone_patch_demand);
 			}
-		}
+    }
 	if ( sat_zone_patch_demand_initial > 0 ) {
 		patch[0].exfiltration_sat_zone = patch[0].exfiltration_sat_zone
 			* (1 - sat_zone_patch_demand /  sat_zone_patch_demand_initial );
@@ -2174,7 +2391,7 @@ void		patch_daily_F(
 		if ( command_line[0].verbose_flag == -5 ){
 			printf("\n***CASE2 TRIGGERED: exfil_sat=%lf demand_ini=%lf demand=%lf",patch[0].exfiltration_sat_zone,sat_zone_patch_demand_initial,sat_zone_patch_demand);
 		}		
-		}
+    }
 	
 	patch[0].trans_reduc_perc = transpiration_reduction_percent;
 
@@ -2279,162 +2496,287 @@ void		patch_daily_F(
 	/*-------------------------------------------------------------------------*/
 	/*	Compute current actual depth to water table				*/
 	/*------------------------------------------------------------------------*/
-	patch[0].sat_deficit_z = compute_z_final(
-		command_line[0].verbose_flag,
-		patch[0].soil_defaults[0][0].porosity_0,
-		patch[0].soil_defaults[0][0].porosity_decay,
-		patch[0].soil_defaults[0][0].soil_depth,
-		0.0,
-		-1.0 * patch[0].sat_deficit);
-
-	/*--------------------------------------------------------------*/
-	/*      Recompute patch soil moisture storage                   */
-	/*--------------------------------------------------------------*/
-	if (patch[0].sat_deficit < ZERO) {
-		patch[0].S = 1.0;
-		patch[0].rootzone.S = 1.0;
-		rz_drainage = 0.0;
-		unsat_drainage = 0.0;
-	}
-	else if (patch[0].sat_deficit_z > patch[0].rootzone.depth)  {		/* Constant vertical profile of soil porosity */
-		/*-------------------------------------------------------*/
-		/*	soil drainage and storage update	     	 */
-		/*-------------------------------------------------------*/
+//	patch[0].sat_deficit_z = compute_z_final(
+//		command_line[0].verbose_flag,
+//		patch[0].soil_defaults[0][0].porosity_0,
+//		patch[0].soil_defaults[0][0].porosity_decay,
+//		patch[0].soil_defaults[0][0].soil_depth,
+//		0.0,
+//		-1.0 * patch[0].sat_deficit);
+    
+    // need to be careful here: patch[0].sat_deficit could be negative.
+    if(patch[0].sat_deficit >= 0){
+        patch[0].available_soil_water = patch[0].soil_defaults[0][0].soil_water_cap - patch[0].sat_deficit;
+        patch[0].sat_def_pct = patch[0].sat_deficit * patch[0].soil_defaults[0][0].max_sat_def_1;
+        patch[0].sat_def_pct_index = (int)(patch[0].sat_def_pct*1000);
+        patch[0].sat_def_pct_indexM = 1000*(patch[0].sat_def_pct - patch[0].sat_def_pct_index*0.001);
         
-        if(command_line[0].slowDrain_flag == 1){
-            // modifyed by laurence
-            patch[0].rootzone.S = min(patch[0].rz_storage / patch[0].rootzone.potential_sat/(1.0-patch[0].basementFrac), 1.0);
-            rz_drainage = compute_unsat_zone_drainage(
-                                                      command_line[0].verbose_flag,
-                                                      patch[0].soil_defaults[0][0].theta_psi_curve,
-                                                      patch[0].soil_defaults[0][0].pore_size_index,
-                                                      patch[0].rootzone.S,
-                                                      patch[0].soil_defaults[0][0].mz_v,
-                                                      patch[0].rootzone.depth,
-                                                      0.5*patch[0].soil_defaults[0][0].Ksat_0_v/command_line[0].vsen[1],
-                                                      patch[0].rz_storage - patch[0].rootzone.field_capacity);
-            
-            
-            patch[0].rz_storage -=  rz_drainage;
-            patch[0].unsat_storage +=  rz_drainage;
-            
-            patch[0].S = patch[0].unsat_storage / (patch[0].sat_deficit - patch[0].rootzone.potential_sat);
-            patch[0].rootzone.S = min(patch[0].rz_storage / patch[0].rootzone.potential_sat/(1.0-patch[0].basementFrac), 1.0);
-            unsat_drainage = compute_unsat_zone_drainage(
-                                                         command_line[0].verbose_flag,
-                                                         patch[0].soil_defaults[0][0].theta_psi_curve,
-                                                         patch[0].soil_defaults[0][0].pore_size_index,
-                                                         patch[0].S,
-                                                         patch[0].soil_defaults[0][0].mz_v,
-                                                         patch[0].sat_deficit_z,
-                                                         0.5*patch[0].soil_defaults[0][0].Ksat_0_v/command_line[0].vsen[1],
-                                                         patch[0].unsat_storage - patch[0].field_capacity);
-            
-            patch[0].unsat_storage -=  unsat_drainage;
-            patch[0].sat_deficit -=  unsat_drainage;
-            
-        }else{
-            patch[0].rootzone.S = min(patch[0].rz_storage / patch[0].rootzone.potential_sat/(1.0-patch[0].basementFrac), 1.0);
-            rz_drainage = compute_unsat_zone_drainage(
-                  command_line[0].verbose_flag,
-                  patch[0].soil_defaults[0][0].theta_psi_curve,
-                  patch[0].soil_defaults[0][0].pore_size_index,
-                  patch[0].rootzone.S,
-                  patch[0].soil_defaults[0][0].mz_v,
-                  patch[0].rootzone.depth,
-                  patch[0].soil_defaults[0][0].Ksat_0_v*0.5,
-                  patch[0].rz_storage - patch[0].rootzone.field_capacity);
-            
-            
-            patch[0].rz_storage -=  rz_drainage;
-            patch[0].unsat_storage +=  rz_drainage;
-            
-            patch[0].S = patch[0].unsat_storage / (patch[0].sat_deficit - patch[0].rootzone.potential_sat);
-            patch[0].rootzone.S = min(patch[0].rz_storage / patch[0].rootzone.potential_sat/(1.0-patch[0].basementFrac), 1.0);
-            unsat_drainage = compute_unsat_zone_drainage(
-                 command_line[0].verbose_flag,
-                 patch[0].soil_defaults[0][0].theta_psi_curve,
-                 patch[0].soil_defaults[0][0].pore_size_index,
-                 patch[0].S,
-                 patch[0].soil_defaults[0][0].mz_v,
-                 patch[0].sat_deficit_z,
-                 patch[0].soil_defaults[0][0].Ksat_0_v*0.5,
-                 patch[0].unsat_storage - patch[0].field_capacity);
-            
-            patch[0].unsat_storage -=  unsat_drainage;
-            patch[0].sat_deficit -=  unsat_drainage;
-        }
-	}									
-	else  {
-		patch[0].rz_storage += patch[0].unsat_storage;	/* transfer left water in unsat storage to rootzone layer */
-		patch[0].unsat_storage = 0.0;   
-
-		patch[0].S = min(patch[0].rz_storage / patch[0].sat_deficit, 1.0);
-		rz_drainage = compute_unsat_zone_drainage(
-			command_line[0].verbose_flag,
-			patch[0].soil_defaults[0][0].theta_psi_curve,
-			patch[0].soil_defaults[0][0].pore_size_index,
-			patch[0].S,
-			patch[0].soil_defaults[0][0].mz_v,
-			patch[0].sat_deficit_z,
-			patch[0].soil_defaults[0][0].Ksat_0_v*0.5,
-			patch[0].rz_storage - patch[0].rootzone.field_capacity);		
-
-		unsat_drainage = 0.0;
-
-		patch[0].rz_storage -=  rz_drainage;
-		patch[0].sat_deficit -=  rz_drainage;
-	}	
-	patch[0].unsat_drainage += unsat_drainage;
-	patch[0].rz_drainage += rz_drainage;
-	patch[0].hourly_unsat_drainage += unsat_drainage;
-	patch[0].hourly_rz_drainage += rz_drainage;
+        patch[0].sat_deficit_z = patch[0].sat_def_pct_indexM * patch[0].soil_defaults[0][0].sat_def_z[patch[0].sat_def_pct_index+1] + (1.0-patch[0].sat_def_pct_indexM) * patch[0].soil_defaults[0][0].sat_def_z[patch[0].sat_def_pct_index];
+    }else{
+        // surface
+        patch[0].available_soil_water = patch[0].soil_defaults[0][0].soil_water_cap;
+        patch[0].sat_deficit_z = patch[0].sat_deficit;
+        patch[0].sat_def_pct = 0.0;
+        patch[0].sat_def_pct_index = 0;
+        patch[0].sat_def_pct_indexM = 0;
+    }
+    // update fc
+    totalfc = patch[0].sat_def_pct_indexM * patch[0].soil_defaults[0][0].fc1_0z[patch[0].sat_def_pct_index+1] + (1.0-patch[0].sat_def_pct_indexM) * patch[0].soil_defaults[0][0].fc1_0z[patch[0].sat_def_pct_index];
+    totalfc *= (1.0-patch[0].basementFrac); // <---- second thought on this, Oct 8, 2019; basement is 3m at most
+    
+    if (patch[0].sat_deficit < ZERO) {
+        //patch[0].aboveWT_SatPct = 1.0;
+        //patch[0].rootzone.SatPct = 1.0;
+        patch[0].rootzone.field_capacity = 0.0;
+        patch[0].field_capacity = 0.0;
+        rz_drainage = 0.0;
+        unsat_drainage = 0.0;
+    } else {
+        patch[0].rootzone.field_capacity = totalfc * patch[0].zeroRootCoef * (patch[0].rootzone_scale_ref*patch[0].rootzone_end_reffc[patch[0].sat_def_pct_index] + (1.0-patch[0].rootzone_scale_ref)*patch[0].rootzone_start_reffc[patch[0].sat_def_pct_index]);
+        patch[0].rootzone.field_capacity = min(patch[0].rootzone.field_capacity,patch[0].rootzone.potential_sat);
+        patch[0].field_capacity = max(0.0,min(patch[0].sat_deficit-patch[0].rootzone.potential_sat, totalfc - patch[0].rootzone.field_capacity));
+        
+        rz_drainage = compute_unsat_zone_drainage(
+                command_line[0].verbose_flag,
+                patch[0].soil_defaults[0][0].theta_psi_curve,
+                patch[0].soil_defaults[0][0].pore_size_index,
+                patch[0].rootzone.potential_sat, //patch[0].rootzone.SatPct,
+                patch[0].rootdepth_indexM * patch[0].soil_defaults[0][0].vksat_0zm[patch[0].rootdepth_index+1] + (1.0-patch[0].rootdepth_indexM)* patch[0].soil_defaults[0][0].vksat_0zm[patch[0].rootdepth_index],
+                patch[0].rootdepth_indexM * patch[0].soil_defaults[0][0].vksat_z[patch[0].rootdepth_index+1] + (1.0-patch[0].rootdepth_indexM) * patch[0].soil_defaults[0][0].vksat_z[patch[0].rootdepth_index],
+                patch[0].rz_storage,
+                patch[0].rootzone.field_capacity,
+                patch[0].sat_deficit);
+        patch[0].rz_storage -=  rz_drainage;
+        patch[0].unsat_storage +=  rz_drainage;
+        
+        unsat_drainage = compute_unsat_zone_drainage(
+                command_line[0].verbose_flag,
+                patch[0].soil_defaults[0][0].theta_psi_curve,
+                patch[0].soil_defaults[0][0].pore_size_index,
+                patch[0].sat_deficit - patch[0].rootzone.potential_sat, //patch[0].aboveWT_SatPct,
+                patch[0].sat_def_pct_indexM * patch[0].soil_defaults[0][0].vksat_0zm[patch[0].sat_def_pct_index+1] + (1.0-patch[0].sat_def_pct_indexM)* patch[0].soil_defaults[0][0].vksat_0zm[patch[0].sat_def_pct_index],
+                patch[0].sat_def_pct_indexM * patch[0].soil_defaults[0][0].vksat_z[patch[0].sat_def_pct_index+1] + (1.0-patch[0].sat_def_pct_indexM) * patch[0].soil_defaults[0][0].vksat_z[patch[0].sat_def_pct_index],
+                patch[0].unsat_storage,
+                patch[0].field_capacity,
+                patch[0].sat_deficit);
+        patch[0].unsat_storage -=  unsat_drainage;
+        patch[0].sat_deficit -=  unsat_drainage;
+   
+    }//if else
+    patch[0].unsat_drainage += unsat_drainage;
+    patch[0].rz_drainage += rz_drainage;
+    patch[0].hourly_unsat_drainage += unsat_drainage;
+    patch[0].hourly_rz_drainage += rz_drainage;
+    
+    if(patch[0].sat_deficit!=patch[0].sat_deficit || patch[0].sat_deficit_z!=patch[0].sat_deficit_z || patch[0].rootzone.field_capacity!=patch[0].rootzone.field_capacity || patch[0].field_capacity!=patch[0].field_capacity){
+        printf("patch_daily_F(8): (%d,%d,%d) %lf %lf %lf %lf\n",
+               patch[0].ID, patch[0].soil_defaults[0][0].ID, patch[0].sat_def_pct_index,
+               patch[0].sat_deficit, patch[0].sat_deficit_z,
+               patch[0].rootzone.field_capacity, patch[0].field_capacity);
+    }//debug
+//	/*--------------------------------------------------------------*/
+//	/*      Recompute patch soil moisture storage                   */
+//	/*--------------------------------------------------------------*/
+//	if (patch[0].sat_deficit < ZERO) {
+//		patch[0].S = 1.0;
+//		patch[0].rootzone.S = 1.0;
+//		rz_drainage = 0.0;
+//		unsat_drainage = 0.0;
+//	}
+//	else if (patch[0].sat_deficit_z > patch[0].rootzone.depth)  {		/* Constant vertical profile of soil porosity */
+//		/*-------------------------------------------------------*/
+//		/*	soil drainage and storage update	     	 */
+//		/*-------------------------------------------------------*/
+//
+//        if(command_line[0].slowDrain_flag == 1){
+//            // modifyed by laurence
+//            patch[0].rootzone.S = min(patch[0].rz_storage / patch[0].rootzone.potential_sat/(1.0-patch[0].basementFrac), 1.0);
+//            rz_drainage = compute_unsat_zone_drainage(
+//                                                      command_line[0].verbose_flag,
+//                                                      patch[0].soil_defaults[0][0].theta_psi_curve,
+//                                                      patch[0].soil_defaults[0][0].pore_size_index,
+//                                                      patch[0].rootzone.S,
+//                                                      patch[0].soil_defaults[0][0].mz_v,
+//                                                      patch[0].rootzone.depth,
+//                                                      0.5*patch[0].soil_defaults[0][0].Ksat_0_v/command_line[0].vsen[1],
+//                                                      patch[0].rz_storage - patch[0].rootzone.field_capacity);
+//
+//
+//            patch[0].rz_storage -=  rz_drainage;
+//            patch[0].unsat_storage +=  rz_drainage;
+//
+//            patch[0].S = patch[0].unsat_storage / (patch[0].sat_deficit - patch[0].rootzone.potential_sat);
+//            patch[0].rootzone.S = min(patch[0].rz_storage / patch[0].rootzone.potential_sat/(1.0-patch[0].basementFrac), 1.0);
+//            unsat_drainage = compute_unsat_zone_drainage(
+//                                                         command_line[0].verbose_flag,
+//                                                         patch[0].soil_defaults[0][0].theta_psi_curve,
+//                                                         patch[0].soil_defaults[0][0].pore_size_index,
+//                                                         patch[0].S,
+//                                                         patch[0].soil_defaults[0][0].mz_v,
+//                                                         patch[0].sat_deficit_z,
+//                                                         0.5*patch[0].soil_defaults[0][0].Ksat_0_v/command_line[0].vsen[1],
+//                                                         patch[0].unsat_storage - patch[0].field_capacity);
+//
+//            patch[0].unsat_storage -=  unsat_drainage;
+//            patch[0].sat_deficit -=  unsat_drainage;
+//
+//        }else{
+//            patch[0].rootzone.S = min(patch[0].rz_storage / patch[0].rootzone.potential_sat/(1.0-patch[0].basementFrac), 1.0);
+//            rz_drainage = compute_unsat_zone_drainage(
+//                  command_line[0].verbose_flag,
+//                  patch[0].soil_defaults[0][0].theta_psi_curve,
+//                  patch[0].soil_defaults[0][0].pore_size_index,
+//                  patch[0].rootzone.S,
+//                  patch[0].soil_defaults[0][0].mz_v,
+//                  patch[0].rootzone.depth,
+//                  patch[0].soil_defaults[0][0].Ksat_0_v*0.5,
+//                  patch[0].rz_storage - patch[0].rootzone.field_capacity);
+//
+//
+//            patch[0].rz_storage -=  rz_drainage;
+//            patch[0].unsat_storage +=  rz_drainage;
+//
+//            patch[0].S = patch[0].unsat_storage / (patch[0].sat_deficit - patch[0].rootzone.potential_sat);
+//            patch[0].rootzone.S = min(patch[0].rz_storage / patch[0].rootzone.potential_sat/(1.0-patch[0].basementFrac), 1.0);
+//            unsat_drainage = compute_unsat_zone_drainage(
+//                 command_line[0].verbose_flag,
+//                 patch[0].soil_defaults[0][0].theta_psi_curve,
+//                 patch[0].soil_defaults[0][0].pore_size_index,
+//                 patch[0].S,
+//                 patch[0].soil_defaults[0][0].mz_v,
+//                 patch[0].sat_deficit_z,
+//                 patch[0].soil_defaults[0][0].Ksat_0_v*0.5,
+//                 patch[0].unsat_storage - patch[0].field_capacity);
+//
+//            patch[0].unsat_storage -=  unsat_drainage;
+//            patch[0].sat_deficit -=  unsat_drainage;
+//        }
+//	}
+//	else  {
+//		patch[0].rz_storage += patch[0].unsat_storage;	/* transfer left water in unsat storage to rootzone layer */
+//		patch[0].unsat_storage = 0.0;
+//
+//		patch[0].S = min(patch[0].rz_storage / patch[0].sat_deficit, 1.0);
+//		rz_drainage = compute_unsat_zone_drainage(
+//			command_line[0].verbose_flag,
+//			patch[0].soil_defaults[0][0].theta_psi_curve,
+//			patch[0].soil_defaults[0][0].pore_size_index,
+//			patch[0].S,
+//			patch[0].soil_defaults[0][0].mz_v,
+//			patch[0].sat_deficit_z,
+//			patch[0].soil_defaults[0][0].Ksat_0_v*0.5,
+//			patch[0].rz_storage - patch[0].rootzone.field_capacity);
+//
+//		unsat_drainage = 0.0;
+//
+//		patch[0].rz_storage -=  rz_drainage;
+//		patch[0].sat_deficit -=  rz_drainage;
+//	}
+    
 	/* ---------------------------------------------- */
-	/*     Final rootzone saturation calculation      */
-	/* ---------------------------------------------- */
-	if (patch[0].sat_deficit > patch[0].rootzone.potential_sat)
-		patch[0].rootzone.S = min(patch[0].rz_storage / patch[0].rootzone.potential_sat/(1.0-patch[0].basementFrac), 1.0);
-	else 
-		patch[0].rootzone.S = min((patch[0].rz_storage + patch[0].rootzone.potential_sat - patch[0].sat_deficit)
-			/ patch[0].rootzone.potential_sat/(1.0-patch[0].basementFrac), 1.0);
-	/*-----------------------------------------------------*/
-	/*  re-Compute potential saturation for rootzone layer   */
-	/*-----------------------------------------------------*/			
-	if (patch[0].rootzone.depth > ZERO)
-		patch[0].rootzone.potential_sat = compute_delta_water(
-		command_line[0].verbose_flag,
-		patch[0].soil_defaults[0][0].porosity_0,
-		patch[0].soil_defaults[0][0].porosity_decay,
-		patch[0].soil_defaults[0][0].soil_depth,
-		patch[0].rootzone.depth, 0.0);			
+    /*     Final rootzone saturation calculation      */
+    /* ---------------------------------------------- */
+//    patch[0].sat_deficit_z = compute_z_final(
+//        command_line[0].verbose_flag,
+//        patch[0].soil_defaults[0][0].porosity_0,
+//        patch[0].soil_defaults[0][0].porosity_decay,
+//        patch[0].soil_defaults[0][0].soil_depth,
+//        0.0,
+//        -1.0 * patch[0].sat_deficit);
+    
+    // need to be careful here: patch[0].sat_deficit could be negative.
+    if(patch[0].sat_deficit >= 0){
+        patch[0].available_soil_water = patch[0].soil_defaults[0][0].soil_water_cap - patch[0].sat_deficit;
+        patch[0].sat_def_pct = patch[0].sat_deficit * patch[0].soil_defaults[0][0].max_sat_def_1;
+        patch[0].sat_def_pct_index = (int)(patch[0].sat_def_pct*1000);
+        patch[0].sat_def_pct_indexM = 1000*(patch[0].sat_def_pct - patch[0].sat_def_pct_index*0.001);
+        
+        patch[0].sat_deficit_z = patch[0].sat_def_pct_indexM * patch[0].soil_defaults[0][0].sat_def_z[patch[0].sat_def_pct_index+1] + (1.0-patch[0].sat_def_pct_indexM) * patch[0].soil_defaults[0][0].sat_def_z[patch[0].sat_def_pct_index];
+    }else{
+        // surface
+        patch[0].available_soil_water = patch[0].soil_defaults[0][0].soil_water_cap;
+        patch[0].sat_deficit_z = patch[0].sat_deficit;
+        patch[0].sat_def_pct = 0.0;
+        patch[0].sat_def_pct_index = 0;
+        patch[0].sat_def_pct_indexM = 0;
+    }
+    
+    // fc & SatPct
+    totalfc = patch[0].sat_def_pct_indexM * patch[0].soil_defaults[0][0].fc1_0z[patch[0].sat_def_pct_index+1] + (1.0-patch[0].sat_def_pct_indexM) * patch[0].soil_defaults[0][0].fc1_0z[patch[0].sat_def_pct_index];
+    totalfc *= (1.0-patch[0].basementFrac); // <---- second thought on this, Oct 8, 2019; basement is 3m at most
+    
+    if (patch[0].sat_deficit < ZERO) {
+        //patch[0].aboveWT_SatPct = 1.0;
+        //patch[0].rootzone.SatPct = 1.0;
+        patch[0].rootzone.field_capacity = 0.0;
+        patch[0].field_capacity = 0.0;
+    } else {
+        patch[0].rootzone.field_capacity = totalfc * patch[0].zeroRootCoef * (patch[0].rootzone_scale_ref*patch[0].rootzone_end_reffc[patch[0].sat_def_pct_index] + (1.0-patch[0].rootzone_scale_ref)*patch[0].rootzone_start_reffc[patch[0].sat_def_pct_index]);
+        patch[0].rootzone.field_capacity = min(patch[0].rootzone.field_capacity,patch[0].rootzone.potential_sat);
+        patch[0].field_capacity = max(0.0,min(patch[0].sat_deficit-patch[0].rootzone.potential_sat, totalfc - patch[0].rootzone.field_capacity));
+    }//if else
+    
+    if(patch[0].sat_deficit!=patch[0].sat_deficit || patch[0].sat_deficit_z!=patch[0].sat_deficit_z || patch[0].rootzone.field_capacity!=patch[0].rootzone.field_capacity || patch[0].field_capacity!=patch[0].field_capacity || patch[0].sat_deficit>patch[0].soil_defaults[0][0].soil_water_cap+ZERO){
+        printf("patch_daily_F(9): (%d,%d,%d) %lf %lf %lf %lf, %lf\n",
+               patch[0].ID, patch[0].soil_defaults[0][0].ID, patch[0].sat_def_pct_index,
+               patch[0].sat_deficit, patch[0].sat_deficit_z,
+               patch[0].rootzone.field_capacity, patch[0].field_capacity, patch[0].soil_defaults[0][0].soil_water_cap);
+    }//debug
+    
+    /*-----------------------------------------------------*/
+    /*  re-Compute potential saturation for rootzone layer   */
+    /*-----------------------------------------------------*/
+//    if (patch[0].rootzone.depth > ZERO)
+//        patch[0].rootzone.potential_sat = compute_delta_water(
+//            command_line[0].verbose_flag,
+//            patch[0].soil_defaults[0][0].porosity_0,
+//            patch[0].soil_defaults[0][0].porosity_decay,
+//            patch[0].soil_defaults[0][0].soil_depth,
+//            patch[0].rootzone.depth, 0.0);
+    
+     // doing this in daily_I()
+//    if (patch[0].rootzone.depth > ZERO)  {
+//        // how is lulc frac affecting this part? Aug 8, 2019
+//        // daily updated "patch[0].rootzone.depth" is done by this daily_I @ LINE 472 (below)
+//        // stratum[0].rootzone.depth is first updated via "update_phenology", then aggregated to here
+//
 
-	patch[0].delta_snowpack = patch[0].snowpack.water_depth
-		+ patch[0].snowpack.water_equivalent_depth - patch[0].preday_snowpack;
-	patch[0].delta_rain_stored = patch[0].rain_stored
-		- patch[0].preday_rain_stored;
-	patch[0].delta_snow_stored = patch[0].snow_stored
-		- patch[0].preday_snow_stored;
-
-	/*------------------------------------------------------------------------*/
-	/*	Compute current actual depth to water table				*/
-	/*------------------------------------------------------------------------*/
-	patch[0].sat_deficit_z = compute_z_final(
-		command_line[0].verbose_flag,
-		patch[0].soil_defaults[0][0].porosity_0,
-		patch[0].soil_defaults[0][0].porosity_decay,
-		patch[0].soil_defaults[0][0].soil_depth,
-		0.0,
-		-1.0 * patch[0].sat_deficit);
-
-
-	theta = patch[0].rootzone.S;
-	patch[0].theta_std = (patch[0].soil_defaults[0][0].theta_mean_std_p2*theta*theta + 
-				patch[0].soil_defaults[0][0].theta_mean_std_p1*theta);
+    
+    if(patch[0].rootzone.potential_sat>ZERO){
+        if (patch[0].sat_deficit > patch[0].rootzone.potential_sat) theta = min(patch[0].rz_storage/patch[0].rootzone.potential_sat/(1.0-patch[0].basementFrac), 1.0);
+        else theta = min((patch[0].rz_storage + patch[0].rootzone.potential_sat - patch[0].sat_deficit)/patch[0].rootzone.potential_sat/(1.0-patch[0].basementFrac),1.0);
+    }else{ theta = 0.0; }
+    patch[0].theta_std = (patch[0].soil_defaults[0][0].theta_mean_std_p2*theta*theta +
+                patch[0].soil_defaults[0][0].theta_mean_std_p1*theta);
+    
+    
+    /*-----------------------------------------------------*/
+    /*  snow related   */
+    /*-----------------------------------------------------*/
+    patch[0].delta_snowpack = patch[0].snowpack.water_depth
+        + patch[0].snowpack.water_equivalent_depth - patch[0].preday_snowpack;
+    patch[0].delta_rain_stored = patch[0].rain_stored
+        - patch[0].preday_rain_stored;
+    patch[0].delta_snow_stored = patch[0].snow_stored
+        - patch[0].preday_snow_stored;
+    
 	/*-------------------------------------------------------------------------*/
 	/*	finalized soil and litter decomposition					*/
 	/* 	and any septic losses							*/
 	/*------------------------------------------------------------------------*/
-    if(patch[0].soil_ns.nitrate!=patch[0].soil_ns.nitrate||patch[0].soil_ns.nitrate<0 || patch[0].soil_ns.sminn!=patch[0].soil_ns.sminn||patch[0].soil_ns.sminn<0 || patch[0].soil_ns.DON!=patch[0].soil_ns.DON||patch[0].soil_ns.DON<0 || patch[0].soil_cs.DOC!=patch[0].soil_cs.DOC||patch[0].soil_cs.DOC<0 || patch[0].sat_NO3!=patch[0].sat_NO3 || patch[0].sat_NO3<0) printf("patch daily F5 [%d,%d,%d,%d]{%e,%e,%e,%e,%e}\n", patch[0].ID, patch[0].drainage_type,actionPIPEDRAIN,actionSEWER, patch[0].soil_ns.nitrate,patch[0].soil_ns.sminn,patch[0].soil_cs.DOC, patch[0].soil_ns.DON,patch[0].sat_NO3);
+    if(patch[0].soil_ns.nitrate!=patch[0].soil_ns.nitrate || patch[0].soil_ns.nitrate<0 ||
+    patch[0].soil_ns.sminn!=patch[0].soil_ns.sminn || patch[0].soil_ns.sminn<0 ||
+    patch[0].soil_cs.DOC!=patch[0].soil_cs.DOC || patch[0].soil_cs.DOC<0 ||
+    patch[0].sat_NO3!=patch[0].sat_NO3 || patch[0].sat_NO3<0 ||
+    patch[0].sat_NH4!=patch[0].sat_NH4 || patch[0].sat_NH4<0 ||
+    patch[0].sat_DOC!=patch[0].sat_DOC || patch[0].sat_DOC<0 ||
+    patch[0].surface_NO3!=patch[0].surface_NO3 || patch[0].surface_NO3<0 ||
+    patch[0].surface_NH4!=patch[0].surface_NH4 || patch[0].surface_NH4<0 ||
+    patch[0].surface_DOC!=patch[0].surface_DOC || patch[0].surface_DOC<0) printf("patch daily F5N [%d,%d,%d,%d] [%e %e %e] [%e %e %e] [%e %e %e]\n",
+       patch[0].ID, patch[0].drainage_type, actionPIPEDRAIN, actionSEWER,
+       patch[0].soil_ns.nitrate,patch[0].soil_ns.sminn,patch[0].soil_cs.DOC,
+       patch[0].sat_NO3,patch[0].sat_NH4,patch[0].sat_DOC,
+       patch[0].surface_NO3,patch[0].surface_NH4,patch[0].surface_DOC);
 	
     if ((command_line[0].grow_flag > 0) && (vegtype == 1) ) {
 		
@@ -2453,22 +2795,19 @@ void		patch_daily_F(
             exit(EXIT_FAILURE);
         }
 
-        if(patch[0].soil_ns.nitrate!=patch[0].soil_ns.nitrate ||
-           patch[0].soil_ns.nitrate<0 ||
-           patch[0].soil_ns.sminn!=patch[0].soil_ns.sminn ||
-           patch[0].soil_ns.sminn<0 ||
-           patch[0].soil_ns.DON!=patch[0].soil_ns.DON ||
-           patch[0].soil_ns.DON<0 ||
-           patch[0].soil_cs.DOC!=patch[0].soil_cs.DOC ||
-           patch[0].soil_cs.DOC<0 ||
-           patch[0].sat_NO3!=patch[0].sat_NO3 ||
-           patch[0].sat_NO3<0) printf("patch daily F6 after decomp [%d,%d,%d,%d]{%e,%e,%e,%e,%e}\n",
-              patch[0].ID, patch[0].drainage_type, actionPIPEDRAIN, actionSEWER,
-              patch[0].soil_ns.nitrate,
-              patch[0].soil_ns.sminn,
-              patch[0].soil_cs.DOC,
-              patch[0].soil_ns.DON,
-              patch[0].sat_NO3);
+        if(patch[0].soil_ns.nitrate!=patch[0].soil_ns.nitrate || patch[0].soil_ns.nitrate<0 ||
+        patch[0].soil_ns.sminn!=patch[0].soil_ns.sminn || patch[0].soil_ns.sminn<0 ||
+        patch[0].soil_cs.DOC!=patch[0].soil_cs.DOC || patch[0].soil_cs.DOC<0 ||
+        patch[0].sat_NO3!=patch[0].sat_NO3 || patch[0].sat_NO3<0 ||
+        patch[0].sat_NH4!=patch[0].sat_NH4 || patch[0].sat_NH4<0 ||
+        patch[0].sat_DOC!=patch[0].sat_DOC || patch[0].sat_DOC<0 ||
+        patch[0].surface_NO3!=patch[0].surface_NO3 || patch[0].surface_NO3<0 ||
+        patch[0].surface_NH4!=patch[0].surface_NH4 || patch[0].surface_NH4<0 ||
+        patch[0].surface_DOC!=patch[0].surface_DOC || patch[0].surface_DOC<0) printf("patch daily F6N after update decomp [%d,%d,%d,%d] [%e %e %e] [%e %e %e] [%e %e %e]\n",
+           patch[0].ID, patch[0].drainage_type, actionPIPEDRAIN, actionSEWER,
+           patch[0].soil_ns.nitrate,patch[0].soil_ns.sminn,patch[0].soil_cs.DOC,
+           patch[0].sat_NO3,patch[0].sat_NH4,patch[0].sat_DOC,
+           patch[0].surface_NO3,patch[0].surface_NH4,patch[0].surface_DOC);
         
         if (patch[0].soil_defaults[0][0].DON_production_rate > ZERO) {
             if ( update_dissolved_organic_losses(
@@ -2481,32 +2820,29 @@ void		patch_daily_F(
                 &(patch[0].cdf),
                 &(patch[0].ndf),
                 patch,
-                command_line[0].soilCNadaptation_falg) != 0){
+                command_line[0].soilCNadaptation_flag) != 0){
                 fprintf(stderr,"fATAL ERROR: in update_dissolved_organic_losses() ... Exiting\n");
                 exit(EXIT_FAILURE);
             }
-        patch[0].surface_DOC += (patch[0].cdf.do_litr1c_loss + 
+        patch[0].surface_DOC += (patch[0].cdf.do_litr1c_loss +
                 patch[0].cdf.do_litr2c_loss + patch[0].cdf.do_litr3c_loss + patch[0].cdf.do_litr4c_loss);
-        patch[0].surface_DON += (patch[0].ndf.do_litr1n_loss + patch[0].ndf.do_litr2n_loss + patch[0].ndf.do_litr3n_loss + 
+        patch[0].surface_DON += (patch[0].ndf.do_litr1n_loss + patch[0].ndf.do_litr2n_loss + patch[0].ndf.do_litr3n_loss +
                  patch[0].ndf.do_litr4n_loss);
         }
 
-        if(patch[0].soil_ns.nitrate!=patch[0].soil_ns.nitrate ||
-           patch[0].soil_ns.nitrate<0 ||
-           patch[0].soil_ns.sminn!=patch[0].soil_ns.sminn ||
-           patch[0].soil_ns.sminn<0 ||
-           patch[0].soil_ns.DON!=patch[0].soil_ns.DON ||
-           patch[0].soil_ns.DON<0 ||
-           patch[0].soil_cs.DOC!=patch[0].soil_cs.DOC ||
-           patch[0].soil_cs.DOC<0 ||
-           patch[0].sat_NO3!=patch[0].sat_NO3 ||
-           patch[0].sat_NO3<0) printf("patch daily F7 DOM decomp [%d,%d,%d,%d]{%e,%e,%e,%e,%e}\n",
-              patch[0].ID, patch[0].drainage_type, actionPIPEDRAIN, actionSEWER,
-              patch[0].soil_ns.nitrate,
-              patch[0].soil_ns.sminn,
-              patch[0].soil_cs.DOC,
-              patch[0].soil_ns.DON,
-              patch[0].sat_NO3);
+        if(patch[0].soil_ns.nitrate!=patch[0].soil_ns.nitrate || patch[0].soil_ns.nitrate<0 ||
+        patch[0].soil_ns.sminn!=patch[0].soil_ns.sminn || patch[0].soil_ns.sminn<0 ||
+        patch[0].soil_cs.DOC!=patch[0].soil_cs.DOC || patch[0].soil_cs.DOC<0 ||
+        patch[0].sat_NO3!=patch[0].sat_NO3 || patch[0].sat_NO3<0 ||
+        patch[0].sat_NH4!=patch[0].sat_NH4 || patch[0].sat_NH4<0 ||
+        patch[0].sat_DOC!=patch[0].sat_DOC || patch[0].sat_DOC<0 ||
+        patch[0].surface_NO3!=patch[0].surface_NO3 || patch[0].surface_NO3<0 ||
+        patch[0].surface_NH4!=patch[0].surface_NH4 || patch[0].surface_NH4<0 ||
+        patch[0].surface_DOC!=patch[0].surface_DOC || patch[0].surface_DOC<0) printf("patch daily F7N after DOloss [%d,%d,%d,%d] [%e %e %e] [%e %e %e] [%e %e %e]\n",
+           patch[0].ID, patch[0].drainage_type, actionPIPEDRAIN, actionSEWER,
+           patch[0].soil_ns.nitrate,patch[0].soil_ns.sminn,patch[0].soil_cs.DOC,
+           patch[0].sat_NO3,patch[0].sat_NH4,patch[0].sat_DOC,
+           patch[0].surface_NO3,patch[0].surface_NH4,patch[0].surface_DOC);
         
 		if ( update_nitrif(
 			&(patch[0].soil_cs),
@@ -2519,7 +2855,19 @@ void		patch_daily_F(
 			fprintf(stderr,"fATAL ERROR: in update_nitrific() ... Exiting\n");
 			exit(EXIT_FAILURE);
 		}
-        if(patch[0].soil_ns.nitrate!=patch[0].soil_ns.nitrate||patch[0].soil_ns.nitrate<0 || patch[0].soil_ns.sminn!=patch[0].soil_ns.sminn||patch[0].soil_ns.sminn<0 || patch[0].soil_ns.DON!=patch[0].soil_ns.DON||patch[0].soil_ns.DON<0 || patch[0].soil_cs.DOC!=patch[0].soil_cs.DOC||patch[0].soil_cs.DOC<0 || patch[0].sat_NO3!=patch[0].sat_NO3 || patch[0].sat_NO3<0) printf("patch daily F8 nitrif [%d,%d,%d,%d]{%e,%e,%e,%e,%e}\n", patch[0].ID, patch[0].drainage_type,actionPIPEDRAIN,actionSEWER, patch[0].soil_ns.nitrate,patch[0].soil_ns.sminn,patch[0].soil_cs.DOC, patch[0].soil_ns.DON, patch[0].sat_NO3);
+        if(patch[0].soil_ns.nitrate!=patch[0].soil_ns.nitrate || patch[0].soil_ns.nitrate<0 ||
+        patch[0].soil_ns.sminn!=patch[0].soil_ns.sminn || patch[0].soil_ns.sminn<0 ||
+        patch[0].soil_cs.DOC!=patch[0].soil_cs.DOC || patch[0].soil_cs.DOC<0 ||
+        patch[0].sat_NO3!=patch[0].sat_NO3 || patch[0].sat_NO3<0 ||
+        patch[0].sat_NH4!=patch[0].sat_NH4 || patch[0].sat_NH4<0 ||
+        patch[0].sat_DOC!=patch[0].sat_DOC || patch[0].sat_DOC<0 ||
+        patch[0].surface_NO3!=patch[0].surface_NO3 || patch[0].surface_NO3<0 ||
+        patch[0].surface_NH4!=patch[0].surface_NH4 || patch[0].surface_NH4<0 ||
+        patch[0].surface_DOC!=patch[0].surface_DOC || patch[0].surface_DOC<0) printf("patch daily F8N after nitrif [%d,%d,%d,%d] [%e %e %e] [%e %e %e] [%e %e %e]\n",
+           patch[0].ID, patch[0].drainage_type, actionPIPEDRAIN, actionSEWER,
+           patch[0].soil_ns.nitrate,patch[0].soil_ns.sminn,patch[0].soil_cs.DOC,
+           patch[0].sat_NO3,patch[0].sat_NH4,patch[0].sat_DOC,
+           patch[0].surface_NO3,patch[0].surface_NH4,patch[0].surface_DOC);
         
 		if ( update_denitrif(
 			&(patch[0].soil_cs),
@@ -2531,30 +2879,22 @@ void		patch_daily_F(
 			fprintf(stderr,"fATAL ERROR: in update_denitrif() ... Exiting\n");
 			exit(EXIT_FAILURE);
 		}
-        if(patch[0].soil_ns.nitrate!=patch[0].soil_ns.nitrate ||
-           patch[0].soil_ns.nitrate<0 ||
-           patch[0].soil_ns.sminn!=patch[0].soil_ns.sminn ||
-           patch[0].soil_ns.sminn<0 ||
-           patch[0].soil_ns.DON!=patch[0].soil_ns.DON ||
-           patch[0].soil_ns.DON<0 ||
-           patch[0].soil_cs.DOC!=patch[0].soil_cs.DOC ||
-           patch[0].soil_cs.DOC<0 ||
-           patch[0].sat_NO3!=patch[0].sat_NO3 ||
-           patch[0].sat_NO3<0) printf("patch daily F9 after denitrif [%d,%d,%d,%d]{%e,%e,%e,%e,%e}\n",
+        if(patch[0].soil_ns.nitrate!=patch[0].soil_ns.nitrate || patch[0].soil_ns.nitrate<0 ||
+        patch[0].soil_ns.sminn!=patch[0].soil_ns.sminn || patch[0].soil_ns.sminn<0 ||
+        patch[0].soil_cs.DOC!=patch[0].soil_cs.DOC || patch[0].soil_cs.DOC<0 ||
+        patch[0].sat_NO3!=patch[0].sat_NO3 || patch[0].sat_NO3<0 ||
+        patch[0].sat_NH4!=patch[0].sat_NH4 || patch[0].sat_NH4<0 ||
+        patch[0].sat_DOC!=patch[0].sat_DOC || patch[0].sat_DOC<0 ||
+        patch[0].surface_NO3!=patch[0].surface_NO3 || patch[0].surface_NO3<0 ||
+        patch[0].surface_NH4!=patch[0].surface_NH4 || patch[0].surface_NH4<0 ||
+        patch[0].surface_DOC!=patch[0].surface_DOC || patch[0].surface_DOC<0) printf("patch daily F9N after denitrif [%d,%d,%d,%d] [%e %e %e] [%e %e %e] [%e %e %e]\n",
               patch[0].ID, patch[0].drainage_type, actionPIPEDRAIN, actionSEWER,
-              patch[0].soil_ns.nitrate,
-              patch[0].soil_ns.sminn,
-              patch[0].soil_cs.DOC,
-              patch[0].soil_ns.DON,
-              patch[0].sat_NO3);
+              patch[0].soil_ns.nitrate,patch[0].soil_ns.sminn,patch[0].soil_cs.DOC,
+              patch[0].sat_NO3,patch[0].sat_NH4,patch[0].sat_DOC,
+              patch[0].surface_NO3,patch[0].surface_NH4,patch[0].surface_DOC);
         
         
-        // local_profile_solute contributes to sat_solute
-//        patch[0].sat_NO3 += 0.0;
-//        patch[0].sat_NH4 += 0.0;
-//        patch[0].sat_DOC += 0.0;
-//        patch[0].sat_DON += 0.0;
-        
+
         
     }//growth flag: decomp, nitrification, denitrification, sat_solute
     

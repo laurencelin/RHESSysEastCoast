@@ -178,7 +178,7 @@ double	compute_capillary_rise(
 			Ksat_0 );
 		mc = 2 + 3 * pore_size_index;
 		w = K_1 * ( 1 + 1.5 / (mc - 1))
-			* pow((psi_1/(Z-psi_1)),mc);
+			* pow( psi_1/(Z-psi_1), mc);
 	}
 	else{
 		w = 0;

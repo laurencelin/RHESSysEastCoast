@@ -69,7 +69,7 @@ void  update_drainage_road(
 		double,
 		double,
 		double,
-		double *,
+		double,
 		struct patch_object *patch);
 
 	double recompute_gamma(	
@@ -97,7 +97,6 @@ void  update_drainage_road(
 	double DOC_leached_total; /* kg/m2 */
 	double route_to_stream;  /* m3 */
 	double route_to_patch;  /* m3 */
-	double road_int_depth;  /* m of H2O */
 	double available_sat_water, route_total; /* m3 */
 	double  Qin, Qout, Qstr_total;  /* m */
 	double total_gamma, percent_loss;
@@ -122,32 +121,53 @@ void  update_drainage_road(
 	route_to_patch = 0.0;
 	return_flow=0.0;
 
-    double constantHold_no3, constantHold_nh4, constantHold_dom;
-    double z1 = patch[0].sat_deficit_z>0? patch[0].sat_deficit_z : 0.0;
+    int sat_def_z_index = (int)(max(0.0,patch[0].sat_deficit_z*1000));
+    double rate_;
+    
+    rate_ = patch[0].soil_defaults[0][0].rtz2NO3prop[sat_def_z_index];
+    patch[0].sat_NO3 += patch[0].soil_ns.nitrate * (1.0-rate_); // o_z / o_Z
+    patch[0].soil_ns.nitrate *=  rate_;
+    
+    rate_ = patch[0].soil_defaults[0][0].rtz2NH4prop[sat_def_z_index];
+    patch[0].sat_NH4 += patch[0].soil_ns.sminn * (1.0-rate_);
+    patch[0].soil_ns.sminn *= rate_;
+    
+    rate_ = patch[0].soil_defaults[0][0].rtz2DOMprop[sat_def_z_index];
+    patch[0].sat_DOC += patch[0].soil_cs.DOC * (1.0-rate_);
+    patch[0].sat_DON += patch[0].soil_ns.DON * (1.0-rate_);
+    patch[0].soil_cs.DOC *= rate_;
+    patch[0].soil_ns.DON *= rate_;
+    
+//    double constantHold_no3, constantHold_nh4, constantHold_dom;
+//    double z1 = patch[0].sat_deficit_z>0? patch[0].sat_deficit_z : 0.0;
     //double p_decayRate = 1.0/patch[0].soil_defaults[0][0].porosity_decay;
     //double constantHold_SAT_proj_S0 = (1.0 - exp(-p_decayRate*activedepthz)) / (exp(-p_decayRate*z1)-exp(-p_decayRate*activedepthz));
     
-    double N_decay_rate = (command_line[0].rootNdecayRate > 0? patch[0].rootzone.NO3decayRate : patch[0].soil_defaults[0][0].N_decay_rate);//lookup the term that has been using.
-    double activedepthz = (command_line[0].rootNdecayRate > 0? patch[0].soil_defaults[0][0].soil_depth : (command_line[0].root2active > 0.0? patch[0].rootzone.depth * command_line[0].root2active : patch[0].soil_defaults[0][0].active_zone_z));
-    constantHold_no3 = (exp(-N_decay_rate*z1)-exp(-N_decay_rate*activedepthz)) / (1.0 - exp(-N_decay_rate*activedepthz)) * 0.04166667;
-    patch[0].sat_NO3 += patch[0].soil_ns.nitrate * constantHold_no3;
-    patch[0].soil_ns.nitrate *= 1.0 - constantHold_no3;
+    //double N_decay_rate = (command_line[0].rootNdecayRate > 0? patch[0].rootzone.NO3decayRate : patch[0].soil_defaults[0][0].N_decay_rate);//lookup the term that has been using.
+    //double activedepthz = (command_line[0].rootNdecayRate > 0? patch[0].soil_defaults[0][0].soil_depth : (command_line[0].root2active > 0.0? patch[0].rootzone.depth * command_line[0].root2active : patch[0].soil_defaults[0][0].active_zone_z));
+//    double N_decay_rate = patch[0].soil_defaults[0][0].NO3decayRate;
+//    double activedepthz = patch[0].soil_defaults[0][0].active_zone_z;
+//    constantHold_no3 = (exp(-N_decay_rate*z1)-exp(-N_decay_rate*activedepthz)) / (1.0 - exp(-N_decay_rate*activedepthz)) * 0.04166667;
+//    patch[0].sat_NO3 += patch[0].soil_ns.nitrate * constantHold_no3;
+//    patch[0].soil_ns.nitrate *= 1.0 - constantHold_no3;
     //double proj_total_sat_NO3 = patch[0].sat_NO3 * constantHold_SAT_proj_S0;
     
     //N_decay_rate = (command_line[0].NH4root2active>0.0? patch[0].soil_defaults[0][0].N_decay_rate : (command_line[0].rootNdecayRate > 0? patch[0].rootzone.NH4decayRate : patch[0].soil_defaults[0][0].N_decay_rate));
-    activedepthz = (command_line[0].NH4root2active>0.0? patch[0].rootzone.depth * command_line[0].NH4root2active : (command_line[0].rootNdecayRate > 0? patch[0].soil_defaults[0][0].soil_depth : (command_line[0].root2active>0.0? patch[0].rootzone.depth * command_line[0].root2active : patch[0].soil_defaults[0][0].active_zone_z)));
-    constantHold_nh4 = (exp(-N_decay_rate*z1)-exp(-N_decay_rate*activedepthz)) / (1.0 - exp(-N_decay_rate*activedepthz)) * 0.04166667;
-    patch[0].sat_NH4 += patch[0].soil_ns.sminn * constantHold_nh4;
-    patch[0].soil_ns.sminn *= 1.0 - constantHold_nh4;
+    //activedepthz = (command_line[0].NH4root2active>0.0? patch[0].rootzone.depth * command_line[0].NH4root2active : (command_line[0].rootNdecayRate > 0? patch[0].soil_defaults[0][0].soil_depth : (command_line[0].root2active>0.0? patch[0].rootzone.depth * command_line[0].root2active : patch[0].soil_defaults[0][0].active_zone_z)));
+//    N_decay_rate = patch[0].soil_defaults[0][0].NH4decayRate;
+//    constantHold_nh4 = (exp(-N_decay_rate*z1)-exp(-N_decay_rate*activedepthz)) / (1.0 - exp(-N_decay_rate*activedepthz)) * 0.04166667;
+//    patch[0].sat_NH4 += patch[0].soil_ns.sminn * constantHold_nh4;
+//    patch[0].soil_ns.sminn *= 1.0 - constantHold_nh4;
     //double proj_total_sat_NH4 = patch[0].sat_NH4 * constantHold_SAT_proj_S0;
     
     //N_decay_rate = (command_line[0].rootNdecayRate > 0? patch[0].rootzone.DOMdecayRate : patch[0].soil_defaults[0][0].DOM_decay_rate);
-    activedepthz = (command_line[0].rootNdecayRate > 0? patch[0].soil_defaults[0][0].soil_depth : (command_line[0].root2active > 0.0? patch[0].rootzone.depth * command_line[0].root2active : patch[0].soil_defaults[0][0].active_zone_z));
-    constantHold_dom = (exp(-N_decay_rate*z1)-exp(-N_decay_rate*activedepthz)) / (1.0 - exp(-N_decay_rate*activedepthz)) * 0.04166667;
-    patch[0].sat_DOC += patch[0].soil_cs.DOC * constantHold_dom;
-    patch[0].sat_DON += patch[0].soil_ns.DON * constantHold_dom;
-    patch[0].soil_cs.DOC *= 1.0 - constantHold_dom;
-    patch[0].soil_ns.DON *= 1.0 - constantHold_dom;
+    //activedepthz = (command_line[0].rootNdecayRate > 0? patch[0].soil_defaults[0][0].soil_depth : (command_line[0].root2active > 0.0? patch[0].rootzone.depth * command_line[0].root2active : patch[0].soil_defaults[0][0].active_zone_z));
+//    N_decay_rate = patch[0].soil_defaults[0][0].DOMdecayRate;
+//    constantHold_dom = (exp(-N_decay_rate*z1)-exp(-N_decay_rate*activedepthz)) / (1.0 - exp(-N_decay_rate*activedepthz)) * 0.04166667;
+//    patch[0].sat_DOC += patch[0].soil_cs.DOC * constantHold_dom;
+//    patch[0].sat_DON += patch[0].soil_ns.DON * constantHold_dom;
+//    patch[0].soil_cs.DOC *= 1.0 - constantHold_dom;
+//    patch[0].soil_ns.DON *= 1.0 - constantHold_dom;
     //double proj_total_sat_DOC = patch[0].sat_DOC * constantHold_SAT_proj_S0;
     //double proj_total_sat_DON = patch[0].sat_DON * constantHold_SAT_proj_S0;
     
@@ -159,10 +179,11 @@ void  update_drainage_road(
 	/*      to account the effect of changes in water table slope 	*/
 	/*--------------------------------------------------------------*/
     d=0; total_gamma = recompute_gamma(patch, patch[0].innundation_list[d].gamma);
-
+    
+    patch[0].satzZ_balance = 0.0; // mm
 	available_sat_water = max(
-                              ((patch[0].soil_defaults[0][0].soil_water_cap - max(patch[0].sat_deficit,0.0)) * patch[0].area),
-                              0.0); 
+    patch[0].area*(patch[0].soil_defaults[0][0].soil_water_cap- max(patch[0].sat_deficit, 0.0)),
+    0.0);
     
 	/*--------------------------------------------------------------*/
 	/*	for roads, saturated throughflow beneath road cut	*/
@@ -172,24 +193,25 @@ void  update_drainage_road(
 	/*--------------------------------------------------------------*/
 	/*	calculate water_equivalent depth of road		*/
 	/*--------------------------------------------------------------*/
-	road_int_depth = compute_delta_water(
-		verbose_flag,
-		patch[0].soil_defaults[0][0].porosity_0,
-		patch[0].soil_defaults[0][0].porosity_decay,
-		patch[0].soil_defaults[0][0].soil_depth,
-		patch[0].road_cut_depth,
-		0.0);
-	if (road_int_depth > patch[0].sat_deficit) {
+//	road_int_depth = compute_delta_water(
+//		verbose_flag,
+//		patch[0].soil_defaults[0][0].porosity_0,
+//		patch[0].soil_defaults[0][0].porosity_decay,
+//		patch[0].soil_defaults[0][0].soil_depth,
+//		patch[0].road_cut_depth,
+//		0.0);
+    
+	if (patch[0].road_cut_depth_def > patch[0].sat_deficit) {
 	/*------------------------------------------------------------*/
 	/*	calculate amuount of water output to patches			*/
 	/*-----------------------------------------------------------*/
 		route_to_patch =  time_int * compute_varbased_flow(
 			patch[0].num_soil_intervals,
 			patch[0].std * command_line[0].std_scale, 
-			road_int_depth,
+			patch[0].road_cut_depth_def,
 			total_gamma, 
-			patch[0].soil_defaults[0][0].interval_size,
-			patch[0].transmissivity_profile,
+			0.0,//patch[0].soil_defaults[0][0].interval_size,
+			0.0, //patch[0].transmissivity_profile,
 			patch);
 
 		/*-----------------------------------------------------------*/
@@ -200,13 +222,13 @@ void  update_drainage_road(
 			patch[0].std * command_line[0].std_scale, 
 			patch[0].sat_deficit,
 			total_gamma, 
-			patch[0].soil_defaults[0][0].interval_size,
-			patch[0].transmissivity_profile,
+			0.0, //patch[0].soil_defaults[0][0].interval_size,
+			0.0, //patch[0].transmissivity_profile,
 			patch) - route_to_patch;
 
 		if (route_to_patch < 0.0) route_to_patch = 0.0;
 		if (route_to_stream < 0.0) route_to_stream = 0.0;
-		if ((route_to_stream + route_to_patch) > available_sat_water) {
+		if (route_to_stream + route_to_patch > 0.0 && (route_to_stream + route_to_patch) > available_sat_water) {
 			route_to_patch *= (available_sat_water)/(route_to_patch + route_to_stream);
 			route_to_stream *= (available_sat_water)/(route_to_patch + route_to_stream);
 		}
@@ -219,8 +241,8 @@ void  update_drainage_road(
 				verbose_flag,
 				patch[0].sat_NO3, //patch[0].soil_ns.nitrate,
 				route_to_patch / patch[0].area,
-				(command_line[0].rootNdecayRate > 0? patch[0].rootzone.NO3decayRate : patch[0].soil_defaults[0][0].N_decay_rate),
-				(command_line[0].rootNdecayRate > 0? patch[0].soil_defaults[0][0].soil_depth : (command_line[0].root2active > 0.0? patch[0].rootzone.depth * command_line[0].root2active : patch[0].soil_defaults[0][0].active_zone_z)),
+				patch[0].soil_defaults[0][0].NO3decayRate,
+				patch[0].soil_defaults[0][0].active_zone_z,
 				patch[0].soil_defaults[0][0].NO3_adsorption_rate,
 				-41, patch);
             
@@ -228,8 +250,8 @@ void  update_drainage_road(
 				verbose_flag,
 				patch[0].sat_NO3, //patch[0].soil_ns.nitrate,
 				route_to_stream / patch[0].area,
-				(command_line[0].rootNdecayRate > 0? patch[0].rootzone.NO3decayRate : patch[0].soil_defaults[0][0].N_decay_rate),
-				(command_line[0].rootNdecayRate > 0? patch[0].soil_defaults[0][0].soil_depth : (command_line[0].root2active > 0.0? patch[0].rootzone.depth * command_line[0].root2active : patch[0].soil_defaults[0][0].active_zone_z)),
+				patch[0].soil_defaults[0][0].NO3decayRate,
+				patch[0].soil_defaults[0][0].active_zone_z,
 				patch[0].soil_defaults[0][0].NO3_adsorption_rate,
 				5, patch) - NO3_leached_to_patch; // <---- here
 			if (NO3_leached_to_stream < 0.0) NO3_leached_to_stream = 0.0;	
@@ -239,16 +261,16 @@ void  update_drainage_road(
 				verbose_flag,
 				patch[0].sat_NH4, //patch[0].soil_ns.sminn,
 				route_to_patch / patch[0].area,
-				(command_line[0].NH4root2active>0.0? patch[0].soil_defaults[0][0].N_decay_rate : (command_line[0].rootNdecayRate > 0? patch[0].rootzone.NH4decayRate : patch[0].soil_defaults[0][0].N_decay_rate)),
-                (command_line[0].NH4root2active>0.0? patch[0].rootzone.depth * command_line[0].NH4root2active : (command_line[0].rootNdecayRate > 0? patch[0].soil_defaults[0][0].soil_depth : (command_line[0].root2active>0.0? patch[0].rootzone.depth * command_line[0].root2active : patch[0].soil_defaults[0][0].active_zone_z))),
+				patch[0].soil_defaults[0][0].NH4decayRate,
+                patch[0].soil_defaults[0][0].active_zone_z,
 				patch[0].soil_defaults[0][0].NH4_adsorption_rate,
 				-44, patch);
 			NH4_leached_to_stream = compute_N_leached(
 				verbose_flag,
 				patch[0].sat_NH4, //patch[0].soil_ns.nitrate,
 				route_to_stream / patch[0].area,
-				(command_line[0].NH4root2active>0.0? patch[0].soil_defaults[0][0].N_decay_rate : (command_line[0].rootNdecayRate > 0? patch[0].rootzone.NH4decayRate : patch[0].soil_defaults[0][0].N_decay_rate)),
-                (command_line[0].NH4root2active>0.0? patch[0].rootzone.depth * command_line[0].NH4root2active : (command_line[0].rootNdecayRate > 0? patch[0].soil_defaults[0][0].soil_depth : (command_line[0].root2active>0.0? patch[0].rootzone.depth * command_line[0].root2active : patch[0].soil_defaults[0][0].active_zone_z))),
+				patch[0].soil_defaults[0][0].NH4decayRate,
+                patch[0].soil_defaults[0][0].active_zone_z,
 				patch[0].soil_defaults[0][0].NH4_adsorption_rate,
 				8, patch) - NH4_leached_to_patch;
 			if (NH4_leached_to_stream < 0.0) NH4_leached_to_stream = 0.0;
@@ -259,16 +281,16 @@ void  update_drainage_road(
 				verbose_flag,
 				patch[0].sat_DON, //patch[0].soil_ns.DON,
 				route_to_patch / patch[0].area,
-				(command_line[0].rootNdecayRate > 0? patch[0].rootzone.DOMdecayRate : patch[0].soil_defaults[0][0].DOM_decay_rate),
-				(command_line[0].rootNdecayRate > 0? patch[0].soil_defaults[0][0].soil_depth : (command_line[0].root2active > 0.0? patch[0].rootzone.depth * command_line[0].root2active : patch[0].soil_defaults[0][0].active_zone_z)),
+				patch[0].soil_defaults[0][0].DOMdecayRate,
+				patch[0].soil_defaults[0][0].active_zone_z,
 				patch[0].soil_defaults[0][0].DON_adsorption_rate,
 				-47, patch);
 			DON_leached_to_stream = compute_N_leached(
 				verbose_flag,
 				patch[0].sat_DON, //patch[0].soil_ns.DON,
 				route_to_stream / patch[0].area,
-				(command_line[0].rootNdecayRate > 0? patch[0].rootzone.DOMdecayRate : patch[0].soil_defaults[0][0].DOM_decay_rate),
-				(command_line[0].rootNdecayRate > 0? patch[0].soil_defaults[0][0].soil_depth : (command_line[0].root2active > 0.0? patch[0].rootzone.depth * command_line[0].root2active : patch[0].soil_defaults[0][0].active_zone_z)),
+				patch[0].soil_defaults[0][0].DOMdecayRate,
+				patch[0].soil_defaults[0][0].active_zone_z,
 				patch[0].soil_defaults[0][0].DON_adsorption_rate,
 				11, patch) - DON_leached_to_patch;
             if (DON_leached_to_stream < 0.0) DON_leached_to_stream = 0.0;
@@ -279,16 +301,16 @@ void  update_drainage_road(
 				verbose_flag,
 				patch[0].sat_DOC, //patch[0].soil_cs.DOC,
 				route_to_patch / patch[0].area,
-				(command_line[0].rootNdecayRate > 0? patch[0].rootzone.DOMdecayRate : patch[0].soil_defaults[0][0].DOM_decay_rate),
-				(command_line[0].rootNdecayRate > 0? patch[0].soil_defaults[0][0].soil_depth : (command_line[0].root2active > 0.0? patch[0].rootzone.depth * command_line[0].root2active : patch[0].soil_defaults[0][0].active_zone_z)),
+				patch[0].soil_defaults[0][0].DOMdecayRate,
+				patch[0].soil_defaults[0][0].active_zone_z,
 				patch[0].soil_defaults[0][0].DOC_adsorption_rate,
 				-50, patch);
 			DOC_leached_to_stream = compute_N_leached(
 				verbose_flag,
 				patch[0].sat_DOC, //patch[0].soil_cs.DOC,
 				route_to_stream / patch[0].area,
-				(command_line[0].rootNdecayRate > 0? patch[0].rootzone.DOMdecayRate : patch[0].soil_defaults[0][0].DOM_decay_rate),
-				(command_line[0].rootNdecayRate > 0? patch[0].soil_defaults[0][0].soil_depth : (command_line[0].root2active > 0.0? patch[0].rootzone.depth * command_line[0].root2active : patch[0].soil_defaults[0][0].active_zone_z)),
+				patch[0].soil_defaults[0][0].DOMdecayRate,
+				patch[0].soil_defaults[0][0].active_zone_z,
 				patch[0].soil_defaults[0][0].DOC_adsorption_rate,
 				14, patch) - DOC_leached_to_patch;
 			if (DOC_leached_to_stream < 0.0) DOC_leached_to_stream = 0.0;
@@ -308,8 +330,8 @@ void  update_drainage_road(
 			patch[0].std * command_line[0].std_scale, 
 			patch[0].sat_deficit,
 			total_gamma, 
-			patch[0].soil_defaults[0][0].interval_size,
-			patch[0].transmissivity_profile,
+			0.0,//patch[0].soil_defaults[0][0].interval_size,
+			0.0,//patch[0].transmissivity_profile,
 			patch);
 
 		if (route_to_patch < 0.0) route_to_patch = 0.0;
@@ -323,8 +345,8 @@ void  update_drainage_road(
 				verbose_flag,
 				patch[0].sat_NO3, //patch[0].soil_ns.nitrate,
 				route_to_patch / patch[0].area,
-				(command_line[0].rootNdecayRate > 0? patch[0].rootzone.NO3decayRate : patch[0].soil_defaults[0][0].N_decay_rate),
-				(command_line[0].rootNdecayRate > 0? patch[0].soil_defaults[0][0].soil_depth : (command_line[0].root2active > 0.0? patch[0].rootzone.depth * command_line[0].root2active : patch[0].soil_defaults[0][0].active_zone_z)),
+				patch[0].soil_defaults[0][0].NO3decayRate,
+				patch[0].soil_defaults[0][0].active_zone_z,
 				patch[0].soil_defaults[0][0].NO3_adsorption_rate,
 				5,patch);
 			NO3_leached_to_stream = 0.0;
@@ -335,8 +357,8 @@ void  update_drainage_road(
 				verbose_flag,
 				patch[0].sat_NH4, //patch[0].soil_ns.sminn,
 				route_to_patch / patch[0].area,
-				(command_line[0].NH4root2active>0.0? patch[0].soil_defaults[0][0].N_decay_rate : (command_line[0].rootNdecayRate > 0? patch[0].rootzone.NH4decayRate : patch[0].soil_defaults[0][0].N_decay_rate)),
-                (command_line[0].NH4root2active>0.0? patch[0].rootzone.depth * command_line[0].NH4root2active : (command_line[0].rootNdecayRate > 0? patch[0].soil_defaults[0][0].soil_depth : (command_line[0].root2active>0.0? patch[0].rootzone.depth * command_line[0].root2active : patch[0].soil_defaults[0][0].active_zone_z))),
+				patch[0].soil_defaults[0][0].NH4decayRate,
+                patch[0].soil_defaults[0][0].active_zone_z,
 				patch[0].soil_defaults[0][0].NH4_adsorption_rate,
 				8,patch);
 			NH4_leached_to_stream = 0.0;
@@ -347,8 +369,8 @@ void  update_drainage_road(
 				verbose_flag,
 				patch[0].sat_DON,//patch[0].soil_ns.DON,
 				route_to_patch / patch[0].area,
-				(command_line[0].rootNdecayRate > 0? patch[0].rootzone.DOMdecayRate : patch[0].soil_defaults[0][0].DOM_decay_rate),
-				(command_line[0].rootNdecayRate > 0? patch[0].soil_defaults[0][0].soil_depth : (command_line[0].root2active > 0.0? patch[0].rootzone.depth * command_line[0].root2active : patch[0].soil_defaults[0][0].active_zone_z)),
+				patch[0].soil_defaults[0][0].DOMdecayRate,
+				patch[0].soil_defaults[0][0].active_zone_z,
 				patch[0].soil_defaults[0][0].DON_adsorption_rate,
 				11,patch);
 			DON_leached_to_stream = 0.0;
@@ -359,8 +381,8 @@ void  update_drainage_road(
 				verbose_flag,
 				patch[0].sat_DOC, //patch[0].soil_cs.DOC,
 				route_to_patch / patch[0].area,
-				(command_line[0].rootNdecayRate > 0? patch[0].rootzone.DOMdecayRate : patch[0].soil_defaults[0][0].DOM_decay_rate),
-				(command_line[0].rootNdecayRate > 0? patch[0].soil_defaults[0][0].soil_depth : (command_line[0].root2active > 0.0? patch[0].rootzone.depth * command_line[0].root2active : patch[0].soil_defaults[0][0].active_zone_z)),
+				patch[0].soil_defaults[0][0].DOMdecayRate,
+				patch[0].soil_defaults[0][0].active_zone_z,
 				patch[0].soil_defaults[0][0].DOC_adsorption_rate,
 				14,patch);
 			DOC_leached_to_stream = 0.0;
@@ -383,14 +405,14 @@ void  update_drainage_road(
 	/*	saturated zone will be updated in compute_subsurface_routing	*/
 	/*	i.e becomes part of Qout				*/
 	/*--------------------------------------------------------------*/
-	if ((patch[0].sat_deficit-patch[0].rz_storage-patch[0].unsat_storage) < -1.0*ZERO) {
+	if ( patch[0].rz_storage+patch[0].unsat_storage-patch[0].sat_deficit-(route_to_patch + route_to_stream)/patch[0].area>0 ){
 		return_flow = compute_varbased_returnflow(
                                                   patch[0].std * command_line[0].std_scale,
                                                   patch[0].rz_storage+patch[0].unsat_storage,
                                                   patch[0].sat_deficit, &(patch[0].litter));
         
 		patch[0].detention_store += return_flow;  
-		patch[0].sat_deficit += (return_flow - (patch[0].unsat_storage+patch[0].rz_storage));;
+        patch[0].sat_deficit = -((route_to_patch + route_to_stream) / patch[0].area); //+= (return_flow - (patch[0].unsat_storage+patch[0].rz_storage));;
 		patch[0].unsat_storage = 0.0;
 		patch[0].rz_storage = 0.0;
 	}
@@ -405,8 +427,8 @@ void  update_drainage_road(
 			verbose_flag,
 			patch[0].sat_NO3 - patch[0].soil_ns.NO3_Qout, //patch[0].soil_ns.nitrate - NO3_leached_to_patch - NO3_leached_to_stream,
 			return_flow,
-			(command_line[0].rootNdecayRate > 0? patch[0].rootzone.NO3decayRate : patch[0].soil_defaults[0][0].N_decay_rate),
-			(command_line[0].rootNdecayRate > 0? patch[0].soil_defaults[0][0].soil_depth : (command_line[0].root2active > 0.0? patch[0].rootzone.depth * command_line[0].root2active : patch[0].soil_defaults[0][0].active_zone_z)),
+			patch[0].soil_defaults[0][0].NO3decayRate,
+			patch[0].soil_defaults[0][0].active_zone_z,
 			patch[0].soil_defaults[0][0].NO3_adsorption_rate,
 			17, patch);
 		patch[0].surface_NO3 += Nout;
@@ -417,8 +439,8 @@ void  update_drainage_road(
 			verbose_flag,
 			patch[0].sat_NH4-patch[0].soil_ns.NH4_Qout, //patch[0].soil_ns.sminn- NH4_leached_to_patch - NH4_leached_to_stream,
 			return_flow,
-			(command_line[0].NH4root2active>0.0? patch[0].soil_defaults[0][0].N_decay_rate : (command_line[0].rootNdecayRate > 0? patch[0].rootzone.NH4decayRate : patch[0].soil_defaults[0][0].N_decay_rate)),
-            (command_line[0].NH4root2active>0.0? patch[0].rootzone.depth * command_line[0].NH4root2active : (command_line[0].rootNdecayRate > 0? patch[0].soil_defaults[0][0].soil_depth : (command_line[0].root2active>0.0? patch[0].rootzone.depth * command_line[0].root2active : patch[0].soil_defaults[0][0].active_zone_z))),
+			patch[0].soil_defaults[0][0].NH4decayRate,
+            patch[0].soil_defaults[0][0].active_zone_z,
 			patch[0].soil_defaults[0][0].NH4_adsorption_rate,
 			20,patch);
 		patch[0].surface_NH4 += Nout;
@@ -429,8 +451,8 @@ void  update_drainage_road(
 			verbose_flag,
 			patch[0].sat_DON - patch[0].soil_ns.DON_Qout, //patch[0].soil_ns.DON - DON_leached_to_patch - DON_leached_to_stream,
 			return_flow,
-			(command_line[0].rootNdecayRate > 0? patch[0].rootzone.DOMdecayRate : patch[0].soil_defaults[0][0].DOM_decay_rate),
-			(command_line[0].rootNdecayRate > 0? patch[0].soil_defaults[0][0].soil_depth : (command_line[0].root2active > 0.0? patch[0].rootzone.depth * command_line[0].root2active : patch[0].soil_defaults[0][0].active_zone_z)),
+			patch[0].soil_defaults[0][0].DOMdecayRate,
+			patch[0].soil_defaults[0][0].active_zone_z,
 			patch[0].soil_defaults[0][0].DON_adsorption_rate,
 			23, patch);
 		patch[0].surface_DON += Nout;
@@ -441,8 +463,8 @@ void  update_drainage_road(
 			verbose_flag,
 			patch[0].sat_DOC - patch[0].soil_cs.DOC_Qout, //patch[0].soil_cs.DOC - DOC_leached_to_patch - DOC_leached_to_stream,
 			return_flow,
-			(command_line[0].rootNdecayRate > 0? patch[0].rootzone.DOMdecayRate : patch[0].soil_defaults[0][0].DOM_decay_rate),
-			(command_line[0].rootNdecayRate > 0? patch[0].soil_defaults[0][0].soil_depth : (command_line[0].root2active > 0.0? patch[0].rootzone.depth * command_line[0].root2active : patch[0].soil_defaults[0][0].active_zone_z)),
+			patch[0].soil_defaults[0][0].DOMdecayRate,
+			patch[0].soil_defaults[0][0].active_zone_z,
 			patch[0].soil_defaults[0][0].DOC_adsorption_rate,
 			26, patch);
 		patch[0].surface_DOC += Nout;
@@ -451,18 +473,18 @@ void  update_drainage_road(
 		
 		}//growth flag
     
-    patch[0].overland_flow += return_flow; //max(0.0, patch[0].detention_store - patch[0].soil_defaults[0][0].detention_store_size);
+    patch[0].overland_flow += return_flow; //max(0.0, patch[0].detention_store - patch[0].landuse_defaults[0][0].detention_store_size);
     //<<--- reset by compute_subsurface_routing.c
 	
 	/*--------------------------------------------------------------*/
 	/*	route water and nitrogen lossed due to infiltration excess */
 	/*	note we assume that this happens before return_flow losses */
 	/*--------------------------------------------------------------*/
-	if ( (patch[0].detention_store > patch[0].soil_defaults[0][0].detention_store_size) && (patch[0].detention_store > ZERO) ) {
+	if ( (patch[0].detention_store > patch[0].landuse_defaults[0][0].detention_store_size* (1.0 - patch[0].Ksat_vertical)) && (patch[0].detention_store > ZERO) ) {
         
       
         
-		Qout = (patch[0].detention_store - patch[0].soil_defaults[0][0].detention_store_size);// surface extrac water
+		Qout = (patch[0].detention_store - patch[0].landuse_defaults[0][0].detention_store_size* (1.0 - patch[0].Ksat_vertical));// surface extrac water
 		if (command_line[0].grow_flag > 0) {
             
 			Nout = (min(1.0, (Qout/ patch[0].detention_store))) * patch[0].surface_NO3;
@@ -538,7 +560,7 @@ void  update_drainage_road(
 		/*--------------------------------------------------------------*/
 		/* first transfer subsurface water and nitrogen */
 		/*--------------------------------------------------------------*/
-		Qin =	(patch[0].innundation_list[d].neighbours[j].gamma * route_to_patch) / neigh[0].area;
+		Qin = (patch[0].innundation_list[d].neighbours[j].gamma * route_to_patch) / neigh[0].area;
 		if (command_line[0].grow_flag > 0) {
 			Nin = (patch[0].innundation_list[d].neighbours[j].gamma * NO3_leached_to_patch * patch[0].area) 
 				/ neigh[0].area;
@@ -554,9 +576,7 @@ void  update_drainage_road(
 			neigh[0].soil_cs.DOC_Qin += Nin;
 			}
 		neigh[0].Qin += Qin;
-
-
-	}
+	}//for
 
 
 } /*end update_drainage_road.c*/

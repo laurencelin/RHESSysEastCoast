@@ -38,11 +38,12 @@ void  update_drainage_land(
 					struct patch_object *patch,
 					 struct command_line_object *command_line,
 					 double time_int,
-					 int verbose_flag)
+					 int kk)
 {
 	/*--------------------------------------------------------------*/
 	/*	Local function definition.				*/
 	/*--------------------------------------------------------------*/
+    int verbose_flag = 0;
 	double  compute_delta_water(
 		int,
 		double,
@@ -64,7 +65,7 @@ void  update_drainage_land(
 		double,
 		double,
 		double,
-		double *,
+		double,
 		struct patch_object *);
 
 
@@ -146,38 +147,85 @@ void  update_drainage_land(
 	// at the same time, this "SAT_solute" is used for the local leaching calculation. 
 	// by the local vertical movement of solute, local "SAT_solute" is supplied from the upper layer.
     // ** important note: sat_deficit_z is updated hourly to count for later IN/OUT from the outside function before calling this function
-    double constantHold_no3, constantHold_nh4, constantHold_dom;
-    double z1 = patch[0].sat_deficit_z>0? patch[0].sat_deficit_z : 0.0;
+    // double constantHold_no3, constantHold_nh4, constantHold_dom;
+    
+    if(patch[0].soil_ns.nitrate!=patch[0].soil_ns.nitrate || patch[0].soil_ns.nitrate<0 ||
+       patch[0].soil_ns.sminn!=patch[0].soil_ns.sminn || patch[0].soil_ns.sminn<0 ||
+       patch[0].soil_cs.DOC!=patch[0].soil_cs.DOC || patch[0].soil_cs.DOC<0 ||
+       patch[0].sat_NO3!=patch[0].sat_NO3 || patch[0].sat_NO3<0 ||
+       patch[0].sat_NH4!=patch[0].sat_NH4 || patch[0].sat_NH4<0 ||
+       patch[0].sat_DOC!=patch[0].sat_DOC || patch[0].sat_DOC<0 ||
+       patch[0].surface_NO3!=patch[0].surface_NO3 || patch[0].surface_NO3<0 ||
+       patch[0].surface_NH4!=patch[0].surface_NH4 || patch[0].surface_NH4<0 ||
+       patch[0].surface_DOC!=patch[0].surface_DOC || patch[0].surface_DOC<0){
+        printf("update_drainage_land0 (%d,%d) [%e %e %e] [%e %e %e] [%e %e %e] %e %e[%d] [%e %e %e %e]\n",
+               patch[0].ID, kk,
+               patch[0].soil_ns.nitrate,patch[0].soil_ns.sminn,patch[0].soil_cs.DOC,
+               patch[0].sat_NO3,patch[0].sat_NH4,patch[0].sat_DOC,
+               patch[0].surface_NO3,patch[0].surface_NH4,patch[0].surface_DOC,
+               patch[0].sat_deficit_z, patch[0].sat_deficit, patch[0].sat_def_pct_index,
+               patch[0].soil_ns.NO3_Qin,patch[0].soil_ns.NH4_Qin,patch[0].soil_cs.DOC_Qin,patch[0].Qin);
+    }//debug
+    
+    
+    int sat_def_z_index = (int)(max(0.0, patch[0].sat_deficit_z*1000));
+    double rate_;
+    
+    rate_ = patch[0].soil_defaults[0][0].rtz2NO3prop[sat_def_z_index];
+    patch[0].sat_NO3 += patch[0].soil_ns.nitrate * (1.0-rate_); // o_z / o_Z
+    patch[0].soil_ns.nitrate *=  rate_; // this rate_ is negative?
+//    if(patch[0].soil_ns.nitrate<0 || rate_<0){
+//        printf("update_drainage_land0 [%d,%d,%e]: %e,%e, %d,%d,%d\n",
+//               patch[0].ID, kk, rate_,
+//               patch[0].sat_deficit_z, patch[0].sat_deficit,
+//               sat_def_z_index,patch[0].sat_def_pct_index,patch[0].soil_defaults[0][0].soildepthLen);
+//    }//debug
+    
+    
+    rate_ = patch[0].soil_defaults[0][0].rtz2NH4prop[sat_def_z_index];
+    patch[0].sat_NH4 += patch[0].soil_ns.sminn * (1.0-rate_);
+    patch[0].soil_ns.sminn *= rate_;
+    
+    rate_ = patch[0].soil_defaults[0][0].rtz2DOMprop[sat_def_z_index];
+    patch[0].sat_DOC += patch[0].soil_cs.DOC * (1.0-rate_);
+    patch[0].sat_DON += patch[0].soil_ns.DON * (1.0-rate_);
+    patch[0].soil_cs.DOC *= rate_;
+    patch[0].soil_ns.DON *= rate_;
+    
     //double p_decayRate = 1.0/patch[0].soil_defaults[0][0].porosity_decay;
     //double constantHold_SAT_proj_S0 = (1.0 - exp(-p_decayRate*activedepthz)) / (exp(-p_decayRate*z1)-exp(-p_decayRate*activedepthz));
     
-    double N_decay_rate = (command_line[0].rootNdecayRate > 0? patch[0].rootzone.NO3decayRate : patch[0].soil_defaults[0][0].N_decay_rate);//lookup the term that has been using.
-	double activedepthz = (command_line[0].rootNdecayRate > 0? patch[0].soil_defaults[0][0].soil_depth : (command_line[0].root2active > 0.0? patch[0].rootzone.depth * command_line[0].root2active : patch[0].soil_defaults[0][0].active_zone_z));
-    if(activedepthz > z1){
-        constantHold_no3 = (exp(-N_decay_rate*z1)-exp(-N_decay_rate*activedepthz)) / (1.0 - exp(-N_decay_rate*activedepthz)) * 0.04166667;
-        patch[0].sat_NO3 += patch[0].soil_ns.nitrate * constantHold_no3; //adjust for hourly
-        patch[0].soil_ns.nitrate *= 1.0 - constantHold_no3;
-    }
+    //double N_decay_rate = (command_line[0].rootNdecayRate > 0? patch[0].rootzone.NO3decayRate : patch[0].soil_defaults[0][0].N_decay_rate);//lookup the term that has been using.
+	//double activedepthz = (command_line[0].rootNdecayRate > 0? patch[0].soil_defaults[0][0].soil_depth : (command_line[0].root2active > 0.0? patch[0].rootzone.depth * command_line[0].root2active : patch[0].soil_defaults[0][0].active_zone_z));
+//    double N_decay_rate = patch[0].soil_defaults[0][0].NO3decayRate;
+//    double activedepthz = patch[0].soil_defaults[0][0].active_zone_z;
+//    if(activedepthz > z1){
+//        constantHold_no3 = (exp(-N_decay_rate*z1)-exp(-N_decay_rate*activedepthz)) / (1.0 - exp(-N_decay_rate*activedepthz)) * 0.04166667;
+//        patch[0].sat_NO3 += patch[0].soil_ns.nitrate * constantHold_no3; //adjust for hourly
+//        patch[0].soil_ns.nitrate *= 1.0 - constantHold_no3;
+//    }
     //double proj_total_sat_NO3 = patch[0].sat_NO3 * constantHold_SAT_proj_S0;
     
-    N_decay_rate = (command_line[0].NH4root2active>0.0? patch[0].soil_defaults[0][0].N_decay_rate : (command_line[0].rootNdecayRate > 0? patch[0].rootzone.NH4decayRate : patch[0].soil_defaults[0][0].N_decay_rate));
-    activedepthz = (command_line[0].NH4root2active>0.0? patch[0].rootzone.depth * command_line[0].NH4root2active : (command_line[0].rootNdecayRate > 0? patch[0].soil_defaults[0][0].soil_depth : (command_line[0].root2active>0.0? patch[0].rootzone.depth * command_line[0].root2active : patch[0].soil_defaults[0][0].active_zone_z)));
-    if(activedepthz > z1){
-        constantHold_nh4 = (exp(-N_decay_rate*z1)-exp(-N_decay_rate*activedepthz)) / (1.0 - exp(-N_decay_rate*activedepthz)) * 0.04166667;
-        patch[0].sat_NH4 += patch[0].soil_ns.sminn * constantHold_nh4;
-        patch[0].soil_ns.sminn *= 1.0 - constantHold_nh4;
-    }
+    //N_decay_rate = (command_line[0].NH4root2active>0.0? patch[0].soil_defaults[0][0].N_decay_rate : (command_line[0].rootNdecayRate > 0? patch[0].rootzone.NH4decayRate : patch[0].soil_defaults[0][0].N_decay_rate));
+    //activedepthz = (command_line[0].NH4root2active>0.0? patch[0].rootzone.depth * command_line[0].NH4root2active : (command_line[0].rootNdecayRate > 0? patch[0].soil_defaults[0][0].soil_depth : (command_line[0].root2active>0.0? patch[0].rootzone.depth * command_line[0].root2active : patch[0].soil_defaults[0][0].active_zone_z)));
+//    N_decay_rate = patch[0].soil_defaults[0][0].NH4decayRate;
+//    if(activedepthz > z1){
+//        constantHold_nh4 = (exp(-N_decay_rate*z1)-exp(-N_decay_rate*activedepthz)) / (1.0 - exp(-N_decay_rate*activedepthz)) * 0.04166667;
+//        patch[0].sat_NH4 += patch[0].soil_ns.sminn * constantHold_nh4;
+//        patch[0].soil_ns.sminn *= 1.0 - constantHold_nh4;
+//    }
     //double proj_total_sat_NH4 = patch[0].sat_NH4 * constantHold_SAT_proj_S0;
     
-    N_decay_rate = (command_line[0].rootNdecayRate > 0? patch[0].rootzone.DOMdecayRate : patch[0].soil_defaults[0][0].DOM_decay_rate);
-    activedepthz = (command_line[0].rootNdecayRate > 0? patch[0].soil_defaults[0][0].soil_depth : (command_line[0].root2active > 0.0? patch[0].rootzone.depth * command_line[0].root2active : patch[0].soil_defaults[0][0].active_zone_z));
-    if(activedepthz > z1){
-        constantHold_dom = (exp(-N_decay_rate*z1)-exp(-N_decay_rate*activedepthz)) / (1.0 - exp(-N_decay_rate*activedepthz)) * 0.04166667;
-        patch[0].sat_DOC += patch[0].soil_cs.DOC * constantHold_dom;
-        patch[0].sat_DON += patch[0].soil_ns.DON * constantHold_dom;
-        patch[0].soil_cs.DOC *= 1.0 - constantHold_dom;
-        patch[0].soil_ns.DON *= 1.0 - constantHold_dom;
-    }
+    //N_decay_rate = (command_line[0].rootNdecayRate > 0? patch[0].rootzone.DOMdecayRate : patch[0].soil_defaults[0][0].DOM_decay_rate);
+    //activedepthz = (command_line[0].rootNdecayRate > 0? patch[0].soil_defaults[0][0].soil_depth : (command_line[0].root2active > 0.0? patch[0].rootzone.depth * command_line[0].root2active : patch[0].soil_defaults[0][0].active_zone_z));
+//    N_decay_rate = patch[0].soil_defaults[0][0].DOMdecayRate;
+//    if(activedepthz > z1){
+//        constantHold_dom = (exp(-N_decay_rate*z1)-exp(-N_decay_rate*activedepthz)) / (1.0 - exp(-N_decay_rate*activedepthz)) * 0.04166667;
+//        patch[0].sat_DOC += patch[0].soil_cs.DOC * constantHold_dom;
+//        patch[0].sat_DON += patch[0].soil_ns.DON * constantHold_dom;
+//        patch[0].soil_cs.DOC *= 1.0 - constantHold_dom;
+//        patch[0].soil_ns.DON *= 1.0 - constantHold_dom;
+//    }
     //double proj_total_sat_DOC = patch[0].sat_DOC * constantHold_SAT_proj_S0;
     //double proj_total_sat_DON = patch[0].sat_DON * constantHold_SAT_proj_S0;
 	// we need to know the vertical profile of NO3, not just the total amount!
@@ -196,10 +244,18 @@ void  update_drainage_land(
 	/*--------------------------------------------------------------*/
     d=0; total_gamma = recompute_gamma(patch, patch[0].innundation_list[d].gamma);
 
-	available_sat_water = max(((patch[0].soil_defaults[0][0].soil_water_cap
-			- max(patch[0].sat_deficit,0.0))
-			* patch[0].area),0.0);
-
+	available_sat_water = max(
+            patch[0].area*( patch[0].soil_defaults[0][0].soil_water_cap - max(patch[0].sat_deficit, 0.0) ),
+            0.0);
+    
+//    if(patch[0].sat_deficit!=patch[0].sat_deficit || patch[0].sat_deficit_z!=patch[0].sat_deficit_z || patch[0].rootzone.field_capacity!=patch[0].rootzone.field_capacity || patch[0].field_capacity!=patch[0].field_capacity || patch[0].sat_def_pct_index!=patch[0].sat_def_pct_index || patch[0].sat_def_pct_indexM!=patch[0].sat_def_pct_indexM){
+//        printf("drainage_land(1,%d): %lf %lf %lf %lf (%lf, %lf)\n", patch[0].ID,
+//               patch[0].sat_deficit, patch[0].sat_deficit_z,
+//               patch[0].rootzone.field_capacity, patch[0].field_capacity,
+//               patch[0].sat_def_pct_index, patch[0].sat_def_pct_indexM);
+//    }//debug
+    
+    
 	/*------------------------------------------------------------*/
 	/*	calculate amuount of water output to OTHER patches			*/
 	/*	this only computes subsurface flow, not overland flow	*/
@@ -212,15 +268,20 @@ void  update_drainage_land(
 		patch[0].std * std_scale, 
 		patch[0].sat_deficit,
 		total_gamma, 
-		patch[0].soil_defaults[0][0].interval_size,
-		patch[0].transmissivity_profile,
+		0.0, //patch[0].soil_defaults[0][0].interval_size,
+		0.0, //patch[0].transmissivity_profile,
 		patch);
-
-
-
+    if(route_to_patch!=route_to_patch){
+        printf("drainage_land(2,%d): %lf %lf %lf %lf (%lf,%d, %lf)\n", patch[0].ID,
+               patch[0].sat_deficit, patch[0].sat_deficit_z,
+               patch[0].rootzone.field_capacity, patch[0].field_capacity,
+               patch[0].sat_def_pct, patch[0].sat_def_pct_index, patch[0].sat_def_pct_indexM);
+    }//debug
+    
 	if (route_to_patch < 0.0) route_to_patch = 0.0;
-	if ( route_to_patch > available_sat_water) 
-		route_to_patch *= (available_sat_water)/(route_to_patch);
+    if (route_to_patch > 0.0 && route_to_patch > available_sat_water) route_to_patch=available_sat_water; //volumn
+    patch[0].satzZ_balance = 0.0; // mm
+    
     
     //Sept 18
     extrawater = patch[0].rz_storage+patch[0].unsat_storage - patch[0].sat_deficit - route_to_patch/patch[0].area + patch[0].constraintWaterTableTopDepth_def;
@@ -235,6 +296,7 @@ void  update_drainage_land(
         
         //route_to_patch = max(route_to_patch,extrawater*patch[0].area*(1.0-patch[0].Ksat_vertical)); // volumn
         route_to_patch += (extrawater>return_flow? (extrawater-return_flow)*patch[0].area : 0.0);  // volumn
+        patch[0].satzZ_balance -= (extrawater>return_flow? (extrawater-return_flow) : 0.0); // mm
         
         patch[0].detention_store += return_flow;
         //patch[0].sat_deficit = 0.0; // wrong; because Qout will modify sat_deficit, outside of this function call, hourly
@@ -251,35 +313,37 @@ void  update_drainage_land(
 	/*--------------------------------------------------------------*/
 	if(command_line[0].grow_flag > 0) {
         
-//        Nout = compute_N_leached(
-//            verbose_flag,
-//            patch[0].soil_ns.nitrate, //total solute
-//            route_to_patch / patch[0].area,//Qout
-//            (command_line[0].rootNdecayRate > 0? patch[0].rootzone.NO3decayRate : patch[0].soil_defaults[0][0].N_decay_rate), // N_decay_rate
-//            (command_line[0].rootNdecayRate > 0? patch[0].soil_defaults[0][0].soil_depth : (command_line[0].root2active > 0.0? patch[0].rootzone.depth * command_line[0].root2active : patch[0].soil_defaults[0][0].active_zone_z)), //activedepthz
-//            patch[0].soil_defaults[0][0].NO3_adsorption_rate, // N_absorption_rate
-//            0, //signal
-//            patch); // patch
-        
         Nout = compute_N_leached(
              verbose_flag,
              patch[0].sat_NO3, //total solute <--- projected total_sat_solute
              route_to_patch / patch[0].area,//Qout (already time_int adjusted)
-             (command_line[0].rootNdecayRate > 0? patch[0].rootzone.NO3decayRate : patch[0].soil_defaults[0][0].N_decay_rate), // N_decay_rate
-             (command_line[0].rootNdecayRate > 0? patch[0].soil_defaults[0][0].soil_depth : (command_line[0].root2active > 0.0? patch[0].rootzone.depth * command_line[0].root2active : patch[0].soil_defaults[0][0].active_zone_z)), //activedepthz
+             patch[0].soil_defaults[0][0].NO3decayRate,
+             patch[0].soil_defaults[0][0].active_zone_z, //activedepthz
              patch[0].soil_defaults[0][0].NO3_adsorption_rate, // N_absorption_rate
              5,patch); // signal, patch
 		NO3_leached_to_patch = Nout * patch[0].area;
 		patch[0].soil_ns.NO3_Qout += Nout;//<<-----------*********
-        if(Nout<0 || Nout!=Nout || patch[0].soil_ns.nitrate<0 || patch[0].soil_ns.nitrate!=patch[0].soil_ns.nitrate || (Nout<=0&&patch[0].sat_NO3>0&&route_to_patch>0)) printf("update_drainage_land[%d,%e]: soil NO3 (%e) flux (%e)\n", patch[0].ID, route_to_patch, patch[0].soil_ns.nitrate, Nout);
+        if(Nout<0 || Nout!=Nout || (Nout<=0&&patch[0].sat_NO3>ZERO&&route_to_patch>ZERO) ||
+           patch[0].soil_ns.nitrate!=patch[0].soil_ns.nitrate || patch[0].soil_ns.nitrate<0 ||
+           patch[0].soil_ns.sminn!=patch[0].soil_ns.sminn || patch[0].soil_ns.sminn<0 ||
+           patch[0].soil_cs.DOC!=patch[0].soil_cs.DOC || patch[0].soil_cs.DOC<0 ||
+           patch[0].sat_NO3!=patch[0].sat_NO3 || patch[0].sat_NO3<0 ||
+           patch[0].sat_NH4!=patch[0].sat_NH4 || patch[0].sat_NH4<0 ||
+           patch[0].sat_DOC!=patch[0].sat_DOC || patch[0].sat_DOC<0 ||
+           patch[0].surface_NO3!=patch[0].surface_NO3 || patch[0].surface_NO3<0 ||
+           patch[0].surface_NH4!=patch[0].surface_NH4 || patch[0].surface_NH4<0 ||
+           patch[0].surface_DOC!=patch[0].surface_DOC || patch[0].surface_DOC<0 ) printf("update_drainage_land[%d,%d, %e,%e]:[%e %e %e] [%e %e %e] [%e %e %e]\n", patch[0].ID, kk, route_to_patch, Nout,
+               patch[0].soil_ns.nitrate,patch[0].soil_ns.sminn,patch[0].soil_cs.DOC,
+               patch[0].sat_NO3,patch[0].sat_NH4,patch[0].sat_DOC,
+               patch[0].surface_NO3,patch[0].surface_NH4,patch[0].surface_DOC);
 
 
 		Nout = compute_N_leached(
 			verbose_flag,
 			patch[0].sat_NH4,
 			route_to_patch / patch[0].area,
-			(command_line[0].NH4root2active>0.0? patch[0].soil_defaults[0][0].N_decay_rate : (command_line[0].rootNdecayRate > 0? patch[0].rootzone.NH4decayRate : patch[0].soil_defaults[0][0].N_decay_rate)),
-            (command_line[0].NH4root2active>0.0? patch[0].rootzone.depth * command_line[0].NH4root2active : (command_line[0].rootNdecayRate > 0? patch[0].soil_defaults[0][0].soil_depth : (command_line[0].root2active>0.0? patch[0].rootzone.depth * command_line[0].root2active : patch[0].soil_defaults[0][0].active_zone_z))),
+			patch[0].soil_defaults[0][0].NH4decayRate,
+            patch[0].soil_defaults[0][0].active_zone_z,
 			patch[0].soil_defaults[0][0].NH4_adsorption_rate,
             8,patch);
 		NH4_leached_to_patch = Nout * patch[0].area;
@@ -290,8 +354,8 @@ void  update_drainage_land(
 			verbose_flag,
             patch[0].sat_DON,
 			route_to_patch / patch[0].area,
-			(command_line[0].rootNdecayRate > 0? patch[0].rootzone.DOMdecayRate : patch[0].soil_defaults[0][0].DOM_decay_rate),
-			(command_line[0].rootNdecayRate > 0? patch[0].soil_defaults[0][0].soil_depth : (command_line[0].root2active > 0.0? patch[0].rootzone.depth * command_line[0].root2active : patch[0].soil_defaults[0][0].active_zone_z)),
+			patch[0].soil_defaults[0][0].DOMdecayRate,
+			patch[0].soil_defaults[0][0].active_zone_z,
 			patch[0].soil_defaults[0][0].DON_adsorption_rate,
 			11,patch);
 		DON_leached_to_patch = Nout * patch[0].area;
@@ -302,8 +366,8 @@ void  update_drainage_land(
 			verbose_flag,
 			patch[0].sat_DOC,
 			route_to_patch / patch[0].area,
-			(command_line[0].rootNdecayRate > 0? patch[0].rootzone.DOMdecayRate : patch[0].soil_defaults[0][0].DOM_decay_rate),
-			(command_line[0].rootNdecayRate > 0? patch[0].soil_defaults[0][0].soil_depth : (command_line[0].root2active > 0.0? patch[0].rootzone.depth * command_line[0].root2active : patch[0].soil_defaults[0][0].active_zone_z)),
+			patch[0].soil_defaults[0][0].DOMdecayRate,
+			patch[0].soil_defaults[0][0].active_zone_z,
 			patch[0].soil_defaults[0][0].DOC_adsorption_rate,
 			14,patch);
 		DOC_leached_to_patch = Nout * patch[0].area;
@@ -313,16 +377,34 @@ void  update_drainage_land(
 
 	}//leaching from subsurface growth flag
 
-	
-	patch[0].Qout += (route_to_patch / patch[0].area); //<<------- what is time scale patch[0].Qout tracking? daily? this function is call hourly
+//	if(patch[0].sat_deficit!=patch[0].sat_deficit || patch[0].sat_deficit_z!=patch[0].sat_deficit_z || patch[0].rootzone.field_capacity!=patch[0].rootzone.field_capacity || patch[0].field_capacity!=patch[0].field_capacity || patch[0].sat_def_pct_index!=patch[0].sat_def_pct_index || patch[0].sat_def_pct_indexM!=patch[0].sat_def_pct_indexM){
+//        printf("drainage_land(3,%d): %lf %lf %lf %lf (%lf, %lf)\n", patch[0].ID,
+//               patch[0].sat_deficit, patch[0].sat_deficit_z,
+//               patch[0].rootzone.field_capacity, patch[0].field_capacity,
+//               patch[0].sat_def_pct_index, patch[0].sat_def_pct_indexM);
+//    }//debug
+    
+	patch[0].Qout += (route_to_patch / patch[0].area);
     if(extrawater>0){
+        // @line 260 extrawater = patch[0].rz_storage+patch[0].unsat_storage - patch[0].sat_deficit - route_to_patch/patch[0].area + patch[0].constraintWaterTableTopDepth_def;
+        // @line 271 route_to_patch += (1-extrawater)*patch[0].Ksat_vertical
+        //
         // set this to be  "-route_to_patch/patch[0].area" and later += Qout = "route_to_patch/patch[0].area"
-        //patch[0].sat_deficit = -route_to_patch/patch[0].area + patch[0].constraintWaterTableTopDepth_def;
-        patch[0].sat_deficit -= patch[0].unsat_storage + patch[0].rz_storage - extrawater*patch[0].Ksat_vertical;
+        //patch[0].sat_deficit = -route_to_patch/patch[0].area + patch[0].constraintWaterTableTopDepth_def; // -- problem: what of patch[0].sat_deficit<0 from start?
+        // extrawater*patch[0].Ksat_vertical = amount of water travels vertically up to surface; while the rest of it goes subsurface
+        //
+        patch[0].sat_deficit -= patch[0].unsat_storage + patch[0].rz_storage - extrawater*patch[0].Ksat_vertical; // i don't know the answer
         patch[0].unsat_storage = 0.0; // converted to be part of sat
         patch[0].rz_storage = 0.0; // converted to be part of sat
     }// extra water
 
+//    if(patch[0].sat_deficit!=patch[0].sat_deficit || patch[0].sat_deficit_z!=patch[0].sat_deficit_z || patch[0].rootzone.field_capacity!=patch[0].rootzone.field_capacity || patch[0].field_capacity!=patch[0].field_capacity || patch[0].sat_def_pct_index!=patch[0].sat_def_pct_index || patch[0].sat_def_pct_indexM!=patch[0].sat_def_pct_indexM){
+//        printf("drainage_land(4,%d): %lf %lf %lf %lf (%lf, %lf)\n", patch[0].ID,
+//               patch[0].sat_deficit, patch[0].sat_deficit_z,
+//               patch[0].rootzone.field_capacity, patch[0].field_capacity,
+//               patch[0].sat_def_pct_index, patch[0].sat_def_pct_indexM);
+//    }//debug
+    
 	/*--------------------------------------------------------------*/
 	/*	calculate any return flow associated with this patch	*/
 	/*	and route any infiltration excess			*/
@@ -351,8 +433,8 @@ void  update_drainage_land(
                 /// problem re-project!! && "soil_ns -= going2sat_NO3"
 				patch[0].sat_NO3 - patch[0].soil_ns.NO3_Qout, //patch[0].soil_ns.nitrate - (NO3_leached_to_patch/patch[0].area),
 				return_flow,
-				(command_line[0].rootNdecayRate > 0? patch[0].rootzone.NO3decayRate : patch[0].soil_defaults[0][0].N_decay_rate),
-				(command_line[0].rootNdecayRate > 0? patch[0].soil_defaults[0][0].soil_depth : (command_line[0].root2active > 0.0? patch[0].rootzone.depth * command_line[0].root2active : patch[0].soil_defaults[0][0].active_zone_z)),
+				patch[0].soil_defaults[0][0].NO3decayRate,
+				patch[0].soil_defaults[0][0].active_zone_z,
 				patch[0].soil_defaults[0][0].NO3_adsorption_rate,
                 17,patch);
 			patch[0].surface_NO3 += Nout;
@@ -363,8 +445,8 @@ void  update_drainage_land(
 				verbose_flag,
 				patch[0].sat_NH4 - patch[0].soil_ns.NH4_Qout, //patch[0].soil_ns.sminn - (NH4_leached_to_patch/patch[0].area),
 				return_flow,
-				(command_line[0].NH4root2active>0.0? patch[0].soil_defaults[0][0].N_decay_rate : (command_line[0].rootNdecayRate > 0? patch[0].rootzone.NH4decayRate : patch[0].soil_defaults[0][0].N_decay_rate)),
-                (command_line[0].NH4root2active>0.0? patch[0].rootzone.depth * command_line[0].NH4root2active : (command_line[0].rootNdecayRate > 0? patch[0].soil_defaults[0][0].soil_depth : (command_line[0].root2active>0.0? patch[0].rootzone.depth * command_line[0].root2active : patch[0].soil_defaults[0][0].active_zone_z))),
+				patch[0].soil_defaults[0][0].NH4decayRate,
+                patch[0].soil_defaults[0][0].active_zone_z,
 				patch[0].soil_defaults[0][0].NH4_adsorption_rate,
 				20,patch);
 			patch[0].surface_NH4 += Nout;
@@ -375,8 +457,8 @@ void  update_drainage_land(
 				verbose_flag,
 				patch[0].sat_DON - patch[0].soil_ns.DON_Qout, //patch[0].soil_ns.DON - (DON_leached_to_patch/patch[0].area),
 				return_flow,
-				(command_line[0].rootNdecayRate > 0? patch[0].rootzone.DOMdecayRate : patch[0].soil_defaults[0][0].DOM_decay_rate),
-				(command_line[0].rootNdecayRate > 0? patch[0].soil_defaults[0][0].soil_depth : (command_line[0].root2active > 0.0? patch[0].rootzone.depth * command_line[0].root2active : patch[0].soil_defaults[0][0].active_zone_z)),
+				patch[0].soil_defaults[0][0].DOMdecayRate,
+				patch[0].soil_defaults[0][0].active_zone_z,
 				patch[0].soil_defaults[0][0].DON_adsorption_rate,
 				23,patch);
 			patch[0].surface_DON += Nout;
@@ -387,8 +469,8 @@ void  update_drainage_land(
 				verbose_flag,
 				patch[0].sat_DOC - patch[0].soil_cs.DOC_Qout, //patch[0].soil_cs.DOC - (DOC_leached_to_patch/patch[0].area),
 				return_flow,
-				(command_line[0].rootNdecayRate > 0? patch[0].rootzone.DOMdecayRate : patch[0].soil_defaults[0][0].DOM_decay_rate),
-				(command_line[0].rootNdecayRate > 0? patch[0].soil_defaults[0][0].soil_depth : (command_line[0].root2active > 0.0? patch[0].rootzone.depth * command_line[0].root2active : patch[0].soil_defaults[0][0].active_zone_z)),
+				patch[0].soil_defaults[0][0].DOMdecayRate,
+				patch[0].soil_defaults[0][0].active_zone_z,
 				patch[0].soil_defaults[0][0].DOC_adsorption_rate,
 				26,patch);
 			patch[0].surface_DOC += Nout;
@@ -396,15 +478,15 @@ void  update_drainage_land(
             if(Nout<0 || Nout!=Nout) printf("update_drainage_land[%d,%e]: return DOC (%e) flux (%e)\n", patch[0].ID,return_flow,patch[0].soil_cs.DOC - (DOC_leached_to_patch/patch[0].area), Nout);
 		}//
     
-    patch[0].overland_flow += return_flow; //max(0.0, patch[0].detention_store - patch[0].soil_defaults[0][0].detention_store_size);
+    patch[0].overland_flow += return_flow; //max(0.0, patch[0].detention_store - patch[0].landuse_defaults[0][0].detention_store_size);
     //<<--- reset by compute_subsurface_routing.c
     
 	/*--------------------------------------------------------------*/
 	/*	route water and nitrogen lossed due to infiltration excess */
 	/*--------------------------------------------------------------*/
-	if ( (patch[0].detention_store > patch[0].soil_defaults[0][0].detention_store_size) && (patch[0].detention_store > ZERO) ){
+	if ( (patch[0].detention_store > patch[0].landuse_defaults[0][0].detention_store_size* (1.0 - patch[0].Ksat_vertical)) && (patch[0].detention_store > ZERO) ){
 
-		Qout = (patch[0].detention_store - patch[0].soil_defaults[0][0].detention_store_size);
+		Qout = (patch[0].detention_store - patch[0].landuse_defaults[0][0].detention_store_size* (1.0 - patch[0].Ksat_vertical));
 		if (command_line[0].grow_flag > 0) {
                 Nout = (min(1.0, (Qout/ patch[0].detention_store))) * patch[0].surface_DOC;
                 DOC_leached_to_surface = Nout * patch[0].area;
@@ -461,6 +543,7 @@ void  update_drainage_land(
             if(patch[0].aggregate_ID != neigh[0].aggregate_ID && patch[0].aggregate_ID>0 && patch[0].aggregate_ID % 7 ==0){neigh[0].fromRIPARIAN_Q+=Qin; }
             if(patch[0].aggregate_ID != neigh[0].aggregate_ID && patch[0].aggregate_ID>0 && patch[0].aggregate_ID % 5 ==0){neigh[0].fromSTREAM_Q+=Qin; }
             
+            
             if (Qin < 0) printf("\n warning negative routing from patch %d with gamma %lf", patch[0].ID, total_gamma);
             if (command_line[0].grow_flag > 0) {
                 
@@ -492,7 +575,7 @@ void  update_drainage_land(
                 if(patch[0].aggregate_ID != neigh[0].aggregate_ID && patch[0].aggregate_ID>0 && patch[0].aggregate_ID % 7 ==0){neigh[0].fromRIPARIAN_NH4+=Nin; }
                 if(patch[0].aggregate_ID != neigh[0].aggregate_ID && patch[0].aggregate_ID>0 && patch[0].aggregate_ID % 5 ==0){neigh[0].fromSTREAM_NH4+=Nin; }
                 
-                }
+                }//if
             neigh[0].Qin += Qin; // subsurface --> neighbour sat_def
         }// end of for subsurface routing loop
 
@@ -520,7 +603,7 @@ void  update_drainage_land(
             /* now transfer surface water and nitrogen */ // -------------- surface (updated Spet 12)
             /*	- first nitrogen					*/
             /*--------------------------------------------------------------*/
-            // route_to_surface = patch[0].area * (patch[0].detention_store - patch[0].soil_defaults[0][0].detention_store_size);
+            // route_to_surface = patch[0].area * (patch[0].detention_store - patch[0].landuse_defaults[0][0].detention_store_size);
             if (command_line[0].grow_flag > 0) {
                 if(neigh[0].drainage_type==STREAM){
                     
@@ -579,36 +662,22 @@ void  update_drainage_land(
             /* use time_int as duration */
             /*--------------------------------------------------------------*/
             if (neigh[0].detention_store > ZERO) {
-                if (neigh[0].rootzone.depth > ZERO) {
+                
                 infiltration = compute_infiltration(
-                    verbose_flag,
+                    command_line[0].verbose_flag,
                     neigh[0].sat_deficit_z,
-                    neigh[0].rootzone.S,
-                    neigh[0].Ksat_vertical,
-                    neigh[0].soil_defaults[0][0].Ksat_0_v,
-                    neigh[0].soil_defaults[0][0].mz_v,
-                    neigh[0].soil_defaults[0][0].porosity_0,
-                    neigh[0].soil_defaults[0][0].porosity_decay,
-                    (neigh[0].detention_store),
+                    0.0, //neigh[0].aboveWT_SatPct, // initiated in daily_I()
+                    neigh[0].Ksat_vertical, // 1- impervious
+                    neigh[0].sat_def_pct_indexM * neigh[0].soil_defaults[0][0].vksat_0zm[neigh[0].sat_def_pct_index+1] + (1.0-neigh[0].sat_def_pct_indexM) * neigh[0].soil_defaults[0][0].vksat_0zm[neigh[0].sat_def_pct_index],
+                    neigh[0].rz_storage+neigh[0].unsat_storage,
+                    neigh[0].sat_def_pct_indexM * neigh[0].soil_defaults[0][0].sat_def_0zm[neigh[0].sat_def_pct_index+1] + (1.0-neigh[0].sat_def_pct_indexM) * neigh[0].soil_defaults[0][0].sat_def_0zm[neigh[0].sat_def_pct_index],
+                    neigh[0].sat_deficit,
+                    neigh[0].detention_store,
                     time_int,
                     neigh[0].soil_defaults[0][0].psi_air_entry);
-                }
-                else {
-                infiltration = compute_infiltration(
-                    verbose_flag,
-                    neigh[0].sat_deficit_z,
-                    neigh[0].S,
-                    neigh[0].Ksat_vertical,
-                    neigh[0].soil_defaults[0][0].Ksat_0_v,
-                    neigh[0].soil_defaults[0][0].mz_v,
-                    neigh[0].soil_defaults[0][0].porosity_0,
-                    neigh[0].soil_defaults[0][0].porosity_decay,
-                    (neigh[0].detention_store),
-                    time_int,
-                    neigh[0].soil_defaults[0][0].psi_air_entry);
-                }
-            }
-            else infiltration = 0.0;
+                
+
+            } else infiltration = 0.0;
             /*--------------------------------------------------------------*/
             /* added an surface N flux to surface N pool	and		*/
             /* allow infiltration of surface N				*/

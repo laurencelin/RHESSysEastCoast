@@ -58,9 +58,9 @@ double	compute_lwp_predawn(
 							double 	pore_size_index,
 							double  p3,
 							double  p4,
-							double  p_0,
-							double  p_decay,
-							double	S)
+							double  storage,
+							double  storage_capacity,
+							double	sat_def)
 {
 	/*--------------------------------------------------------------*/
 	/*	Local function declaration				*/
@@ -94,9 +94,9 @@ double	compute_lwp_predawn(
 		pore_size_index,
 		p3,
 		p4,
-		p_0,
-		p_decay,
-		S);
+		storage,
+		storage_capacity,
+		sat_def);
 
 	return(LWP_predawn);
 } /*end compute_lwp_predawn)*/

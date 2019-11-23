@@ -56,13 +56,13 @@
 #include "phys_constants.h"
 
 double	compute_infiltration(int verbose_flag,
-							 double z,
-							 double S,
+							 double z, // water table depth; sat_def_z
+							 double no_use, // rtzS or patch.S
 							 double Ksat_vertical,
-							 double Ksat_0,
-							 double m_z,
-							 double p_0,
-							 double p, //<<---- decay of p_0
+							 double Ksat,
+							 double storage,
+							 double POR,
+							 double storage_capacity, //<<---- decay of p_0
 							 double precip,
 							 double duration,
 							 double psi_air_entry)
@@ -75,76 +75,41 @@ double	compute_infiltration(int verbose_flag,
 	/*	Local Variable Definition. 							*/
 	/*------------------------------------------------------*/
 	
-	double porosity;
-	double Ksat;
+	//double porosity;
+	//double Ksat;
 	double Sp;
 	double psi_f;
-	double theta;
-	double intensity, tp,t;
+	double theta_1;
+	double intensity, tp;
 	double infiltration;
+    double Satpct;
 	/*--------------------------------------------------------------*/
 	/* only infiltrate for on unsaturated soil			*/
 	/*--------------------------------------------------------------*/
-	if ((S < 1.0) && (Ksat_0 > ZERO)) {
-
-        /*--------------------------------------------------------------*/
-        /*	use mean K and p (porosity) given current saturation    */
-        /*	depth							*/
-        /*--------------------------------------------------------------*/
-        if (m_z > ZERO)
-            Ksat =  Ksat_0*m_z *  (1-exp(-z/m_z))/z; // divided by z for average
-        else
-            Ksat = Ksat_0;
-        
-        if (p < 999.9)
-            porosity = p*p_0*(1-exp(-z/p))/z;
-        else
-            porosity = p_0;
-        /*--------------------------------------------------------------*/
-        /*	soil moisture deficit - S must be converted to theta	*/
-        /*--------------------------------------------------------------*/
-        theta = S*porosity;
-        /*--------------------------------------------------------------*/
-        /*	estimate sorptivity					*/
-        /*--------------------------------------------------------------*/
-        psi_f = 0.76 * psi_air_entry;
-        Sp = pow(2 * Ksat *  (psi_f),0.5);
-        /*--------------------------------------------------------------*/
-        /*	calculate rainfall intensity				*/
-        /*--------------------------------------------------------------*/
+    // 1) intensity = precip/duration; Vs Ksat --> tp
+    // 2) tp vs duration --> infiltration
+    // if (intensity <= Ksat) then infiltration = precip * (%pervious in patch)
+    // if (intensity > Ksat) then lots of calculations -> infiltration * (%pervious in patch)
+    // re-program below
+    if(storage_capacity>ZERO && storage<storage_capacity){
+        //Ksat =  m_z>0? Ksat_0*m_z*(1-exp(-z/m_z))/z : Ksat_0; // averaged vksat
         intensity = precip/duration;
-        /*--------------------------------------------------------------*/
-        /*	estimate time to ponding				*/
-        /*--------------------------------------------------------------*/
-        if (intensity > Ksat)
-            tp = Ksat *  psi_f * (porosity-theta) / (intensity * (intensity-Ksat));
-        else
-            tp = duration;
-        /*--------------------------------------------------------------*/
-        /*	calculate infiltration					*/
-        /*--------------------------------------------------------------*/
-        t = duration - tp;
-        if (duration <= tp)
-            infiltration = precip;
-        else
-            infiltration = Sp * pow(t, 0.5) +Ksat*1.5/3.0 * t + tp * intensity;
-
-	}
-	/*--------------------------------------------------------------*/
-	/* otherwise soil is saturated 					*/
-	/*--------------------------------------------------------------*/
-	else 
-		infiltration = 0.0;
-
-	if (infiltration > precip)
-		infiltration = precip;
-	if (infiltration < ZERO)
-		infiltration = 0.0;
-
-	/*--------------------------------------------------------------*/
-	/* use Ksat_vertical to limit infiltration only to pervious area */
-	/*--------------------------------------------------------------*/
-
+        
+        if(intensity <= Ksat) infiltration = precip;
+        else{
+            Satpct = storage / storage_capacity;
+            theta_1 = (1.0-Satpct)*POR; // averaged POR? // integrated S?
+            psi_f = 0.76 * psi_air_entry;
+            Sp = sqrt(2 * Ksat * psi_f);
+            
+            tp = Ksat * psi_f * theta_1 / (intensity * (intensity-Ksat)); //<<--- key
+            
+            infiltration = max(min( Sp*sqrt(duration-tp)+0.5*Ksat*(duration-tp) + tp*intensity,  precip),0.0);
+        }//else
+    }else{
+        infiltration = 0.0;
+    }
+    
 	infiltration = infiltration * Ksat_vertical;
 	return(infiltration);
 } /*compute_infiltration*/

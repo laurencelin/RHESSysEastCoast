@@ -97,7 +97,7 @@ int update_decomp(
     if ((cs_litr->litr3c > 0.0) && (ns_litr->litr3n > 0.0))    cn_l3 = cs_litr->litr3c/ns_litr->litr3n; else cn_l3 = 0.0; //CEL_CN;
     if ((cs_litr->litr4c > 0.0) && (ns_litr->litr4n > 0.0))    cn_l4 = cs_litr->litr4c/ns_litr->litr4n; else cn_l4 = 0.0; // LIG_CN;
     
-    if(command_line[0].soilCNadaptation_falg == 1 ){
+    if(command_line[0].soilCNadaptation_flag == 1 ){
         cn_s1 = patch[0].patch_SOIL1_CN;
         cn_s2 = patch[0].patch_SOIL2_CN;
         cn_s3 = patch[0].patch_SOIL3_CN;
@@ -442,11 +442,11 @@ int update_decomp(
     nitrate_immob -= microbal_mineralize; //any left is satisfied by mineralized and soil NH4
     if(nitrate_immob>0){holdingN = totalNH4; delta_totalNH4 = max(0.0,min(holdingN, nitrate_immob)); nitrate_immob -= max(0.0,holdingN);}else{ns_soil->sminn -= nitrate_immob;} // put excessive mineralized N to totalNH4
     //change in totalNO3 and totalNH4
-    if(totalNO3>0 & delta_totalNO3>0){
+    if(totalNO3>0 && delta_totalNO3>0){
         ns_soil->nitrate -= min(ns_soil->nitrate, delta_totalNO3 * patch[0].rtzNO3/totalNO3);
         patch[0].sat_NO3 -= min(patch[0].sat_NO3, delta_totalNO3 * patch[0].rtzSatNO3/totalNO3);
     }
-    if(totalNH4>0 & delta_totalNH4>0){
+    if(totalNH4>0 && delta_totalNH4>0){
         ns_soil->sminn -= min(ns_soil->sminn, delta_totalNH4 * patch[0].rtzNH4/totalNH4);
         patch[0].sat_NH4 -= min(patch[0].sat_NH4, delta_totalNH4 * patch[0].rtzSatNH4/totalNH4);
     }
@@ -467,7 +467,7 @@ int update_decomp(
 //           ns_litr->litr1n, ns_litr->litr2n, ns_litr->litr3n, ns_litr->litr4n, ns_soil->soil1n, ns_soil->soil2n, ns_soil->soil3n, ns_soil->soil4n);
 //
     
-    if(command_line[0].soilCNadaptation_falg == 1 ){
+    if(command_line[0].soilCNadaptation_flag == 1 ){
         if ((cs_soil->soil1c > 0.0) && (ns_soil->soil1n > 0.0)) patch[0].patch_SOIL1_CN = cs_soil->soil1c/ns_soil->soil1n;
         if ((cs_soil->soil2c > 0.0) && (ns_soil->soil2n > 0.0)) patch[0].patch_SOIL2_CN = cs_soil->soil2c/ns_soil->soil2n;
         if ((cs_soil->soil3c > 0.0) && (ns_soil->soil3n > 0.0)) patch[0].patch_SOIL3_CN = cs_soil->soil3c/ns_soil->soil3n;

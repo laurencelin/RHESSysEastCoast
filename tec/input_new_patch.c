@@ -298,7 +298,7 @@
 	/* FOR now substitute worldfile m (if > 0) in defaults			*/
 	/*--------------------------------------------------------------*/
 	if (mpar > ZERO) {
-		patch[0].original_m = mpar;
+		//patch[0].original_m = mpar;
 		patch[0].soil_defaults[0][0].m = mpar * command_line[0].sen[M];
 		patch[0].soil_defaults[0][0].m_z = mpar * command_line[0].sen[M] / 
 				patch[0].soil_defaults[0][0].porosity_0;
@@ -306,21 +306,12 @@
 
 
 	/*--------------------------------------------------------------*/
-	/* compute a biological soil depth based on the minimum of soil depth */
-	/* and m, K parameters defining conductivity < 0.1% original value */
-	/*--------------------------------------------------------------*/
-	patch[0].soil_defaults[0][0].effective_soil_depth = patch[0].soil_defaults[0][0].soil_depth;
-	
-	/*  patch[0].soil_defaults[0][0].effective_soil_depth = min(patch[0].soil_defaults[0][0].soil_depth,
-				6.9*patch[0].soil_defaults[0][0].m_z);	
-	*/
-	/*--------------------------------------------------------------*/
 	/* detention store size can vary with both soil and landuse		*/
 	/*	use the maximum of the two									*/
 	/*--------------------------------------------------------------*/
-	patch[0].soil_defaults[0][0].detention_store_size = 
-				max(patch[0].landuse_defaults[0][0].detention_store_size,
-				patch[0].soil_defaults[0][0].detention_store_size);
+//	patch[0].soil_defaults[0][0].detention_store_size = 
+//				max(patch[0].landuse_defaults[0][0].detention_store_size,
+//				patch[0].soil_defaults[0][0].detention_store_size);
 	/*--------------------------------------------------------------*/
 	/*	Read in the number of  patch base stations 					*/
 	/*--------------------------------------------------------------*/

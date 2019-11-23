@@ -161,7 +161,7 @@ double	compute_z_final(
 	/*	Ensure that p and p_0 is not zero 			*/
 	/*--------------------------------------------------------------*/
     // p_decay is "meter"
-	p_decay = max(p_decay,0.00000001); //forcing the model to take
+	p_decay = max(p_decay,0.00000001);
 	p_0 = max(p_0,0.00000001);
 	
 	/*--------------------------------------------------------------*/
@@ -190,7 +190,7 @@ double	compute_z_final(
 					z_final = soil_depth;
 				}
 			} else {
-                // default
+                // default: uniform porosity
                 if ((-delta_water/p_0)>soil_depth) // should compare with soil_depth here
 					z_final=soil_depth;
 				else

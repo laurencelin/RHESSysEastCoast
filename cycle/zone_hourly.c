@@ -84,15 +84,17 @@ void		zone_hourly(
 	zone[0].hourly_rain_flag = 0;
 	zone[0].hourly[0].rain = 0.0;
 	zone[0].hourly[0].snow = 0.0; 
-	inx = zone[0].base_stations[0][0].hourly_clim[0].rain.inx;
-
+	inx = zone[0].base_stations[0][0].hourly_clim[0].rain.inx;//
+    //printf("zone_hourly1 [%d, %d]\n", inx, zone[0].hourly_rain_flag);//debug
+    
 	if (inx > -999)  {
 		clim_event = zone[0].base_stations[0][0].hourly_clim[0].rain.seq[inx];
+        
 		while (clim_event.edate.year!=0 && (julday(clim_event.edate) + clim_event.edate.hour/24.0 < julday(current_date) + current_date.hour/24.0)) {
 			zone[0].base_stations[0][0].hourly_clim[0].rain.inx += 1;
 			inx = zone[0].base_stations[0][0].hourly_clim[0].rain.inx;
 			clim_event = zone[0].base_stations[0][0].hourly_clim[0].rain.seq[inx];
-			}
+			}//while
 		
 		if ( (clim_event.edate.year != 0) &&
 			(julday(clim_event.edate) == julday(current_date)) && (clim_event.edate.hour == current_date.hour) ) {
@@ -185,7 +187,8 @@ void		zone_hourly(
 			}
 			else zone[0].hourly[0].rain_duration = 3600;
 		}
-	}
+	}//if
+    //printf("zone_hourly2 [%d, %d]\n", inx, zone[0].hourly_rain_flag);//debug
 	zone[0].snow_hourly_total += zone[0].hourly[0].snow;
 	zone[0].rain_hourly_total += zone[0].hourly[0].rain;
 	
@@ -200,6 +203,12 @@ void		zone_hourly(
 			zone[0].rain_duration += 3600;}
 	}
 			
+    
+    
+    
+    
+    
+    
 	/*--------------------------------------------------------------*/
 	/*	Compute zone hourly radiation forcings.								*/
 	/*--------------------------------------------------------------*/

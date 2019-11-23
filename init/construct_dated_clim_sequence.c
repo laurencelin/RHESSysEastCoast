@@ -81,7 +81,7 @@ struct clim_event_sequence construct_dated_clim_sequence(
 	/*--------------------------------------------------------------*/
 	/*	Initialize							*/
 	/*--------------------------------------------------------------*/
-        num_days = 0;
+    num_days = 0;
 	start_flag = 0;
 
 	/*--------------------------------------------------------------*/
@@ -95,12 +95,12 @@ struct clim_event_sequence construct_dated_clim_sequence(
 	/*--------------------------------------------------------------*/
 	if ( (sequence_file = fopen(file, "r") ) == NULL ){
 		fprintf(stderr,
-			"\nFATAL ERROR: in construct_dated_clim_sequence\nunable to open sequence file %s\n",
+			"FATAL ERROR: in construct_dated_clim_sequence: unable to open sequence file %s\n",
 			file);
 		exit(EXIT_FAILURE);
 	} /*end if*/
 	
-	printf("\nCount days in the dated climate file %s\n", file);
+	printf("Count days in the dated climate file %s\n", file);
 	/*--------------------------------------------------------------*/
 	/*	First, calculate how many day it has in the record			*/
 	/*--------------------------------------------------------------*/

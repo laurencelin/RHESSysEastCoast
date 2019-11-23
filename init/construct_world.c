@@ -785,12 +785,9 @@ struct world_object *construct_world(struct command_line_object *command_line){
 				   world[0].base_station_ncheader[0].day_offset,
 				   world[0].base_station_ncheader[0].leap_year,
 				   world[0].base_station_ncheader[0].precip_mult);*/
-		}
-		else {
+		} else {
 			printf("\nConstructing base stations");
-			world[0].base_stations = (struct base_station_object **)
-			alloc(world[0].num_base_stations *
-				  sizeof(struct base_station_object *),"base_stations","construct_world" );
+			world[0].base_stations = (struct base_station_object **) alloc(world[0].num_base_stations * sizeof(struct base_station_object *),"base_stations","construct_world" );
 			
 			
 			for (i=0; i<world[0].num_base_stations; i++ ) {
@@ -802,11 +799,17 @@ struct world_object *construct_world(struct command_line_object *command_line){
 			/*--------------------------------------------------------------*/
 			/* List the hourly record for all base station, resemble the hourly records*/
 			/*--------------------------------------------------------------*/
+            // this is an evil trap here
 			if(world[0].num_base_stations > 1){
-			    resemble_hourly_date(world);
-			}
+			    // resemble_hourly_date(world);
+                
+                // this step seems to extend the limited hourly records with the daily series.
+                // this is totally non-sense to set the condition by world[0].num_base_stations > 1
+                // this should be a flag feature
+                // disable for now.
+			}//if
 
-		}
+		}//if
 	} /*end if dclim_flag*/
 	/*
 	 construct_dclim(world);

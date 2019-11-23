@@ -44,8 +44,8 @@
 #define actionGWDRAIN 5    // Sept 7 LAND; GW drainage (from surface to GW); (bounded by 1-impervious cover fraction)
 #define actionRIPARIAN 7  // Sept 7 LAND; receive GW discharge (GW to sub-surface)
 #define actionSEWER 11     // Sept 7 LAND; sewer drainage (subruface water loss, not come back to streamflow) (bounded by non-forest cover fraction)
-#define actionIRRIGRATION 13 // Sept 7 LAND; irrigration (bounded by lawn cover fraction)
 #define actionPIPEDRAIN 17 // Sept 28 LAND; drainage subsurface water (top 1-m) and route to streamflow
+#define actionIRRIGRATION 13 // Sept 7 LAND; irrigration (bounded by lawn cover fraction)
 #define actionFERTILIZE 13 // same as irrigration --Aug 19,2019 //19 // Nov 5 LAND; adding N to lawn; bounded by lawn cover fraction; LULC give the max fertilize rate (weekly); perhaps apply weekly but in the code it's going to average out daily.
 // ----------- veg types
 #define NON_VEG 20
@@ -231,12 +231,11 @@ struct rooting_zone_object
         double sat;
         double unsat;
         double depth;
-        double S;
-        double T;               /* degrees C */
-        double NO3decayRate;
-        double NH4decayRate;
-        double DOMdecayRate;
-
+        double SatPct;
+        double Temperature;               /* degrees C */
+//        double NO3decayRate;
+//        double NH4decayRate;
+//        double DOMdecayRate;
 };
 
 /*----------------------------------------------------------*/
@@ -901,11 +900,11 @@ struct	soil_default
 	double	interval_size;					/* m */
 	double	Ksat_0;						/* meters/day */
 	double	Ksat_0_v;					/* meters/day */
-	double	m;						/* m */
-	double	m_v;						/* m */
-	double	m_z;						/* m	*/
-	double	mz_v;						/* m */
-	double	porosity_0;						/* unitless */
+	double	m;						    /* m; read in; *scalar and for horizontal ksat */
+	double	m_v;						/* m; no use */
+	double	m_z;						/* m; read in -> mz_v */
+	double	mz_v;						/* m; *scalar and for vertical ksat */
+	double	porosity_0;					/* unitless */
 	double	porosity_decay;						/* m  */
 	double	p3;						/* unitless */
 	double	p4;						/* unitless */
@@ -914,11 +913,10 @@ struct	soil_default
 	double	psi_max;					/* m */
 	double	sat_to_gw_coeff;				/* percent/day */
 	double	soil_depth;					/* m */ //--->> should go to patch
-	double	effective_soil_depth;					/* m */ //--->> should go to patch
 	double	soil_water_cap;					/* m of water */
 	double	deltaz;						/* m */
 	double	min_heat_capacity;				/* J/m3/K */
-	double	detention_store_size;				/* m water */
+	//double	detention_store_size;				/* m water */
 	double	max_heat_capacity;				/* J/m3/K */
 	double	maximum_snow_energy_deficit;			/* degree days */
 	double  snow_water_capacity;				/* m */
@@ -931,10 +929,16 @@ struct	soil_default
 	double  bats_b;				/* unitless */
 	double  bats_r3;				/* unitless */
 	double  active_zone_z;					/* m */ //--->> should go to patch
-	double  DOM_decay_rate;					/* kg N /m */
+	//double  DOM_decay_rate;					/* kg N /m */
+        double  DOMdecayRate;
+        double  DOMdecayRate_1;
 	double  DON_adsorption_rate;				/* kg /kg soil */
 	double  DOC_adsorption_rate;				/* kg /kg soil */
-	double  N_decay_rate;					/* kg N /m */
+	//double  N_decay_rate;					/* kg N /m */
+        double NO3decayRate;
+        double NO3decayRate_1;
+        double NH4decayRate;
+        double NH4decayRate_1;
 	double  NO3_adsorption_rate;				/* kg /kg soil */
 	double  NH4_adsorption_rate;				/* kg /kg soil */
 	double  denitrif_proportion;				/* (DIM) 0-1 */
@@ -944,7 +948,60 @@ struct	soil_default
 	double  gsurf_intercept;				/* m/s */
 	double  theta_mean_std_p1;				/* DIM */
 	double  theta_mean_std_p2;				/* DIM */
-	struct soil_class	soil_type;
+	struct soil_class	soil_type;   // not sure why making another layer of structure here.
+    double soilc; // kgC/m2
+    double maxrootdepth; // meter
+    double particledensity; //g/cm3 = BD / (1 - POR) in full column
+        // building up lookup table; organized by every 0.1 % sat_def
+        double max_sat_def_1; // 1/max_sat_def;
+        double exfiltration_wilting_point;
+        double exfiltration_S_pow;
+        
+        double *sat_def_z; // = sat_def_z
+        double *sat_def; // --> drainage
+        double *sat_def_0zm; // --> infiltration
+        //double *por_z; // 
+        
+        double *vksat_0zm; // --> field capacity
+        double *vksat_z; // horizon flux (replacing transmissivity_profile)
+        double *exfiltration_coef;
+        
+        double *fc1_0z;
+        double *fc1_030r;
+        double *fc1_025r;
+        double *fc1_020r;
+        double *fc1_015r;
+        double *fc1_010r;
+        double *fc1_006r;
+        double *fc1_003r;
+        double *fc1_00012r;
+        double *pot_caprise_0z;
+        double *pot_caprise_030r;
+        double *pot_caprise_025r;
+        double *pot_caprise_020r;
+        double *pot_caprise_015r;
+        double *pot_caprise_010r;
+        double *pot_caprise_006r;
+        double *pot_caprise_003r;
+        double *pot_caprise_00012r;
+        
+        double *transmissivity_maxdailyflux;
+        double *transmissivity_dailyflux;
+        
+        int soildepthLen;
+        double *rtz2sat_def_0z;
+        int *rtz2sat_def_pct_index;
+        int active_zone_index;
+        double active_zone_sat_0z;
+        double active_zone_sat_0z_1;
+        double *rtz2NO3prop;
+        double *rtz2NH4prop;
+        double *rtz2DOMprop;
+        //double active_zone_soilNO3;
+        //double active_zone_soilNH4;
+        //double active_zone_soilDOM;
+        //double *rtz2sat_def_pct_indexM;
+    // from text book: % pore space = porosity = (1 - BD / PD) * 100 %
 	};
 
 
@@ -1326,9 +1383,9 @@ struct patch_object
         int             num_layers;
         int             num_soil_intervals;                             /* unitless */
         int             target_status;
-        double  x;                                                                      /* meters       */
-        double  y;                                                                      /* meters       */
-        double  z;                                                                      /* meters       */
+        double  x;
+        double  y;
+        double  z;
         double  area;                   /* sq meters    */
         double  acc_year_trans;         /* m water      */
         double  base_flow;              /* m water */
@@ -1388,7 +1445,7 @@ struct patch_object
         double  Kstar_soil;                     /* Kj/(m^2*day) */
         double  Kdown_direct_subcanopy;         /* Kj/(m^2*day) */
         double  Kdown_diffuse_subcanopy;                /* Kj/(m^2*day) */
-        double  Ksat_0;                 /* meteres/day  */
+        double  Ksat_0;                 /* meteres/day  */ // <<-- what's this for?
         double  Ksat_vertical;          /* meters/day   */
         double  lna;                    /* unitless     */
         double  lai;                    /* unitless     */
@@ -1407,9 +1464,9 @@ struct patch_object
         double  Lstar_pond_night;       /* Kj/(m^2*day) */
         double  Lstar_pond_day;         /* Kj/(m^2*day) */
         double  Ldown_subcanopy;        /* Kj/(m^2*day) */
-        double  m;              /* m^-1 */
-        double  m_z;            /* m^-1 */
-        double  original_m;             /* m^-1 */
+//        double  m;                      /* m^-1 */  // <<-- no use at all
+//        double  m_z;                    /* m^-1 */  // <<-- no use at all
+//        double  original_m;             /* m^-1 */  // <<-- no use at all
         double  PAR_direct;             /* umol/(m^2*day)       */
         double  PAR_diffuse;            /* umol/(m^2*day)       */
         double  PAR_direct_final;       /* umol/(m^2*day)       */
@@ -1432,6 +1489,7 @@ struct patch_object
         double  streamflow_NO3;         /* kg/m2/day    */
         double  streamflow_NH4;         /* kg/m2/day    */
         double  road_cut_depth;         /* m */
+        double  road_cut_depth_def;         /* m */
         double  rain_throughfall;       /* m water      */      
         double  recharge;       /* m water      */      
         double  return_flow;            /* m water      */
@@ -1441,21 +1499,19 @@ struct patch_object
         double  NO3_throughfall;        /* kg/m2 day  */
         double  NO3_throughfall_final;  /* kg/m2 day */
         double  rain_stored;            /* m water      */
-        double  slope;                  /* degrees              */
-        double  tanSlope;
-        double  S;                      /* m/m          */
+        double  slope;                  /* degrees      */
+        double  tanSlope;               // for stream gamma calculation
+        double  aboveWT_SatPct;         /* m/m          */
         double  sat_zone_storage;       /* m water      */
         double  snow_redist_scale;      /* multiplier   */ 
         double  std;                    /* m water      */
-        double  theta_std;                      /* m water      */
+        double  theta_std;              /* m water      */
         double  surface_NO3;            /* kg/m2        */
         double  streamNO3_from_surface; /* kg/m2        */
         double  streamNO3_from_sub;     /* kg/m2        */
         double  surface_NH4;            /* kg/m2        */
         double  grazing_Closs;          /* kgC/m2       */
         double  grazing_mean_nc;        /* ratio N:Co   */
-        double  fertilizer_NO3;         /* kg/m2        */ //<<------- no uses
-        double  fertilizer_NH4;         /* kg/m2        */ //<<------- no uses
         double  surface_DOC_Qin_total;  /* kgC/m2 day   */
         double  surface_DOC_Qout_total; /* kgC/m2 day   */
         double  surface_DON_Qin_total;  /* kgN/m2 day   */
@@ -1526,7 +1582,7 @@ struct patch_object
         struct  surface_energy_object   *surface_energy_profile;
         struct  patch_fire_water_object       fire;
         struct  rooting_zone_object     rootzone;
-        double  active_zone_z;
+        //double  active_zone_z;
         struct  zone_object             *zone; /* parent zone *///<<------------------- not set
         double  grassIrrigation_m;
         double  sewerdrained; //<------- Spet 28 tracking how much is subsurface sewer drain
@@ -1547,12 +1603,11 @@ struct patch_object
             double  pipedrainYield_DOC;
         double  constraintWaterTableTopDepth; // Sept 24 for basement depth; default zero;
         double  constraintWaterTableTopDepth_def;
-        double  horizontal_k_SCALE;
             double basementSideAdjustWTZ;
             double basementSideAdjustH2O;
-            double ndistz;
             double basementFrac;
-            double aeratedSoilFrac; // August 19, 2019; first implement;
+            double aeratedSoilFrac; // increase nitrificaiton in farm land
+            // August 19, 2019; first implement of "aeratedSoilFrac"
             // this should couple with Ksat_0 and based on CROP rather than GRASS
             
             // how to effectively handle dynamic sat_def_z?
@@ -1565,6 +1620,24 @@ struct patch_object
             // appropriate condition: when sat enters the rtz at neighour; when elevation diff
             double stored_fertilizer_NO3;
             double stored_fertilizer_NH4;
+            //------------ implement of lookup table
+            double available_soil_water;
+            double sat_def_pct;
+            int sat_def_pct_index; // = (int)(sat_def_pct*1000); m = 1000*(sat_def_pct-sat_def_pct_index*0.001); value = m*[sat_def_pct_index+1] + (1-m)*[sat_def_pct_index]
+            double sat_def_pct_indexM;
+            //double sat_def_z_scaler; // m = (z - z[sat_def_pct_index]) / (z[sat_def_pct_index+1]-z[sat_def_pct_index])
+            
+            int rtz2_index;
+            int rootdepth_index;
+            double rootdepth_indexM;
+            
+            double* rootzone_start_reffc;
+            double* rootzone_end_reffc;
+            double* rootzone_start_refcap;
+            double* rootzone_end_refcap;
+            double rootzone_scale_ref; // inverse of the run between two reference, e.g, 0.5m - 1.0m
+            double zeroRootCoef;
+            
 /*----------------------------------------------------------*/
 /*      Surface Hydrology  stuff                        */
 /*----------------------------------------------------------*/
@@ -1582,9 +1655,10 @@ struct patch_object
         double  preday_snowpack;                        /* meters water         */
         double  preday_sat_deficit;                     /* meters water         */
         double  preday_sat_deficit_z;                   /* meters               */
+            double  preday_totalfc;                   /* meters               */
         double  sat_deficit;                            /* meters water         */
         double  sat_deficit_z;                          /* meters               */
-        double  *transmissivity_profile;                /* array (m/day) */
+        double  *transmissivity_profile;                /* array (m/day) */     ///<<----- will be no use
         struct  snowpack_object snowpack;               /* meters               */
         double  preday_unsat_storage;                   /* meters water         */
         double  preday_rz_storage;                      /* meters water by Taehee Hwang */
@@ -1593,9 +1667,9 @@ struct patch_object
         double  unsat_zone_volume;                      /* meters water         */
         double  unsat_deficit;                           /* meters water by Laurence Lin */
         double  rz_deficit;                             /* meters water by Laurence Lin */
-            double  newcapZ0;                             /* meters water by Laurence Lin */
-            double  newcapSlope;                             /* meters water by Laurence Lin */
-            double  newcapInter;                             /* meters water by Laurence Lin */
+//            double  newcapZ0;                             /* meters water by Laurence Lin */
+//            double  newcapSlope;                             /* meters water by Laurence Lin */
+//            double  newcapInter;                             /* meters water by Laurence Lin */
             
             // come in through subsurface
             double fromSTREAM_Q;
@@ -1631,7 +1705,8 @@ struct patch_object
             double fromRIPARIAN_surfsubDON;
             double fromRIPARIAN_surfsubDOC;
             
-            double potential_sat;
+            //double potential_sat;// no use
+            double satzZ_balance;
 /*----------------------------------------------------------*/
 /*      Forest floor stuff                                  */
 /*----------------------------------------------------------*/
@@ -1656,7 +1731,6 @@ struct patch_object
         double  preday_totaln;                  /* kgC/m2 total nitrogen */
         double  totaln;                         /* kgC/m2 total nitrogen */
         double  nitrogen_balance;               /* kgC/m2 */
-        double  satzone_nitrate;                /* kgN/m2 saturated zone */
 
         struct  soil_c_object   soil_cs;
         struct  soil_n_object   soil_ns;
@@ -1898,6 +1972,7 @@ struct  command_line_object
         double  sen[3];
         double  vsen[2];
         double  vsen_alt[2];
+        double  psen[2];
         double  std_scale;
         double  thresholds[2];
         double    fs_spill;
@@ -1932,7 +2007,7 @@ struct  command_line_object
         double NH4root2active;
         double fracDirectNdep; //<<--- a fraction of n deposition is reaching ground directly
         int BGC_flag; //<-- enable BiomeBGC littering process
-        int soilCNadaptation_falg;
+        int soilCNadaptation_flag;
         double soilDecayScalar;
         int rootNdecayRate;
         double soluteLoss2GW;

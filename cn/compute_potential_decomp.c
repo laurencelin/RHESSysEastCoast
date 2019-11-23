@@ -41,9 +41,10 @@
 #include "rhessys.h"
 #include "phys_constants.h"
 
-int compute_potential_decomp(double tsoil, double maxpsi,
+int compute_potential_decomp(double tsoil,
+                             double maxpsi,
 							 double minpsi,
-							 double theta,
+							 double theta, //<<----
 							 double std,
 							 struct  soil_c_object   *cs_soil,
 							 struct  soil_n_object   *ns_soil,
@@ -173,14 +174,14 @@ int compute_potential_decomp(double tsoil, double maxpsi,
 	
 	/* calculate the corrected rate constants from the rate scalar and their
 	base values. All rate constants are (1/day) */
-	
-	kl1_base = 0.7;      /* labile litter pool */
-	kl2_base = 0.07;     /* cellulose litter pool */
-	kl4_base = 0.014;     /* lignin litter pool */
-	ks1_base = 0.07 * soilDecayScalar;    /* fast microbial recycling pool */
-	ks2_base = 0.014 * soilDecayScalar;    /* medium microbial recycling pool */
-	ks3_base = 0.0014 * soilDecayScalar;   /* slow microbial recycling pool */
-	ks4_base = 0.0001 * soilDecayScalar;   /* recalcitrant SOM (humus) pool */
+    double adjust_rate = 0.45;
+	kl1_base = 0.7 * adjust_rate;      /* labile litter pool */
+	kl2_base = 0.07 * adjust_rate;     /* cellulose litter pool */
+	kl4_base = 0.014 * adjust_rate;     /* lignin litter pool */
+	ks1_base = 0.07 * adjust_rate * soilDecayScalar;    /* fast microbial recycling pool */
+	ks2_base = 0.014 * adjust_rate * soilDecayScalar;    /* medium microbial recycling pool */
+	ks3_base = 0.0014 * adjust_rate * soilDecayScalar;   /* slow microbial recycling pool */
+	ks4_base = 0.0001 * adjust_rate * soilDecayScalar;   /* recalcitrant SOM (humus) pool */
 	
     //(vegtype>0? (patch[0].Ksat_vertical+(1.0-patch[0].Ksat_vertical)*0.5) : 0.0);
     kl1 = kl1_base * rate_scalar * (vegtype>0? 1.0 : 0.01);

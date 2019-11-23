@@ -62,42 +62,44 @@ param *readtag_worldfile(int *paramCnt, FILE *file,char *key){
     
     
     paramPtr = (param *)malloc(sizeof(param) * (num_variables + 1));
-
+    //int nextStop = 1000;
     // Char array that will hold parameter names and values (as strings)
     //FILE *file;
-        while ( fgets ( line, sizeof line, file ) != NULL ) /* read a line */ {
-            // Char array that will hold parameter names and values (as strings)
-            (*paramCnt)++;
-            paramInd++;
+    while ( fgets ( line, sizeof line, file ) != NULL ) /* read a line */ {
+        // Char array that will hold parameter names and values (as strings)
+        (*paramCnt)++;
+        paramInd++;
 
-            //printf("paramInd: %d\n", paramInd);
+        //printf("paramInd: %d\n", paramInd);
 
-            /* Reset string buffers */
-            strbuf1[0] = '\0';
-            strbuf2[0] = '\0';
-            strbuf3[0] = '\0';
-            argCnt = sscanf (line, "%s %s %s", strbuf1, strbuf2, strbuf3);
-	    //printf("argCnt=%d, strbuf1=%s, strbuf2=%s,strbuf3=%s\n",argCnt,strbuf1,strbuf2,strbuf3);
-            /* Parse the parameter value */
+        /* Reset string buffers */
+        strbuf1[0] = '\0';
+        strbuf2[0] = '\0';
+        strbuf3[0] = '\0';
+        argCnt = sscanf (line, "%s %s %s", strbuf1, strbuf2, strbuf3);
+        //printf("%s: argCnt=%d, strbuf1=%s, strbuf2=%s, strbuf3=%s [%d]\n",key,argCnt,strbuf1,strbuf2,strbuf3, strcmp(strbuf2,"NUM_of_") );
+        
+        /* Parse the parameter value */
+        strcpy(paramPtr[paramInd].strVal, strbuf1);
 
-            strcpy(paramPtr[paramInd].strVal, strbuf1);
+        /* Parse the parameter name */
+        strcpy(paramPtr[paramInd].name, strbuf2);
+        paramPtr[paramInd].accessed = 0;
+        paramPtr[paramInd].defaultValUsed = 0;
+        
+        // ending for basin, hill, zone, and patch, but not canopy!
+        if(strcmp(strbuf2,"NUM_of_")==0 || (strcmp(key,"Canopy_Strata")==0&&strcmp(strbuf2,"epv.min_vwc")==0) ){ break; }
+        //nextStop = paramInd+1;
+        //if(paramInd == nextStop) break;
+        
+        if(num_variables < *paramCnt){
+          printf("%s: num_variables=%d,paramCnt=%d\n",key, num_variables,*paramCnt);
+          fprintf(stderr,"added new parameter, adjust the num_variables in phys_constants.h\n");
+        }//if
 
-            /* Parse the parameter name */
-            strcpy(paramPtr[paramInd].name, strbuf2);
-            paramPtr[paramInd].accessed = 0;
-            paramPtr[paramInd].defaultValUsed = 0;
-	    if(strcmp(strbuf2,"n_basestations")==0){
-	      break;
-	    }
-	    if(num_variables < *paramCnt){
-	      printf("num_variables=%d,paramCnt=%d\n",num_variables,*paramCnt);
-	      fprintf(stderr,"added new parameter, adjust the num_variables in phys_constants.h\n");
-	    }
-
-            //printf("\n%d param name: %s value %s", *paramCnt, paramPtr[paramInd].name, paramPtr[paramInd].strVal);
-        }
-
-        //fclose ( file );
+        //printf("\n%d param name: %s value %s", *paramCnt, paramPtr[paramInd].name, paramPtr[paramInd].strVal);
+    }//while
+    //fclose ( file );
     
     return paramPtr; 
 }

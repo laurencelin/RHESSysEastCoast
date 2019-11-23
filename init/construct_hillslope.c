@@ -45,6 +45,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "rhessys.h"
+#include "params.h"
 
 struct hillslope_object *construct_hillslope(
 											 struct	command_line_object	*command_line,
@@ -84,7 +85,8 @@ struct hillslope_object *construct_hillslope(
 	int		default_object_ID;
 	char		record[MAXSTR];
 	struct	hillslope_object *hillslope;
-	
+	param        *paramPtr=NULL;
+    int        paramCnt=0;
 	/*--------------------------------------------------------------*/
 	/*	Allocate a hillslope object.								*/
 	/*--------------------------------------------------------------*/
@@ -107,38 +109,55 @@ struct hillslope_object *construct_hillslope(
 	/*--------------------------------------------------------------*/
 	/*	Read in the hillslope record from the world file.			*/
 	/*--------------------------------------------------------------*/
-	fscanf(world_file,"%d",&(hillslope[0].ID));
-	read_record(world_file, record);
-	fscanf(world_file,"%lf",&(hillslope[0].x));
-	read_record(world_file, record);
-	fscanf(world_file,"%lf",&(hillslope[0].y));
-	read_record(world_file, record);
-	fscanf(world_file,"%lf",&(hillslope[0].z));
-	read_record(world_file, record);
-	fscanf(world_file,"%d",&(default_object_ID));
-	read_record(world_file, record);
-	fscanf(world_file,"%lf",&(hillslope[0].gw.storage));
-	read_record(world_file, record);
-	fscanf(world_file,"%lf",&(hillslope[0].gw.NO3));
-	read_record(world_file, record);
+//	fscanf(world_file,"%d",&(hillslope[0].ID));
+//	read_record(world_file, record);
+//	fscanf(world_file,"%lf",&(hillslope[0].x));
+//	read_record(world_file, record);
+//	fscanf(world_file,"%lf",&(hillslope[0].y));
+//	read_record(world_file, record);
+//	fscanf(world_file,"%lf",&(hillslope[0].z));
+//	read_record(world_file, record);
+//	fscanf(world_file,"%d",&(default_object_ID));
+//	read_record(world_file, record);
+//	fscanf(world_file,"%lf",&(hillslope[0].gw.storage));
+//	read_record(world_file, record);
+//	fscanf(world_file,"%lf",&(hillslope[0].gw.NO3));
+//	read_record(world_file, record);
     
+    paramPtr=readtag_worldfile(&paramCnt,world_file,"Hillslope");
+    hillslope[0].ID = getIntWorldfile(&paramCnt,&paramPtr,"hillslope_ID","%d",-9999,0);
+    hillslope[0].x = getDoubleWorldfile(&paramCnt,&paramPtr,"x","%lf",0.0,1);
+    hillslope[0].y = getDoubleWorldfile(&paramCnt,&paramPtr,"y","%lf",0.0,1);
+    hillslope[0].z = getDoubleWorldfile(&paramCnt,&paramPtr,"z","%lf",-9999,0);
+    default_object_ID = getIntWorldfile(&paramCnt,&paramPtr,"hill_parm_ID","%d",1,1);
+    hillslope[0].gw.storage = getDoubleWorldfile(&paramCnt,&paramPtr,"gw.storage","%lf",0.0,1);
+    hillslope[0].gw.NO3 = getDoubleWorldfile(&paramCnt,&paramPtr,"gw.NO3","%lf",0.0,1);
+    hillslope[0].gw.NH4 = getDoubleWorldfile(&paramCnt,&paramPtr,"gw.NH4","%lf",0.0,1);
+    hillslope[0].gw.DOC = getDoubleWorldfile(&paramCnt,&paramPtr,"gw.DOC","%lf",0.0,1);
+    hillslope[0].gw.DON = getDoubleWorldfile(&paramCnt,&paramPtr,"gw.DON","%lf",0.0,1);
+    hillslope[0].num_base_stations = getIntWorldfile(&paramCnt,&paramPtr,"hillslope_n_basestations","%d",0,1);
+
+    hillslope[0].streamflow_NO3 = 0.0;
+    hillslope[0].streamflow_NH4 = 0.0;
+    hillslope[0].streamflow_DON = 0.0;
+    hillslope[0].streamflow_DOC = 0.0;
     ///---------------------------------------------------  need a flag
-    if( command_line[0].readinWFdoc_flag  == 1 ){
-        fscanf(world_file,"%lf",&(hillslope[0].gw.DOC));
-        read_record(world_file, record);
-        fscanf(world_file,"%lf",&(hillslope[0].gw.DON));
-        read_record(world_file, record);
-    }else{
-        hillslope[0].gw.DOC = 0.0018;  //kgC/m2 learned from long run trend
-        hillslope[0].gw.DON = hillslope[0].gw.DOC * 0.04651163; //CN 21.5
-    }// end of if
+//    if( command_line[0].readinWFdoc_flag  == 1 ){
+//        fscanf(world_file,"%lf",&(hillslope[0].gw.DOC));
+//        read_record(world_file, record);
+//        fscanf(world_file,"%lf",&(hillslope[0].gw.DON));
+//        read_record(world_file, record);
+//    }else{
+//        hillslope[0].gw.DOC = 0.0018;  //kgC/m2 learned from long run trend
+//        hillslope[0].gw.DON = hillslope[0].gw.DOC * 0.04651163; //CN 21.5
+//    }// end of if
     ///---------------------------------------------------
     
-	fscanf(world_file,"%d",&(hillslope[0].num_base_stations));
-	read_record(world_file, record);
-
-	hillslope[0].streamflow_NO3 = 0.0;	
-	hillslope[0].streamflow_NH4 = 0.0;	
+//	fscanf(world_file,"%d",&(hillslope[0].num_base_stations));
+//	read_record(world_file, record);
+//
+//	hillslope[0].streamflow_NO3 = 0.0;
+//	hillslope[0].streamflow_NH4 = 0.0;
 	/*--------------------------------------------------------------*/
 	/*  Assign  defaults for this hillslope                             */
 	/*--------------------------------------------------------------*/
@@ -164,33 +183,31 @@ struct hillslope_object *construct_hillslope(
 	/*--------------------------------------------------------------*/
 	/*	Allocate a list of base stations for this hillslope.		*/
 	/*--------------------------------------------------------------*/
-	hillslope[0].base_stations = (struct base_station_object **)
-		alloc(hillslope[0].num_base_stations *
-		sizeof(struct base_station_object *),"base_stations",
-		"construct_hillslopes" );
-	/*--------------------------------------------------------------*/
-	/*	Read each base_station ID and then point to that base_statio*/
-	/*--------------------------------------------------------------*/
-	for (i=0 ; i<hillslope[0].num_base_stations; i++){
-		fscanf(world_file,"%d",&(base_stationID));
-		read_record(world_file, record);
-		/*--------------------------------------------------------------*/
-		/*		Point to the appropriate base station in the base       */
-		/*		station list for this world.							*/
-		/*																*/
-		/*--------------------------------------------------------------*/
-		hillslope[0].base_stations[i] = assign_base_station(
-			base_stationID,
-			*num_world_base_stations,
-			world_base_stations);
-	} /*end for*/
+    hillslope[0].base_stations = NULL;
+//	hillslope[0].base_stations = (struct base_station_object **) alloc(hillslope[0].num_base_stations * sizeof(struct base_station_object *),"base_stations", "construct_hillslopes" );
+//	/*--------------------------------------------------------------*/
+//	/*	Read each base_station ID and then point to that base_statio*/
+//	/*--------------------------------------------------------------*/
+//	for (i=0 ; i<hillslope[0].num_base_stations; i++){
+//		fscanf(world_file,"%d",&(base_stationID));
+//		read_record(world_file, record);
+//		/*--------------------------------------------------------------*/
+//		/*		Point to the appropriate base station in the base       */
+//		/*		station list for this world.							*/
+//		/*																*/
+//		/*--------------------------------------------------------------*/
+//		hillslope[0].base_stations[i] = assign_base_station(
+//			base_stationID,
+//			*num_world_base_stations,
+//			world_base_stations);
+//	} /*end for*/
 	
 	/*--------------------------------------------------------------*/
 	/*	Read in number of zones in this hillslope.					*/
 	/*--------------------------------------------------------------*/
-	fscanf(world_file,"%d",&(hillslope[0].num_zones));
-	read_record(world_file, record);
-	
+//	fscanf(world_file,"%d",&(hillslope[0].num_zones));
+//	read_record(world_file, record);
+	hillslope[0].num_zones = getIntWorldfile(&paramCnt,&paramPtr,"NUM_of_","%d",0,0);
 	/*--------------------------------------------------------------*/
 	/*	Allocate list of pointers to zone objects .					*/
 	/*--------------------------------------------------------------*/
@@ -198,11 +215,8 @@ struct hillslope_object *construct_hillslope(
 		alloc( hillslope[0].num_zones * sizeof( struct zone_object *),
 		"zones","construct_hillslopes");
 	
-	hillslope[0].streamflow_NO3 = 0.0;
-	hillslope[0].streamflow_NH4 = 0.0;
-	hillslope[0].streamflow_DON = 0.0;
-	hillslope[0].streamflow_DOC = 0.0;
-	hillslope[0].gw.NH4 = 0.0;
+	
+	
 	/*--------------------------------------------------------------*/
 	/*	Construct the zones in this hillslope.						*/
 	/*	and calculate hillslope area								*/
@@ -259,10 +273,10 @@ struct hillslope_object *construct_hillslope(
 				hillslope[0].zones[i][0].patches[j][0].soil_defaults[0][0].porosity_decay *
 				hillslope[0].zones[i][0].patches[j][0].area;
 			hillslope[0].aggdefs.DOM_decay_rate +=
-				hillslope[0].zones[i][0].patches[j][0].soil_defaults[0][0].DOM_decay_rate *
+				hillslope[0].zones[i][0].patches[j][0].soil_defaults[0][0].DOMdecayRate *
 				hillslope[0].zones[i][0].patches[j][0].area;
 			hillslope[0].aggdefs.N_decay_rate +=
-				hillslope[0].zones[i][0].patches[j][0].soil_defaults[0][0].N_decay_rate *
+				hillslope[0].zones[i][0].patches[j][0].soil_defaults[0][0].NO3decayRate *
 				hillslope[0].zones[i][0].patches[j][0].area;
 			hillslope[0].aggdefs.active_zone_z +=
 				hillslope[0].zones[i][0].patches[j][0].soil_defaults[0][0].active_zone_z *

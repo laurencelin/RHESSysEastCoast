@@ -267,8 +267,7 @@ if (Tair_mean_day > 0) {
 	/*--------------------------------------------------------------*/
 	/*	Compute amount of sublimation that happened.		*/
 	/*--------------------------------------------------------------*/
-	stratum[0].sublimation =  storage_sublimated +
-		potential_interception_sublimated;
+	stratum[0].sublimation =  storage_sublimated + potential_interception_sublimated;
 	
 	if (verbose_flag == -5) {
 		printf("\n               subl_act=%lf radsubl=%lf",stratum[0].sublimation,radsubl);

@@ -170,16 +170,14 @@ Farquhar photosynthesis routine
         /* tague for Laura: FOR NOW WE WILL HARDCODE C3 */
         in->c3 = 1; //most trees are c3; known c4 is grass
         
-        if (in->c3)
-            {
-                    ppe = 2.6;
+        if (in->c3){
+            ppe = 2.6;
             c3 = 1;
-            }
-            else /* C4 */
-            {
-                    ppe = 3.5;
-                    Ca *= 10.0;
-            }
+        } else {
+            /* C4 */
+            ppe = 3.5;
+            Ca *= 10.0;
+        }//if else
 
         /* calculate atmospheric O2 in Pa, assumes 21% O2 by volume */
         O2 = 0.21 * in->pa;

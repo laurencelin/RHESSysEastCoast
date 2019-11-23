@@ -44,8 +44,7 @@ Remember that the year after 1 B.C. was 1 A.D.
 	if (calendar_date.month > 2) {
 		jy = calendar_date.year;
 		jm = calendar_date.month+1;
-	}
-	else {
+	} else {
 		jy = calendar_date.year - 1;
 		jm = calendar_date.month + 13;
 	}

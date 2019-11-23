@@ -25,7 +25,7 @@
 #include "rhessys.h"
 
 
-void	compute_Lstar(int	verbose_flag,
+int	compute_Lstar(int	verbose_flag,
 					  struct	basin_object	*basin,
 					  struct	zone_object	*zone,
 					  struct	patch_object	*patch)
@@ -252,4 +252,5 @@ void	compute_Lstar(int	verbose_flag,
 			   patch[0].Lup/86.4);
 	}
 	
+    return(0);
 } /*end compute_Lstar*/

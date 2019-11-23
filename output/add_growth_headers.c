@@ -256,7 +256,7 @@ void add_growth_headers(struct world_output_file_object *world_output_files,
 	outfile = world_output_files[0].patch[0].daily;
 	check = fprintf(outfile,
                     //"%s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s\n",
-                    "%s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s\n",
+                    "%s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s\n",
                     "year", //1
                     "month", //2
                     "day", //3
@@ -265,6 +265,11 @@ void add_growth_headers(struct world_output_file_object *world_output_files,
                     "soilNO3",//5
                     "satNO3",//6
                     "subNO3outin",//7
+                    
+                    "soilNH4",//5
+                    "satNH4",//6
+                    "subNH4outin",//7
+                    
                     "soilDOC",//8
                     "satDOC",//9
                     "subDOCoutin",//10

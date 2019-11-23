@@ -56,6 +56,7 @@ int	 valid_option( char *command_line){
 		(strcmp(command_line,"-s")  == 0) ||
 		(strcmp(command_line,"-z")  == 0) ||
 		(strcmp(command_line,"-sv")  == 0) ||
+        (strcmp(command_line,"-spor") == 0) ||
 		(strcmp(command_line,"-st")  == 0) ||
 		(strcmp(command_line,"-th")  == 0) ||
 		(strcmp(command_line,"-ed")  == 0) ||

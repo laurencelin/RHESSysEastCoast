@@ -199,130 +199,202 @@ void		patch_daily_I(
 
 	patch[0].precip_with_assim = 0.0;
     
+    // -- update sat_def related variables
+    if(patch[0].sat_deficit >= 0){
+        patch[0].available_soil_water = patch[0].soil_defaults[0][0].soil_water_cap - patch[0].sat_deficit;
+        patch[0].sat_def_pct = patch[0].sat_deficit * patch[0].soil_defaults[0][0].max_sat_def_1;
+        patch[0].sat_def_pct_index = (int)(patch[0].sat_def_pct*1000);
+        patch[0].sat_def_pct_indexM = 1000*(patch[0].sat_def_pct - patch[0].sat_def_pct_index*0.001);
+        
+        patch[0].sat_deficit_z = patch[0].sat_def_pct_indexM * patch[0].soil_defaults[0][0].sat_def_z[patch[0].sat_def_pct_index+1] + (1.0-patch[0].sat_def_pct_indexM) * patch[0].soil_defaults[0][0].sat_def_z[patch[0].sat_def_pct_index];
+    }else{
+        // surface
+        patch[0].available_soil_water = patch[0].soil_defaults[0][0].soil_water_cap;
+        patch[0].sat_deficit_z = patch[0].sat_deficit;
+        patch[0].sat_def_pct = 0.0;
+        patch[0].sat_def_pct_index = 0;
+        patch[0].sat_def_pct_indexM = 0;
+    }
     
 	/*-----------------------------------------------------*/
 	/*  Compute potential saturation for rootzone layer   */
-	/*-----------------------------------------------------*/			
-	if (patch[0].rootzone.depth > ZERO)  {
-        patch[0].rootzone.potential_sat = compute_delta_water(
-            command_line[0].verbose_flag,
-            patch[0].soil_defaults[0][0].porosity_0,
-            patch[0].soil_defaults[0][0].porosity_decay,
-            patch[0].soil_defaults[0][0].soil_depth,
-            patch[0].rootzone.depth, 0.0);
-         if (patch[0].rootzone.potential_sat > ZERO)
-            if (patch[0].sat_deficit_z > patch[0].rootzone.depth)
-            patch[0].rootzone.S = patch[0].rz_storage/patch[0].rootzone.potential_sat/(1.0-patch[0].basementFrac);
-            else
-            patch[0].rootzone.S = min((patch[0].rz_storage + patch[0].rootzone.potential_sat - patch[0].sat_deficit)/patch[0].rootzone.potential_sat/(1.0-patch[0].basementFrac),1.0);
-        else
-            patch[0].rootzone.S = 0.0;
-	}else {
-		patch[0].rootzone.potential_sat = 0.0;
-		patch[0].rootzone.S = 0.0;
-    }
-
-	if (patch[0].sat_deficit < ZERO) 
-		patch[0].S = 1.0;
-	else
-		patch[0].S = (patch[0].rz_storage+patch[0].unsat_storage)/patch[0].sat_deficit;
-	
+	/*-----------------------------------------------------*/
+    if( patch[0].rootzone.depth > 0.0 && patch[0].rootzone.depth<0.01) patch[0].rootzone.depth= 0.01; // 10 mmm
+    patch[0].rtz2_index = (int)(round(patch[0].rootzone.depth*1000));
+    patch[0].rootzone.potential_sat = patch[0].soil_defaults[0][0].rtz2sat_def_0z[patch[0].rtz2_index];
+    patch[0].rootdepth_index = patch[0].soil_defaults[0][0].rtz2sat_def_pct_index[patch[0].rtz2_index];
+    //patch[0].rootdepth_indexM = patch[0].soil_defaults[0][0].rtz2sat_def_pct_indexM[patch[0].rtz2_index];
+    //1000*(patch[0].rootzone.potential_sat*patch[0].soil_defaults[0][0].max_sat_def_1 - patch[0].rootdepth_index*0.001);
+    if(patch[0].rootdepth_indexM<0.0 || patch[0].rootdepth_indexM>1.0)
+        printf("rootdepth_indexM at (%d,%d,%f, %f %f)\n",patch[0].ID, patch[0].rootdepth_index, patch[0].rootdepth_indexM,
+               patch[0].rootzone.potential_sat,patch[0].rootzone.depth);
+    // how to handle no rootzone
+    // quick solution is to set pointers to 002 and make an (double) zeroRoot[1 or 0]
+    if(patch[0].rootzone.depth < 0.012){
+        patch[0].rootzone_start_refcap = patch[0].soil_defaults[0][0].pot_caprise_00012r;
+        patch[0].rootzone_end_refcap = patch[0].soil_defaults[0][0].pot_caprise_00012r;
+        patch[0].rootzone_start_reffc = patch[0].soil_defaults[0][0].fc1_00012r;
+        patch[0].rootzone_end_reffc = patch[0].soil_defaults[0][0].fc1_00012r;
+        patch[0].rootzone_scale_ref = 1.0;// don't matter what value in this case
+        patch[0].zeroRootCoef = 0.0; // treat it as no root; no real root depth be less than 1 cm.
+    }else if(patch[0].rootzone.depth>0.012 && patch[0].rootzone.depth<=0.3){
+        patch[0].rootzone_start_refcap = patch[0].soil_defaults[0][0].pot_caprise_00012r;
+        patch[0].rootzone_end_refcap = patch[0].soil_defaults[0][0].pot_caprise_003r;
+        patch[0].rootzone_start_reffc = patch[0].soil_defaults[0][0].fc1_00012r;
+        patch[0].rootzone_end_reffc = patch[0].soil_defaults[0][0].fc1_003r;
+        patch[0].rootzone_scale_ref = (patch[0].rootzone.depth-0.012)/(0.3-0.012);
+        patch[0].zeroRootCoef = 1.0;
+    }else if(patch[0].rootzone.depth>0.3 && patch[0].rootzone.depth<=0.6){
+        patch[0].rootzone_start_refcap = patch[0].soil_defaults[0][0].pot_caprise_003r;
+        patch[0].rootzone_end_refcap = patch[0].soil_defaults[0][0].pot_caprise_006r;
+        patch[0].rootzone_start_reffc = patch[0].soil_defaults[0][0].fc1_003r;
+        patch[0].rootzone_end_reffc = patch[0].soil_defaults[0][0].fc1_006r;
+        patch[0].rootzone_scale_ref = (patch[0].rootzone.depth-0.3)/(0.6-0.3);
+        patch[0].zeroRootCoef = 1.0;
+    }else if(patch[0].rootzone.depth>0.6 && patch[0].rootzone.depth<=1.0){
+        patch[0].rootzone_start_refcap = patch[0].soil_defaults[0][0].pot_caprise_006r;
+        patch[0].rootzone_end_refcap = patch[0].soil_defaults[0][0].pot_caprise_010r;
+        patch[0].rootzone_start_reffc = patch[0].soil_defaults[0][0].fc1_006r;
+        patch[0].rootzone_end_reffc = patch[0].soil_defaults[0][0].fc1_010r;
+        patch[0].rootzone_scale_ref = (patch[0].rootzone.depth-0.6)/(1.0-0.6);
+        patch[0].zeroRootCoef = 1.0;
+    }else if(patch[0].rootzone.depth>1.0 && patch[0].rootzone.depth<=1.5){
+        patch[0].rootzone_start_refcap = patch[0].soil_defaults[0][0].pot_caprise_010r;
+        patch[0].rootzone_end_refcap = patch[0].soil_defaults[0][0].pot_caprise_015r;
+        patch[0].rootzone_start_reffc = patch[0].soil_defaults[0][0].fc1_010r;
+        patch[0].rootzone_end_reffc = patch[0].soil_defaults[0][0].fc1_015r;
+        patch[0].rootzone_scale_ref = (patch[0].rootzone.depth-1.0)/(1.5-1.0);
+        patch[0].zeroRootCoef = 1.0;
+    }else if(patch[0].rootzone.depth>1.5 && patch[0].rootzone.depth<=2.0){
+        patch[0].rootzone_start_refcap = patch[0].soil_defaults[0][0].pot_caprise_015r;
+        patch[0].rootzone_end_refcap = patch[0].soil_defaults[0][0].pot_caprise_020r;
+        patch[0].rootzone_start_reffc = patch[0].soil_defaults[0][0].fc1_015r;
+        patch[0].rootzone_end_reffc = patch[0].soil_defaults[0][0].fc1_020r;
+        patch[0].rootzone_scale_ref = (patch[0].rootzone.depth-1.5)/(2.0-1.5);
+        patch[0].zeroRootCoef = 1.0;
+    }else if(patch[0].rootzone.depth>2.0 && patch[0].rootzone.depth<=2.5){
+        patch[0].rootzone_start_refcap = patch[0].soil_defaults[0][0].pot_caprise_020r;
+        patch[0].rootzone_end_refcap = patch[0].soil_defaults[0][0].pot_caprise_025r;
+        patch[0].rootzone_start_reffc = patch[0].soil_defaults[0][0].fc1_020r;
+        patch[0].rootzone_end_reffc = patch[0].soil_defaults[0][0].fc1_025r;
+        patch[0].rootzone_scale_ref = (patch[0].rootzone.depth-2.0)/(2.5-2.0);
+        patch[0].zeroRootCoef = 1.0;
+    }else if(patch[0].rootzone.depth>2.5 && patch[0].rootzone.depth<=3.0){
+        patch[0].rootzone_start_refcap = patch[0].soil_defaults[0][0].pot_caprise_025r;
+        patch[0].rootzone_end_refcap = patch[0].soil_defaults[0][0].pot_caprise_030r;
+        patch[0].rootzone_start_reffc = patch[0].soil_defaults[0][0].fc1_025r;
+        patch[0].rootzone_end_reffc = patch[0].soil_defaults[0][0].fc1_030r;
+        patch[0].rootzone_scale_ref = (patch[0].rootzone.depth-2.5)/(3.0-2.5);
+        patch[0].zeroRootCoef = 1.0;
+    }//if else
+    
+    
+    
+//	if (patch[0].rootzone.depth > ZERO)  {
+//        // how is lulc frac affecting this part? Aug 8, 2019
+//        // daily updated "patch[0].rootzone.depth" is done by this daily_I @ LINE 472 (below)
+//        // stratum[0].rootzone.depth is first updated via "update_phenology", then aggregated to here
+//
+////        patch[0].rootzone.potential_sat = compute_delta_water(
+////            command_line[0].verbose_flag,
+////            patch[0].soil_defaults[0][0].porosity_0,
+////            patch[0].soil_defaults[0][0].porosity_decay,
+////            patch[0].soil_defaults[0][0].soil_depth,
+////            patch[0].rootzone.depth, 0.0);
+//        if (patch[0].sat_deficit_z > patch[0].rootzone.depth)
+//            patch[0].rootzone.SatPct = min(patch[0].rz_storage/patch[0].rootzone.potential_sat/(1.0-patch[0].basementFrac), 1.0);
+//        else
+//            patch[0].rootzone.SatPct = min((patch[0].rz_storage + patch[0].rootzone.potential_sat - patch[0].sat_deficit)/patch[0].rootzone.potential_sat/(1.0-patch[0].basementFrac),1.0);
+//
+//	}else{
+//        // no rootzone
+//		patch[0].rootzone.potential_sat = 0.0;
+//		patch[0].rootzone.SatPct = 0.0;
+//    }
+//
+//	if (patch[0].sat_deficit < ZERO)
+//		patch[0].aboveWT_SatPct = 1.0;
+//	else
+//		patch[0].aboveWT_SatPct = (patch[0].rz_storage+patch[0].unsat_storage)/patch[0].sat_deficit;
+//
 	/*--------------------------------------------------------------*/
 	/*  compute standard deviation of theta based on soil parameters */
 	/* assume no decay of porosity here 				*/
 	/*--------------------------------------------------------------*/
-	theta = patch[0].S * patch[0].soil_defaults[0][0].porosity_0;
-	patch[0].theta_std = (patch[0].soil_defaults[0][0].theta_mean_std_p2*theta*theta + 
-				patch[0].soil_defaults[0][0].theta_mean_std_p1*theta);
+//	theta = patch[0].aboveWT_SatPct * patch[0].soil_defaults[0][0].porosity_0;
+//	patch[0].theta_std = (patch[0].soil_defaults[0][0].theta_mean_std_p2*theta*theta +
+//				patch[0].soil_defaults[0][0].theta_mean_std_p1*theta);
+    
+    if(patch[0].rootzone.potential_sat>ZERO){
+        if (patch[0].sat_deficit > patch[0].rootzone.potential_sat) theta = min(patch[0].rz_storage/patch[0].rootzone.potential_sat/(1.0-patch[0].basementFrac), 1.0);
+        else theta = min((patch[0].rz_storage + patch[0].rootzone.potential_sat - patch[0].sat_deficit)/patch[0].rootzone.potential_sat/(1.0-patch[0].basementFrac),1.0);
+    }else{ theta = 0.0; }
+    //theta *= patch[0].soil_defaults[0][0].porosity_0; // really?
+    patch[0].theta_std = (patch[0].soil_defaults[0][0].theta_mean_std_p2*theta*theta +
+                patch[0].soil_defaults[0][0].theta_mean_std_p1*theta);
+    
+    
+    
+    //for biochemical mode accounting for basement;
+    // constraintWaterTableTopDepth is patch-level average basement depth; basement depth is 3m --> basementFrac = constraintWaterTableTopDepth/3
+
 
 	/*--------------------------------------------------------------*/
 	/*	compute new field capacity				*/
 	/*--------------------------------------------------------------*/
-
-	if (patch[0].sat_deficit_z <= patch[0].rootzone.depth)  {
-		patch[0].rootzone.field_capacity = compute_layer_field_capacity(
-			command_line[0].verbose_flag,
-			patch[0].soil_defaults[0][0].theta_psi_curve,
-			patch[0].soil_defaults[0][0].psi_air_entry,
-			patch[0].soil_defaults[0][0].pore_size_index,
-			patch[0].soil_defaults[0][0].p3,
-			patch[0].soil_defaults[0][0].p4,
-			patch[0].soil_defaults[0][0].porosity_0,
-			patch[0].soil_defaults[0][0].porosity_decay,
-			patch[0].sat_deficit_z,
-			patch[0].rootzone.depth, 0.0)*(1.0-patch[0].basementFrac);
-			
-		patch[0].field_capacity = 0.0;
-		if ( command_line[0].verbose_flag == -5 ){
-			printf("\n***PCHDAILYI CASE1: satdefz=%lf rzdepth=%lf rzFC=%lf FC=%lf",
-				   patch[0].sat_deficit_z,
-				   patch[0].rootzone.depth,
-				   patch[0].rootzone.field_capacity,
-				   patch[0].field_capacity);
-		}
-		
-	}
-	else  {
-		patch[0].rootzone.field_capacity = compute_layer_field_capacity(
-			command_line[0].verbose_flag,
-			patch[0].soil_defaults[0][0].theta_psi_curve,
-			patch[0].soil_defaults[0][0].psi_air_entry,
-			patch[0].soil_defaults[0][0].pore_size_index,
-			patch[0].soil_defaults[0][0].p3,
-			patch[0].soil_defaults[0][0].p4,
-			patch[0].soil_defaults[0][0].porosity_0,
-			patch[0].soil_defaults[0][0].porosity_decay,
-			patch[0].sat_deficit_z,
-			patch[0].rootzone.depth, 0.0);	
-
-		patch[0].field_capacity = compute_layer_field_capacity(
-			command_line[0].verbose_flag,
-			patch[0].soil_defaults[0][0].theta_psi_curve,
-			patch[0].soil_defaults[0][0].psi_air_entry,
-			patch[0].soil_defaults[0][0].pore_size_index,
-			patch[0].soil_defaults[0][0].p3,
-			patch[0].soil_defaults[0][0].p4,
-			patch[0].soil_defaults[0][0].porosity_0,
-			patch[0].soil_defaults[0][0].porosity_decay,
-			patch[0].sat_deficit_z,
-			patch[0].sat_deficit_z, 0.0) - patch[0].rootzone.field_capacity;
-		
-        patch[0].rootzone.field_capacity *= (1.0-patch[0].basementFrac);
-		if ( command_line[0].verbose_flag == -5 ){
-			printf("\n***PCHDAILYI CASE2: satdefz=%lf rzdepth=%lf rzFC=%lf FC=%lf",
-				   patch[0].sat_deficit_z,
-				   patch[0].rootzone.depth,
-				   patch[0].rootzone.field_capacity,
-				   patch[0].field_capacity);
-		}
-		
-	}
-
+    
+    double totalfc = patch[0].sat_def_pct_indexM * patch[0].soil_defaults[0][0].fc1_0z[patch[0].sat_def_pct_index+1] + (1.0-patch[0].sat_def_pct_indexM) * patch[0].soil_defaults[0][0].fc1_0z[patch[0].sat_def_pct_index];
+    totalfc *= (1.0-patch[0].basementFrac); // <---- second thought on this, Oct 8, 2019; basement is 3m at most
+    
+	if (patch[0].sat_deficit < ZERO) {
+        //patch[0].aboveWT_SatPct = 1.0;
+        //patch[0].rootzone.SatPct = 1.0;
+        patch[0].rootzone.field_capacity = 0.0;
+        patch[0].field_capacity = 0.0;
+    } else {
+        patch[0].rootzone.field_capacity = totalfc * patch[0].zeroRootCoef * (patch[0].rootzone_scale_ref*patch[0].rootzone_end_reffc[patch[0].sat_def_pct_index] + (1.0-patch[0].rootzone_scale_ref)*patch[0].rootzone_start_reffc[patch[0].sat_def_pct_index]);
+        patch[0].rootzone.field_capacity = min(patch[0].rootzone.field_capacity,patch[0].rootzone.potential_sat);
+        //(1*patch[0].rootzone_end_ref[187] + (1-1)*patch[0].rootzone_start_ref[187]);
+        
+        //patch[0].rootzone.field_capacity = totalfc * patch[0].zeroRootCoef * ( patch[0].rootdepth_indexM*(patch[0].rootzone_scale_ref*patch[0].rootzone_end_ref[patch[0].sat_def_pct_index+1] + (1.0-patch[0].rootzone_scale_ref)*patch[0].rootzone_start_ref[patch[0].sat_def_pct_index+1]) + (1.0-patch[0].rootdepth_indexM) * (patch[0].rootzone_scale_ref*patch[0].rootzone_end_ref[patch[0].sat_def_pct_index] + (1.0-patch[0].rootzone_scale_ref)*patch[0].rootzone_start_ref[patch[0].sat_def_pct_index]) );
+        // rootzone.field_capacity is too little?
+        patch[0].field_capacity = max(0.0,min(patch[0].sat_deficit-patch[0].rootzone.potential_sat, totalfc - patch[0].rootzone.field_capacity));
+    }//if else
+    
+    if(patch[0].sat_deficit!=patch[0].sat_deficit || patch[0].sat_deficit_z!=patch[0].sat_deficit_z || patch[0].rootzone.field_capacity!=patch[0].rootzone.field_capacity || patch[0].field_capacity!=patch[0].field_capacity || (patch[0].sat_deficit>patch[0].rootzone.potential_sat && patch[0].field_capacity >= patch[0].sat_deficit-patch[0].rootzone.potential_sat+ZERO) || (patch[0].rootzone.field_capacity > patch[0].rootzone.potential_sat) ){
+        printf("patch_daily_I(1): (%d,%d,%d) sat(%lf %lf) rtz(%lf %lf %lf %d,%lf) unsat(%lf %lf)\n",
+               patch[0].ID, patch[0].soil_defaults[0][0].ID, patch[0].sat_def_pct_index,
+               patch[0].sat_deficit, patch[0].sat_deficit_z,
+               patch[0].rootzone.depth, patch[0].rootzone.potential_sat, patch[0].rootzone.field_capacity, patch[0].rootdepth_index,patch[0].rootzone_scale_ref,
+               patch[0].sat_deficit-patch[0].rootzone.potential_sat, patch[0].field_capacity);
+    }//debug
 
 
 	/*--------------------------------------------------------------*/
 	/*	Estimate potential cap rise.				*/
 	/*	limited to water in sat zone.				*/
 	/*--------------------------------------------------------------*/
-	patch[0].potential_cap_rise = compute_capillary_rise(
-		command_line[0].verbose_flag,
-		patch[0].sat_deficit_z,
-		patch[0].soil_defaults[0][0].psi_air_entry,
-		patch[0].soil_defaults[0][0].pore_size_index,
-		patch[0].soil_defaults[0][0].mz_v,
-		patch[0].soil_defaults[0][0].Ksat_0_v );
+    patch[0].potential_cap_rise = patch[0].sat_def_pct_indexM * patch[0].soil_defaults[0][0].pot_caprise_0z[patch[0].sat_def_pct_index+1] + (1.0-patch[0].sat_def_pct_indexM) *  patch[0].soil_defaults[0][0].pot_caprise_0z[patch[0].sat_def_pct_index];
+    patch[0].potential_cap_rise = min(patch[0].potential_cap_rise, patch[0].available_soil_water);
+    patch[0].potential_cap_rise = min(patch[0].potential_cap_rise, max(0.0,totalfc - patch[0].unsat_storage - patch[0].rz_storage));
+    
+//    patch[0].potential_cap_rise = compute_capillary_rise(
+//		command_line[0].verbose_flag,
+//		patch[0].sat_deficit_z,
+//		patch[0].soil_defaults[0][0].psi_air_entry,
+//		patch[0].soil_defaults[0][0].pore_size_index,
+//		patch[0].soil_defaults[0][0].mz_v,
+//		patch[0].soil_defaults[0][0].Ksat_0_v );
     
     
-    if(command_line[0].capreduction < 1.0) {patch[0].potential_cap_rise *=command_line[0].capreduction; }
-    if(command_line[0].capMax>0.0){
-        if(patch[0].sat_deficit_z<patch[0].newcapZ0){patch[0].potential_cap_rise = patch[0].newcapSlope*patch[0].sat_deficit_z + patch[0].newcapInter;}
-    }//pre-calculated in patch ini.
+//    if(command_line[0].capreduction < 1.0) {patch[0].potential_cap_rise *=command_line[0].capreduction; }
+//    if(command_line[0].capMax>0.0){
+//        if(patch[0].sat_deficit_z<patch[0].newcapZ0){patch[0].potential_cap_rise = patch[0].newcapSlope*patch[0].sat_deficit_z + patch[0].newcapInter;}
+//    }//pre-calculated in patch ini.
     
 //if(patch[0].potential_cap_rise >= command_line[0].capMax){patch[0].potential_cap_rise *= command_line[0].capreduction;}
     
-	if (patch[0].potential_cap_rise < ZERO)
-		patch[0].potential_cap_rise = 0.0;
-	patch[0].cap_rise=0.0;
+    
 
 
 
@@ -341,72 +413,23 @@ void		patch_daily_I(
 	/*--------------------------------------------------------------*/
 	if ( patch[0].sat_deficit_z <= patch[0].soil_defaults[0][0].psi_air_entry ){
 		patch[0].potential_exfiltration = patch[0].potential_cap_rise;
-	}
-	else {
-//        if ( patch[0].soil_defaults[0][0].active_zone_z < patch[0].sat_deficit_z ){
-//            /*--------------------------------------------------------------*/
-//            /*    Estimate potential exfiltration from active zone     */
-//            /*--------------------------------------------------------------*/
-//            /* Added new check to see if non-zero root depth... was unintentionally */
-//            /* zeroing out potential exfil in non-vegetated cases.    -AD                */
-//            if (patch[0].rootzone.depth > ZERO)    {
-//                patch[0].potential_exfiltration = compute_potential_exfiltration(
-//                    command_line[0].verbose_flag,
-//                    patch[0].rootzone.S,
-//                    patch[0].soil_defaults[0][0].active_zone_z,
-//                    patch[0].soil_defaults[0][0].Ksat_0_v,
-//                    patch[0].soil_defaults[0][0].mz_v,
-//                    patch[0].soil_defaults[0][0].psi_air_entry,
-//                    patch[0].soil_defaults[0][0].pore_size_index,
-//                    patch[0].soil_defaults[0][0].porosity_decay,
-//                    patch[0].soil_defaults[0][0].porosity_0);
-//                }
-//            else {
-//            patch[0].potential_exfiltration = compute_potential_exfiltration(
-//                    command_line[0].verbose_flag,
-//                    patch[0].S,
-//                    patch[0].soil_defaults[0][0].active_zone_z,
-//                    patch[0].soil_defaults[0][0].Ksat_0_v,
-//                    patch[0].soil_defaults[0][0].mz_v,
-//                    patch[0].soil_defaults[0][0].psi_air_entry,
-//                    patch[0].soil_defaults[0][0].pore_size_index,
-//                    patch[0].soil_defaults[0][0].porosity_decay,
-//                    patch[0].soil_defaults[0][0].porosity_0);
-//                }
-//        }
-//        else {
-//
-//        }
-        /*--------------------------------------------------------------*/
-        /*    Estimate potential exfiltration from active zone     */
-        /*--------------------------------------------------------------*/
-        if (patch[0].rootzone.depth > ZERO)    {
-            patch[0].potential_exfiltration = compute_potential_exfiltration(
-                                                 command_line[0].verbose_flag,
-                                                 patch[0].rootzone.S,
-                                                 patch[0].sat_deficit_z,
-                                                 patch[0].soil_defaults[0][0].Ksat_0_v,
-                                                 patch[0].soil_defaults[0][0].mz_v,
-                                                 patch[0].soil_defaults[0][0].psi_air_entry,
-                                                 patch[0].soil_defaults[0][0].pore_size_index,
-                                                 patch[0].soil_defaults[0][0].porosity_decay,
-                                                 patch[0].soil_defaults[0][0].porosity_0);
-        }else {
-            patch[0].potential_exfiltration = compute_potential_exfiltration(
-                                                 command_line[0].verbose_flag,
-                                                 patch[0].S,
-                                                 patch[0].sat_deficit_z,
-                                                 patch[0].soil_defaults[0][0].Ksat_0_v,
-                                                 patch[0].soil_defaults[0][0].mz_v,
-                                                 patch[0].soil_defaults[0][0].psi_air_entry,
-                                                 patch[0].soil_defaults[0][0].pore_size_index,
-                                                 patch[0].soil_defaults[0][0].porosity_decay,
-                                                 patch[0].soil_defaults[0][0].porosity_0);
-        }
-        
-        
-	}
-
+	}else{
+        patch[0].potential_exfiltration = compute_potential_exfiltration(
+            command_line[0].verbose_flag,
+            0.0,//patch[0].aboveWT_SatPct,
+            patch[0].soil_defaults[0][0].exfiltration_wilting_point,
+            patch[0].sat_def_pct_indexM *patch[0].soil_defaults[0][0].vksat_0zm[patch[0].sat_def_pct_index+1] + (1.0 - patch[0].sat_def_pct_indexM) * patch[0].soil_defaults[0][0].vksat_0zm[patch[0].sat_def_pct_index],
+            patch[0].sat_def_pct_indexM *patch[0].soil_defaults[0][0].exfiltration_coef[patch[0].sat_def_pct_index+1] + (1.0 - patch[0].sat_def_pct_indexM) * patch[0].soil_defaults[0][0].exfiltration_coef[patch[0].sat_def_pct_index],
+            patch[0].rz_storage+patch[0].unsat_storage, //patch[0].soil_defaults[0][0].psi_air_entry,
+            patch[0].sat_deficit, //patch[0].soil_defaults[0][0].pore_size_index,
+            patch[0].sat_def_pct_indexM *patch[0].soil_defaults[0][0].sat_def_0zm[patch[0].sat_def_pct_index+1] + (1.0 - patch[0].sat_def_pct_indexM) * patch[0].soil_defaults[0][0].sat_def_0zm[patch[0].sat_def_pct_index],
+            patch[0].soil_defaults[0][0].exfiltration_S_pow);
+	}//if else
+    // debug
+    if( patch[0].potential_exfiltration<0 || patch[0].potential_cap_rise<0){
+        printf("patch dailyI patch[0].potential_exfiltration & patch[0].potential_cap_rise(%d) %f %f %f\n",
+               patch[0].ID, patch[0].potential_exfiltration, patch[0].potential_cap_rise, patch[0].sat_deficit_z);
+    }// if debug
 
 
 	/*-----------------------------------------------------*/
@@ -434,29 +457,6 @@ void		patch_daily_I(
 	/*--------------------------------------------------------------*/
 	/*	Cycle through the canopy layers.			*/
 	/*--------------------------------------------------------------*/
-    //for biochemical mode accounting for basement;
-    // constraintWaterTableTopDepth is patch-level average basement depth; basement depth is 3m --> basementFrac = constraintWaterTableTopDepth/3
-    if(patch[0].constraintWaterTableTopDepth>0 && patch[0].constraintWaterTableTopDepth<3.0 && patch[0].sat_deficit_z<3.0 && patch[0].sat_deficit_z>0){
-        // basementSideAdjustWTZ is the count for water in the non-basement subpatch
-//        double basementFrac = 1.0 - patch[0].constraintWaterTableTopDepth/3.0;
-//        patch[0].basementSideAdjustWTZ = (patch[0].sat_deficit_z - patch[0].constraintWaterTableTopDepth)/basementFrac;
-//        patch[0].basementSideAdjustH2O = fabs( basementFrac * compute_delta_water(
-//                                               0,
-//                                               patch[0].soil_defaults[0][0].porosity_0,
-//                                               patch[0].soil_defaults[0][0].porosity_decay,
-//                                               patch[0].soil_defaults[0][0].soil_depth,
-//                                               patch[0].sat_deficit_z,
-//                                               patch[0].basementSideAdjustWTZ));
-        patch[0].basementSideAdjustWTZ = patch[0].sat_deficit_z;
-        patch[0].basementSideAdjustH2O = 0.0;
-    }else{
-        // no basement in the patch or natural land
-        patch[0].basementSideAdjustWTZ = patch[0].sat_deficit_z;
-        patch[0].basementSideAdjustH2O = 0.0;
-    }// if
-    
-    
-    
 	edible_leafc = 0.0;
 	grazing_mean_nc = 0.0;
 	cnt = 0;
@@ -548,9 +548,10 @@ void		patch_daily_I(
 		patch[0].soil_defaults[0][0].pore_size_index,
 		patch[0].soil_defaults[0][0].p3,
 		patch[0].soil_defaults[0][0].p4,
-		patch[0].soil_defaults[0][0].porosity_0,
-		patch[0].soil_defaults[0][0].porosity_decay,
-		patch[0].S);
+		patch[0].rz_storage,//patch[0].soil_defaults[0][0].porosity_0,
+		patch[0].rootzone.potential_sat,//patch[0].soil_defaults[0][0].porosity_decay,
+		patch[0].sat_deficit //patch[0].rootzone.SatPct //patch[0].aboveWT_SatPct // which one?
+        );
 
 
 	if (command_line[0].grow_flag > 0) {
@@ -569,7 +570,7 @@ void		patch_daily_I(
 			patch[0].Tsoil,
 			patch[0].soil_defaults[0][0].psi_max,
 			patch[0].soil_defaults[0][0].psi_air_entry,
-			patch[0].rootzone.S,
+			theta,///
 			patch[0].theta_std,
 			&(patch[0].soil_cs),
 			&(patch[0].soil_ns),
@@ -579,7 +580,7 @@ void		patch_daily_I(
 			&(patch[0].ndf),
             patch,
             command_line[0].soilDecayScalar,
-            command_line[0].soilCNadaptation_falg,
+            command_line[0].soilCNadaptation_flag,
             vegtype
 			) != 0){
 			fprintf(stderr,"fATAL ERROR: in compute_potential_decomp() ... Exiting\n");
@@ -596,9 +597,6 @@ void		patch_daily_I(
 	patch[0].unsat_drainage=0;
 
     
-    if(patch[0].soil_ns.DON<0 || patch[0].soil_cs.DOC<0) printf("patch daily I[%d,%d,%d,%d]",
-                                                                patch[0].ID, patch[0].drainage_type,actionPIPEDRAIN,actionSEWER,
-                                                                patch[0].soil_cs.DOC, patch[0].soil_ns.DON);
     
 	return;
 }/*end patch_daily_I.c*/

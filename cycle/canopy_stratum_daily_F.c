@@ -405,14 +405,22 @@ void	canopy_stratum_daily_F(
 	/*	Initialize temporary variables for transmitted fluxes.	*/
 	/*--------------------------------------------------------------*/
 	
+    if(stratum[0].rain_stored<0){
+        printf("bad rain_stored (F): %d,%d,%d,%lf\n",
+               patch[0].ID,stratum[0].ID, stratum[0].defaults[0][0].ID,stratum[0].rain_stored);
+        stratum[0].rain_stored = 0.0;
+    }//debug
+    
     // these patch[0].variables are the remained from previous layer; need to convert information to unit square unit for the unit sq. veg model (Nov 18, 2018, Laurence Lin)
     Kdown_diffuse = min(patch[0].Kdown_diffuse / (stratum[0].cover_fraction), zone[0].Kdown_diffuse);
 	Kup_diffuse = patch[0].Kup_diffuse;//<--- calculated from here
 	PAR_diffuse = min(patch[0].PAR_diffuse / (stratum[0].cover_fraction), zone[0].PAR_diffuse);
-	Kdown_direct = min(patch[0].Kdown_direct / (stratum[0].cover_fraction), zone[0].Kdown_direct);
+	
+    Kdown_direct = min(patch[0].Kdown_direct / (stratum[0].cover_fraction), zone[0].Kdown_direct);
 	Kup_direct = patch[0].Kup_direct;//<--- calculated from here
 	PAR_direct = min(patch[0].PAR_direct / (stratum[0].cover_fraction), zone[0].PAR_direct);
-	rain_throughfall = min(patch[0].rain_throughfall / (stratum[0].cover_fraction), zone[0].rain);
+	
+    rain_throughfall = min(patch[0].rain_throughfall / (stratum[0].cover_fraction), zone[0].rain);
 	snow_throughfall = min(patch[0].snow_throughfall / (stratum[0].cover_fraction), zone[0].snow);
     
     
@@ -424,8 +432,8 @@ void	canopy_stratum_daily_F(
 	ustar  = patch[0].ustar;
 	transpiration = 0.0;
 	potential_transpiration = 0.0;
-	rainy_evaporation = 0;
-	dry_evaporation = 0;
+	rainy_evaporation = 0.0;
+	dry_evaporation = 0.0;
 	total_incoming_PAR = PAR_diffuse + PAR_direct;
 
 	ustar = patch[0].ustar;
@@ -540,7 +548,7 @@ void	canopy_stratum_daily_F(
 		printf("\n %f %f %f %f %f %f %f",
 			Kdown_diffuse,
 			Kdown_direct,
-			-1*stratum[0].defaults[0][0].epc.ext_coef,
+			-stratum[0].defaults[0][0].epc.ext_coef,
 			stratum[0].gap_fraction,
 			stratum[0].epv.proj_pai,
 			basin[0].theta_noon,
@@ -553,7 +561,7 @@ void	canopy_stratum_daily_F(
 		&(Kdown_diffuse),
 		&(Kup_diffuse),
 		Kdown_direct,
-		-1*stratum[0].defaults[0][0].epc.ext_coef,
+		-stratum[0].defaults[0][0].epc.ext_coef,
 		stratum[0].gap_fraction,
 		stratum[0].epv.proj_pai,
 		basin[0].theta_noon,
@@ -564,7 +572,7 @@ void	canopy_stratum_daily_F(
 		command_line[0].verbose_flag,
 		&(PAR_diffuse),//<<------------- being reduced, returning the leftover
 		PAR_direct,
-		-1*stratum[0].defaults[0][0].epc.ext_coef,
+		-stratum[0].defaults[0][0].epc.ext_coef,
 		stratum[0].gap_fraction,
 		stratum[0].epv.proj_lai,
 		basin[0].theta_noon,
@@ -596,7 +604,7 @@ void	canopy_stratum_daily_F(
 		command_line[0].verbose_flag,
 		&(Kdown_direct),
 		&(Kup_direct),
-		-1*stratum[0].defaults[0][0].epc.ext_coef,
+		-stratum[0].defaults[0][0].epc.ext_coef,
 		stratum[0].gap_fraction,
 		stratum[0].epv.proj_pai,
 		basin[0].theta_noon,
@@ -611,7 +619,7 @@ void	canopy_stratum_daily_F(
 		command_line[0].verbose_flag,
 		&(PAR_direct), //<<------------- being reduced, returning the leftover
 		&(dum),
-		-1*stratum[0].defaults[0][0].epc.ext_coef,
+		-stratum[0].defaults[0][0].epc.ext_coef,
 		stratum[0].gap_fraction,
 		stratum[0].epv.proj_pai,
 		basin[0].theta_noon,
@@ -1129,7 +1137,7 @@ void	canopy_stratum_daily_F(
 	/*--------------------------------------------------------------*/
 	if (stratum[0].epv.height == 0) {
 		stratum[0].surface_heat_flux =
-			-1 * compute_surface_heat_flux(
+			-1.0 * compute_surface_heat_flux(
 			command_line[0].verbose_flag,
 			stratum[0].snow_stored,
 			stratum[0].rain_stored+patch[0].rain_throughfall,
@@ -1350,16 +1358,12 @@ void	canopy_stratum_daily_F(
 	/*	used to determine how much is based on the 		*/
 	/*	estimated cap rise  during the day.		*/
 	/*--------------------------------------------------------------*/
-	if  ( (stratum[0].epv.height == 0 ) && ( stratum[0].rootzone.depth > 0 ) 
-		&& (stratum[0].epv.proj_lai > ZERO) ){
+	if  ( (stratum[0].epv.height == 0 ) && ( stratum[0].rootzone.depth > 0 ) && (stratum[0].epv.proj_lai > ZERO) ){
 		if ( stratum[0].potential_evaporation > ZERO ){
-			transpiration = min(stratum[0].potential_evaporation,
-				patch[0].cap_rise);
-			potential_transpiration = min(stratum[0].potential_evaporation,
-				patch[0].cap_rise);
+			transpiration = min(stratum[0].potential_evaporation, patch[0].cap_rise);
+			potential_transpiration = min(stratum[0].potential_evaporation, patch[0].cap_rise);
 			stratum[0].potential_evaporation -=	transpiration;
-		}
-		else{
+		} else{
 			transpiration = 0.0;
 			potential_transpiration = 0.0;
 		}
@@ -1391,11 +1395,19 @@ void	canopy_stratum_daily_F(
 		}
 				   
 		
-	stratum[0].rain_stored  = compute_rain_stored(
+	stratum[0].rain_stored  = max(0.0,compute_rain_stored(
 		command_line[0].verbose_flag,
 		&(rain_throughfall),
-		stratum);
+		stratum));
 
+    if(stratum[0].rain_stored<0){
+        printf("bad rain_stored (F1): %d,%d,%d, %lf,%lf\n",
+               patch[0].ID,stratum[0].ID, stratum[0].defaults[0][0].ID,
+               stratum[0].rain_stored, rain_throughfall);
+        stratum[0].rain_stored = 0.0;
+    }//debug
+        
+        
 
 	if (stratum[0].rain_stored > 0){
 	    NO3_stored = (stratum[0].rain_stored + stratum[0].snow_stored) 
@@ -1405,25 +1417,22 @@ void	canopy_stratum_daily_F(
 		/ (stratum[0].rain_stored + stratum[0].snow_stored + rain_throughfall + snow_throughfall) 
 		* (stratum[0].NO3_stored + patch[0].NO3_throughfall);
 	   
-	}
-	else{
+	}else{
+        stratum[0].rain_stored = 0.0;
 	    if (rain_throughfall > 0){
-		NO3_stored = (stratum[0].rain_stored + stratum[0].snow_stored) 
-	      	/ (stratum[0].rain_stored + stratum[0].snow_stored + rain_throughfall + snow_throughfall) 
-		* (stratum[0].NO3_stored + patch[0].NO3_throughfall);
+            NO3_stored = (stratum[0].rain_stored + stratum[0].snow_stored)
+                / (stratum[0].rain_stored + stratum[0].snow_stored + rain_throughfall + snow_throughfall)
+            * (stratum[0].NO3_stored + patch[0].NO3_throughfall);
 
-		NO3_throughfall =  (rain_throughfall + snow_throughfall)
-		/ (stratum[0].rain_stored + stratum[0].snow_stored + rain_throughfall + snow_throughfall) 
-		* (stratum[0].NO3_stored + patch[0].NO3_throughfall); 
+            NO3_throughfall =  (rain_throughfall + snow_throughfall)
+            / (stratum[0].rain_stored + stratum[0].snow_stored + rain_throughfall + snow_throughfall)
+            * (stratum[0].NO3_stored + patch[0].NO3_throughfall);
 		
+	    }else{
+            NO3_stored = stratum[0].NO3_stored + patch[0].NO3_throughfall;
+            NO3_throughfall = 0;
 	    }
-	    else{
-                NO3_stored = stratum[0].NO3_stored + patch[0].NO3_throughfall;
-		NO3_throughfall = 0;
-
-
-	    }
-	}
+	}//if
 
 	if ( command_line[0].verbose_flag > 1 )
 		printf("\n%8d -444.15 ",julday(current_date)-2449000);
@@ -1443,14 +1452,14 @@ void	canopy_stratum_daily_F(
 	 *  problematic.
 	 *--------------------------------------------------------------*/
 	if ( stratum[0].evaporation > ZERO ){
-		rainy_evaporation =  min((zone[0].rain_duration * zone[0].metv.dayl/86400) *
-			potential_rainy_evaporation_rate,
+		rainy_evaporation = min(
+            (zone[0].rain_duration * zone[0].metv.dayl/86400.0) * potential_rainy_evaporation_rate,
 			stratum[0].evaporation );
 		dry_evaporation = stratum[0].evaporation - rainy_evaporation;
 	}
 	else{
 		rainy_evaporation = 0;
-		dry_evaporation = stratum[0].evaporation ;
+        dry_evaporation = 0.0;// stratum[0].evaporation; --- why? making dry_evaporation negative?
 	}
 
 	/*--------------------------------------------------------------*/
@@ -1729,11 +1738,14 @@ void	canopy_stratum_daily_F(
 			psnin.g = max(stratum[0].defaults[0][0].epc.gl_smax ,
 				stratum[0].defaults[0][0].epc.gl_c ) *
 				stratum[0].defaults[0][0].lai_stomatal_fraction * 1000 / 1.6;
-			if ((psnin.lnc > 0.0) && (psnin.irad > 0.0))
+			if ((psnin.lnc > ZERO) && (psnin.irad > ZERO)){
 				compute_farq_psn(&psnin, &psnout, stratum[0].defaults[0][0].epc, 1);
-			else
+				assim_sunlit = psnout.A * (command_line[0].grow_flag>0? 1.0+stratum[0].defaults[0][0].epc.gr_perc: 1.0);
+			}else{
 				psnout.A = 0.0;
-            assim_sunlit = psnout.A * (command_line[0].grow_flag>0? 1.0+stratum[0].defaults[0][0].epc.gr_perc: 1.0);
+				assim_sunlit = 0.0;
+			}
+            
 
 			/*--------------------------------------------------------------*/
 			/* potential shade psn						*/
@@ -1749,11 +1761,13 @@ void	canopy_stratum_daily_F(
 			else
 				psnin.lnc = 0.0;
 
-			if ((psnin.lnc > 0.0) && (psnin.irad > 0.0))
+			if ((psnin.lnc > ZERO) && (psnin.irad > ZERO)){
 				compute_farq_psn(&psnin, &psnout, stratum[0].defaults[0][0].epc, 1);
-			else
+				assim_shade = psnout.A * (command_line[0].grow_flag>0? 1.0+stratum[0].defaults[0][0].epc.gr_perc: 1.0);
+			}else{
 				psnout.A = 0.0;
-			assim_shade = psnout.A * (command_line[0].grow_flag>0? 1.0+stratum[0].defaults[0][0].epc.gr_perc: 1.0);
+				assim_shade = 0.0;
+			}
 
 			/*--------------------------------------------------------------*/
 			/* total potential psn						*/
@@ -1783,21 +1797,25 @@ void	canopy_stratum_daily_F(
 				psnin.g = stratum[0].gs_sunlit * 1000 / 1.6 / stratum[0].epv.proj_lai_sunlit;
 			else
 				psnin.g = 0.0;
+            
 			psnin.irad = stratum[0].ppfd_sunlit; //<<---- is not updated; it should be affected by Lines 1498-1556 !!
+			
 			if ((stratum[0].cs.leafc > ZERO) && (stratum[0].epv.proj_lai_sunlit > ZERO))
 				psnin.lnc = stratum[0].ns.leafn / (stratum[0].cs.leafc * 1.0) / stratum[0].epv.proj_sla_sunlit;
 			else
 				psnin.lnc = 0.0;
-			if ((psnin.lnc > 0.0) && (psnin.irad > 0.0)) {
+            
+			if ((psnin.lnc > ZERO) && (psnin.irad > ZERO)) {
 				if ( compute_farq_psn(&psnin, &psnout, stratum[0].defaults[0][0].epc, 1)){
 					fprintf(stderr,
 						"FATAL ERROR: in canopy_stratum_daily_F error in farquhar");
 					exit(EXIT_FAILURE);
 				}
-			}
-			else
+				assim_sunlit = psnout.A * (command_line[0].grow_flag>0? 1.0+stratum[0].defaults[0][0].epc.gr_perc: 1.0);
+            } else {
 				psnout.A = 0.0;
-			assim_sunlit = psnout.A * (command_line[0].grow_flag>0? 1.0+stratum[0].defaults[0][0].epc.gr_perc: 1.0);
+				assim_sunlit = 0.0;
+            }//if
 			dC13_sunlit = psnout.dC13;
 
 			/*--------------------------------------------------------------*/
@@ -1818,28 +1836,83 @@ void	canopy_stratum_daily_F(
 				psnin.g = stratum[0].gs_shade *1000 / 1.6 / stratum[0].epv.proj_lai_shade;
 			else
 				psnin.g = 0.0;
+            
 			psnin.irad = stratum[0].ppfd_shade; //<<---- is not updated; it should be affected by Lines 1498-1556 !!
 			if ((stratum[0].cs.leafc > ZERO) && (stratum[0].epv.proj_lai_shade > ZERO))
 				psnin.lnc = stratum[0].ns.leafn / (stratum[0].cs.leafc * 1.0) / stratum[0].epv.proj_sla_shade;
 			else
 				psnin.lnc = 0.0;
-			if ((psnin.lnc > 0.0) && (psnin.irad > 0.0)) {
+            
+			if ((psnin.lnc > ZERO) && (psnin.irad > ZERO)) {
 				if ( compute_farq_psn(&psnin, &psnout, stratum[0].defaults[0][0].epc, 1)){
 					fprintf(stderr,
 						"FATAL ERROR: in canopy_stratum_daily_F error in farquhar");
 					exit(EXIT_FAILURE);
 				}
-			}
-			else
-				psnout.A = 0.0;
-			assim_shade = psnout.A * (command_line[0].grow_flag>0? 1.0+stratum[0].defaults[0][0].epc.gr_perc: 1.0);
+				assim_shade = psnout.A * (command_line[0].grow_flag>0? 1.0+stratum[0].defaults[0][0].epc.gr_perc: 1.0);
+            } else {
+                psnout.A = 0.0;
+                assim_shade = 0.0;
+            }//if
 			dC13_shade = psnout.dC13;
+			
 			/*--------------------------------------------------------------*/
 			/* total actual psn						*/
 			/*--------------------------------------------------------------*/
-			stratum[0].cdf.psn_to_cpool = (assim_sunlit*stratum[0].epv.proj_lai_sunlit
-					+ assim_shade * stratum[0].epv.proj_lai_shade)	
-					*zone[0].metv.dayl*12.011e-9 + stratum[0].cdf.leaf_day_mr; // so the respiration part is 100% unrelated to photosynthesis (?)
+			if(assim_sunlit>0 && assim_shade>0){
+				stratum[0].cdf.psn_to_cpool = (
+					assim_sunlit * stratum[0].epv.proj_lai_sunlit + 
+					assim_shade * stratum[0].epv.proj_lai_shade) * 	
+					zone[0].metv.dayl * 12.011e-9 + 
+					stratum[0].cdf.leaf_day_mr; 
+			}else{
+				stratum[0].cdf.psn_to_cpool = 0.0;
+			}
+				
+            if(stratum[0].cdf.psn_to_cpool+ZERO < 0.0){
+                printf("negative cdf.psn_to_cpool 1. %d,%d | 2. %lf,%lf | 3. %lf,%lf | 4. %lf,%lf | 5. %lf,%lf - %lf - %lf,%lf | 6. %lf,%lf,(%lf or %lf),%lf | 7. %lf,%lf,%lf,  %lf,%lf,%lf\n",
+                       //1.
+                       stratum[0].ID, patch[0].ID,
+                       //2.
+                       assim_sunlit, //psnout.A * (command_line[0].grow_flag>0? 1.0+stratum[0].defaults[0][0].epc.gr_perc: 1.0);
+                       stratum[0].epv.proj_lai_sunlit,
+                       //3.
+                       assim_shade,  //psnout.A * (command_line[0].grow_flag>0? 1.0+stratum[0].defaults[0][0].epc.gr_perc: 1.0);
+                       stratum[0].epv.proj_lai_shade,
+                       //4.
+                       zone[0].metv.dayl,
+                       stratum[0].cdf.leaf_day_mr,
+                       //5.
+                       stratum[0].cs.leafc, // --- biomass
+                       stratum[0].ns.leafn,
+                       stratum[0].ns.frootn,
+                       stratum[0].ns.live_crootn,
+                       stratum[0].ns.live_stemn,
+                       //6.
+                       (stratum[0].cdf.leaf_day_mr / (stratum[0].epv.proj_lai * zone[0].metv.dayl*12.011e-9)),
+                       (stratum[0].gs_sunlit * 1000 / 1.6 / stratum[0].epv.proj_lai_sunlit),
+                       stratum[0].ppfd_sunlit, stratum[0].ppfd_shade,
+                       (stratum[0].ns.leafn / (stratum[0].cs.leafc * 1.0) / stratum[0].epv.proj_sla_sunlit),
+                       //7.
+                       stratum[0].APAR_direct, patch[0].PAR_direct, zone[0].PAR_direct,
+                       stratum[0].APAR_diffuse, patch[0].PAR_diffuse, zone[0].PAR_diffuse
+                       ); //stratum[0].cover_fraction
+//                int layer, iStratum;
+//                for ( layer=0 ; layer<patch[0].num_layers; layer++ ){
+//                    for ( iStratum=0 ;iStratum<patch[0].layers[layer].count; iStratum++ ){
+//                        printf("layer: %d, %d, %lf, %lf : %d\n",
+//                               layer,
+//                               patch[0].layers[layer].count,
+//                               patch[0].layers[layer].height,
+//                               patch[0].layers[layer].null_cover,
+//                               patch[0].canopy_strata[(patch[0].layers[layer].strata[iStratum])]->ID
+//                               );
+//                    }//for stratum
+//                }//for layer
+            
+                stratum[0].cdf.psn_to_cpool = 0.0;
+            }//if
+            
 			if ((assim_sunlit + assim_shade) > ZERO)
 				stratum[0].dC13 = (assim_sunlit * dC13_sunlit + assim_shade * dC13_shade)/(assim_sunlit+assim_shade);
 			else 
@@ -1975,9 +2048,13 @@ void	canopy_stratum_daily_F(
 	/*	have been met                                                       	*/
 	/*------------------------------------------------------------------------*/
 	if(command_line[0].vegspinup_flag > 0){
-    update_shadow_strata(world, stratum, shadow_strata, command_line, current_date);
-  }
+        update_shadow_strata(world, stratum, shadow_strata, command_line, current_date);
+    }//if
   
+//    printf("bad rain_stored (F2): %d,%d,%d, %lf,%lf\n",
+//               patch[0].ID,stratum[0].ID, stratum[0].defaults[0][0].ID,
+//               stratum[0].rain_stored, rain_throughfall); //debug
+   
 	/*--------------------------------------------------------------*/
 	/*      update accumlator variables                             */
 	/*--------------------------------------------------------------*/

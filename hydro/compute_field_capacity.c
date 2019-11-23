@@ -88,8 +88,8 @@ double	compute_field_capacity(
 							   double	p_0,
 							   double	p_decay,
 							   double	z_water_table,
-							   double	z, // what is it? could be water_table
-							   double	z_surface)
+							   double	z, // bottom
+							   double	z_surface) // top
 {
 	/*--------------------------------------------------------------*/
 	/*	Local function declaration									*/
@@ -133,6 +133,7 @@ double	compute_field_capacity(
 		/*	Only if the water table is not at or above the surface.	*/
 		/*--------------------------------------------------------------*/
 		if ( z > 0 ){
+            // z = bottom; z_surface = top
 			for ( depth = z ; depth >z_surface ; depth = depth - INTERVAL_SIZE){
 				psi = (z-depth);
 				/*--------------------------------------------------------------*/
@@ -172,6 +173,7 @@ double	compute_field_capacity(
 	/*--------------------------------------------------------------*/
 	/*	Limit field capacity to at most the porosity 		*/
 	/*--------------------------------------------------------------*/
+    // this is a useless check
 	max_field_capacity = compute_delta_water(
 		verbose_flag,
 		p_0,

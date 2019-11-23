@@ -107,13 +107,24 @@ void update_branch_mortality(
 		m_deadcrootc_to_cwdc = mort * cs->dead_crootc;//<<--*
 	/* daily nitrogen fluxes due to mortality */
 	/*  nitrogen fluxes */
-		m_livestemn_to_cwdn = m_livestemc_to_cwdc / epc.deadwood_cn;
-        m_livestemn_to_litr1n = (mort * ns->live_stemn) - m_livestemn_to_cwdn; // same as BGC
+        m_livestemn_to_cwdn = m_livestemc_to_cwdc / epc.deadwood_cn;
         m_deadstemn_to_cwdn = mort * ns->dead_stemn;
+        if(mort * ns->live_stemn > m_livestemn_to_cwdn){
+            m_livestemn_to_litr1n = (mort * ns->live_stemn) - m_livestemn_to_cwdn; // same as BGC
+        }else{
+            m_livestemn_to_cwdn = mort * ns->live_stemn;
+            m_livestemn_to_litr1n = 0.0;
+        }//if
+		
         
-		m_livecrootn_to_cwdn = m_livecrootc_to_cwdc / epc.deadwood_cn;
-        m_livecrootn_to_litr1n = (mort * ns->live_crootn) - m_livecrootn_to_cwdn;
+        m_livecrootn_to_cwdn = m_livecrootc_to_cwdc / epc.deadwood_cn;
         m_deadcrootn_to_cwdn = mort * ns->dead_crootn;
+        if(mort * ns->live_crootn > m_livecrootn_to_cwdn){
+            m_livecrootn_to_litr1n = (mort * ns->live_crootn) - m_livecrootn_to_cwdn;
+        }else{
+            m_livecrootn_to_cwdn = mort * ns->live_crootn;
+            m_livecrootn_to_litr1n = 0.0;
+        }
 
         // note that: epc->deadwood_cn = (epc->deadwood_fucel + epc->deadwood_fscel) * CEL_CN + (epc->deadwood_flig) * LIG_CN;
         

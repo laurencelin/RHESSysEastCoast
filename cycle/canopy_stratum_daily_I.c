@@ -137,6 +137,11 @@ void	canopy_stratum_daily_I(
 	//double wilting_point;
 	//double leafcloss_perc;
 
+    if(stratum[0].rain_stored<0){
+        printf("bad rain_stored (I): %d,%d,%d,%lf\n",
+               patch[0].ID,stratum[0].ID, stratum[0].defaults[0][0].ID,stratum[0].rain_stored);
+        stratum[0].rain_stored = 0.0;
+    }//debug
 	/*--------------------------------------------------------------*/
 	/* no processing at present for non-veg types			*/
 	/*--------------------------------------------------------------*/
@@ -153,7 +158,7 @@ void	canopy_stratum_daily_I(
 
     /*	stratum[0].Kup_direct = 0.0;
         stratum[0].Kup_diffuse = 0.0;*/
-        stratum[0].rootzone.S = patch[0].rootzone.S;
+        //stratum[0].rootzone.SatPct = patch[0].rootzone.SatPct;
 //        if (patch[0].sat_deficit < ZERO)
 //            stratum[0].rootzone.S = 1.0;
 //
@@ -181,9 +186,9 @@ void	canopy_stratum_daily_I(
             patch[0].soil_defaults[0][0].pore_size_index,
             patch[0].soil_defaults[0][0].p3,
             patch[0].soil_defaults[0][0].p4,
-            patch[0].soil_defaults[0][0].porosity_0,
-            patch[0].soil_defaults[0][0].porosity_decay,
-            stratum[0].rootzone.S
+            patch[0].rz_storage, //patch[0].soil_defaults[0][0].porosity_0,
+            patch[0].rootzone.potential_sat, //patch[0].soil_defaults[0][0].porosity_decay,
+            patch[0].sat_deficit //stratum[0].rootzone.SatPct
             // if patch[0].basementSideAdjustWTZ >= rtz, then it's just stratum[0].rootzone.S
             // if patch[0].basementSideAdjustWTZ < rtz, then (basementSideAdjustWTZ*stratum[0].rootzone.S + (rtz-basementSideAdjustWTZ)*1.0)/stratum[0].rootzone.depth
             //(patch[0].basementSideAdjustWTZ>=patch[0].rootzone.depth? stratum[0].rootzone.S : (stratum[0].rootzone.S*patch[0].basementSideAdjustWTZ + (patch[0].rootzone.depth-patch[0].basementSideAdjustWTZ))/patch[0].rootzone.depth )//<<----
@@ -314,7 +319,7 @@ void	canopy_stratum_daily_I(
             &(patch[0].soil_cs),
             &(patch[0].soil_ns),
             &(stratum[0].rootzone),
-            patch[0].soil_defaults[0][0].effective_soil_depth,
+            patch[0].soil_defaults[0][0].maxrootdepth,
             stratum[0].cover_fraction,
             stratum[0].gap_fraction + shaded_fraction,
             basin[0].theta_noon,

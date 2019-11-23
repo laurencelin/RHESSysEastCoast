@@ -152,6 +152,7 @@ struct tec_object	*construct_tec(
 		/*		date.													*/
 		/*--------------------------------------------------------------*/
 		if ( cal_date_lt(current_date,old_date)){
+            // old_date = world[0].start_date;
 			fprintf(stderr,
 					"FATAL ERROR: in construct_tec: dates not in sequence: %d/%d/%d %d; %d/%d/%d %d\n",
 					current_date.year, current_date.month, current_date.day, current_date.hour,

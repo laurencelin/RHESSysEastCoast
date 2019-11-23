@@ -73,7 +73,7 @@ int update_gw_drainage(
 	/*------------------------------------------------------*/
 	/*		assume percent of incoming precip	*/
 	/*------------------------------------------------------*/
-	// TODO: Mult by Ksat_vertical so that precip onto impervious surfaces does not contribute to GW
+	// Note: Mult by Ksat_vertical so that precip onto impervious surfaces does not contribute to GW
 	if (zone[0].hourly_rain_flag==1){
 	  sat_to_gw_coeff = patch[0].soil_defaults[0][0].sat_to_gw_coeff / 24.0;
 	}
@@ -87,26 +87,26 @@ int update_gw_drainage(
 	/*------------------------------------------------------*/
 	/*	determine associated N leached			*/
 	/*------------------------------------------------------*/
-	if (patch[0].surface_DON > ZERO) {
+	if (patch[0].surface_DON > ZERO && command_line[0].grow_flag > 0) {
 		N_loss = sat_to_gw_coeff * patch[0].surface_DON * command_line[0].Rsolute2gw;
 		hillslope[0].gw.DON += (N_loss * patch[0].area / hillslope[0].area);
 		patch[0].ndf.DON_to_gw = N_loss;
 		patch[0].surface_DON -= N_loss;
 		}
-	if (patch[0].surface_DOC > ZERO) {
+	if (patch[0].surface_DOC > ZERO && command_line[0].grow_flag > 0) {
 		N_loss = sat_to_gw_coeff * patch[0].surface_DOC * command_line[0].Rsolute2gw;
 		hillslope[0].gw.DOC += (N_loss * patch[0].area / hillslope[0].area);
 		patch[0].cdf.DOC_to_gw = N_loss;
 		patch[0].surface_DOC -= N_loss;
 		}
-    if (patch[0].surface_NH4 > ZERO) {
+    if (patch[0].surface_NH4 > ZERO && command_line[0].grow_flag > 0) {
         N_loss = sat_to_gw_coeff * patch[0].surface_NH4 * command_line[0].Rsolute2gw;
         hillslope[0].gw.NH4 += (N_loss * patch[0].area / hillslope[0].area);
         patch[0].ndf.N_to_gw += N_loss;
         patch[0].surface_NH4 -= N_loss;
     }
     
-    if (patch[0].surface_NO3 > ZERO) {
+    if (patch[0].surface_NO3 > ZERO && command_line[0].grow_flag > 0) {
         N_loss = sat_to_gw_coeff * patch[0].surface_NO3 * command_line[0].Rsolute2gw;
         hillslope[0].gw.NO3 += (N_loss * patch[0].area / hillslope[0].area);
         patch[0].ndf.N_to_gw += N_loss;

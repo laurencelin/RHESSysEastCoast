@@ -69,9 +69,7 @@ struct	hourly_clim_object *construct_hourly_clim(
 	/*--------------------------------------------------------------*/
 	/*	Allocate the hourly clim object.								*/
 	/*--------------------------------------------------------------*/
-	hourly_clim = (struct hourly_clim_object *)
-		alloc(1*sizeof(struct hourly_clim_object),
-		"hourly_clim","construct_hourly_clim" );
+	hourly_clim = (struct hourly_clim_object *) alloc(1*sizeof(struct hourly_clim_object), "hourly_clim","construct_hourly_clim" );
 	
 	/*--------------------------------------------------------------*/
 	/*	Attempt to open the hourly clim sequence file for each		*/
@@ -110,16 +108,17 @@ struct	hourly_clim_object *construct_hourly_clim(
 			hourly_clim[0].rain = construct_dated_clim_sequence(
 				(char *)strcat(file_name,".rain"),
 				start_date);
-		}
-		else if ( strcmp(sequence_name,"rain_duration" ) == 0){
+		} else if ( strcmp(sequence_name,"rain_duration" ) == 0){
 			strcpy(file_name, file_prefix);
 			hourly_clim[0].rain_duration = construct_dated_clim_sequence(
 				(char *)strcat(file_name,".rain_duration"),
 				start_date);
-		}
-		else  {fprintf(stderr,"WARNING-clim sequence %s not found.\n", sequence_name);
+		} else {
+            fprintf(stderr,"WARNING-clim sequence %s not found.\n", sequence_name);
 			exit(EXIT_FAILURE);
-			}
+        }//if else
+        
+        
 	} /*end for*/
 	return(hourly_clim);
 } /*end construct_hourly_clim*/

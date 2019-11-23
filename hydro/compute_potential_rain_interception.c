@@ -61,11 +61,11 @@ double	compute_potential_rain_interception(
 		potential_interception = min(interception_coef * rain,
 			stratum[0].epv.proj_pai
 			* stratum[0].defaults[0][0].specific_rain_capacity
-			- stratum[0].rain_stored);
+			- max(0.0,stratum[0].rain_stored));
 	else 
 		potential_interception = min(rain, (
 			stratum[0].defaults[0][0].specific_rain_capacity 
-			- stratum[0].rain_stored));
+			- max(0.0,stratum[0].rain_stored)));
 
 	potential_interception = max(potential_interception, 0.0);
 

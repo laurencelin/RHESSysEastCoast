@@ -87,9 +87,9 @@ double	compute_layer_field_capacity(
 							   double	p4,
 							   double	p_0,
 							   double	p_decay,
-							   double	z_water_table,
-							   double	z_layer,
-							   double	z_surface)
+							   double	z_water_table,//sat_def_z after ET consumed  // satz
+							   double	z_layer, //sat_def_z after ET consumed       // rtz
+							   double	z_surface) //sat_def_z before ET consumed    // 0
 {
 	/*--------------------------------------------------------------*/
 	/*	Local function declaration			*/ 
@@ -131,8 +131,8 @@ double	compute_layer_field_capacity(
 						p_0,
 						p_decay,
 						z_water_table,
-						z_water_table,
-						z_surface);
+						z_water_table, //from watertable depth
+						z_surface); //top
 
 	if (z_layer <  z_water_table)
 		partial_field_capacity = compute_field_capacity( verbose_flag,
@@ -144,8 +144,8 @@ double	compute_layer_field_capacity(
 						p_0,
 						p_decay,
 						z_water_table,
-						z_water_table,
-						z_layer);
+						z_water_table, //from watertable depth
+						z_layer); // bottom
 
 	field_capacity = full_field_capacity - partial_field_capacity;
 

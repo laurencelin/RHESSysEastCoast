@@ -74,7 +74,7 @@ void compute_mean_hillslope_parameters( struct hillslope_object *hillslope)
 				hillslope[0].zones[i][0].patches[j][0].soil_defaults[0][0].porosity_decay *
 				hillslope[0].zones[i][0].patches[j][0].area;
 			hillslope[0].aggdefs.N_decay_rate +=
-				hillslope[0].zones[i][0].patches[j][0].soil_defaults[0][0].N_decay_rate *
+				hillslope[0].zones[i][0].patches[j][0].soil_defaults[0][0].NO3decayRate *
 				hillslope[0].zones[i][0].patches[j][0].area;
 			hillslope[0].aggdefs.active_zone_z +=
 				hillslope[0].zones[i][0].patches[j][0].soil_defaults[0][0].active_zone_z *

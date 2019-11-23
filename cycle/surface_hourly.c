@@ -68,7 +68,7 @@ void		surface_hourly(
 	
 	
 	if ( (patch[0].detention_store > (max(litter[0].rain_capacity - litter[0].rain_stored, 0.0)))
-                                        && (patch[0].soil_defaults[0][0].detention_store_size >= 0.0)) {
+                                        && (patch[0].landuse_defaults[0][0].detention_store_size* (1.0 - patch[0].Ksat_vertical) >= 0.0)) {
 	/* assume if det store over litter then litter is saturated */
 	     	patch[0].detention_store -= (litter[0].rain_capacity - litter[0].rain_stored);	
 		litter[0].rain_stored = litter[0].rain_capacity;

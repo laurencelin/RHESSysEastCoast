@@ -58,6 +58,7 @@
 
 #include "rhessys.h"
 #include "functions.h"
+#include "params.h"
 
 struct basin_object *construct_basin(
 									 struct	command_line_object	*command_line,
@@ -115,7 +116,9 @@ struct basin_object *construct_basin(
 	double		n_routing_timesteps;
 	char		record[MAXSTR];
 	struct basin_object	*basin;
-	
+    param    *paramPtr=NULL;
+    int    paramCnt=0;
+    
 	/*--------------------------------------------------------------*/
 	/*	Allocate a basin object.								*/
 	/*--------------------------------------------------------------*/
@@ -125,21 +128,32 @@ struct basin_object *construct_basin(
 	/*--------------------------------------------------------------*/
 	/*	Read in the basinID.									*/
 	/*--------------------------------------------------------------*/
-	fscanf(world_file,"%d",&(basin[0].ID));
-	read_record(world_file, record);
-	fscanf(world_file,"%lf",&(basin[0].x));
-	read_record(world_file, record);
-	fscanf(world_file,"%lf",&(basin[0].y));
-	read_record(world_file, record);
-	fscanf(world_file,"%lf",&(basin[0].z));
-	read_record(world_file, record);
-	fscanf(world_file,"%d",&(default_object_ID));
-	read_record(world_file, record);
-	fscanf(world_file,"%lf",&(basin[0].latitude));
-	read_record(world_file, record);
-	fscanf(world_file,"%d",&(basin[0].num_base_stations));
-	read_record(world_file, record);
+//	fscanf(world_file,"%d",&(basin[0].ID));
+//	read_record(world_file, record);
+//	fscanf(world_file,"%lf",&(basin[0].x));
+//	read_record(world_file, record);
+//	fscanf(world_file,"%lf",&(basin[0].y));
+//	read_record(world_file, record);
+//	fscanf(world_file,"%lf",&(basin[0].z));
+//	read_record(world_file, record);
+//	fscanf(world_file,"%d",&(default_object_ID));
+//	read_record(world_file, record);
+//	fscanf(world_file,"%lf",&(basin[0].latitude));
+//	read_record(world_file, record);
+//	fscanf(world_file,"%d",&(basin[0].num_base_stations));
+//	read_record(world_file, record);
 	
+    paramPtr=readtag_worldfile(&paramCnt,world_file,"Basin");
+    
+    basin[0].ID = getIntWorldfile(&paramCnt,&paramPtr,"basin_ID","%d",1,1);
+    basin[0].x = getDoubleWorldfile(&paramCnt,&paramPtr,"x","%lf",0.0,1);
+    basin[0].y = getDoubleWorldfile(&paramCnt,&paramPtr,"y","%lf",0.0,1);
+    basin[0].z = getDoubleWorldfile(&paramCnt,&paramPtr,"z","%lf",-9999,0);
+    default_object_ID = getIntWorldfile(&paramCnt,&paramPtr,"basin_parm_ID","%d",1,1);
+    basin[0].latitude = getDoubleWorldfile(&paramCnt,&paramPtr,"latitude","%lf",-9999,0);
+    basin[0].num_base_stations = getIntWorldfile(&paramCnt,&paramPtr,"basin_n_basestations","%d",0,1);
+    
+    
 	/*--------------------------------------------------------------*/
 	/*	Create cosine of latitude to save future computations.		*/
 	/*--------------------------------------------------------------*/
@@ -149,9 +163,8 @@ struct basin_object *construct_basin(
 	/*--------------------------------------------------------------*/
 	/*    Allocate a list of base stations for this basin.			*/
 	/*--------------------------------------------------------------*/
-	basin[0].base_stations = (struct base_station_object **)
-		alloc(basin[0].num_base_stations *
-		sizeof(struct base_station_object *),"base_stations","construct_basin");
+    basin[0].base_stations = NULL;
+//    basin[0].base_stations = (struct base_station_object **) alloc(basin[0].num_base_stations * sizeof(struct base_station_object *),"base_stations","construct_basin");
     
     /*--------------------------------------------------------------*/
     /*    calculate 21 day running average for this basin; assuming only one basin for the worldfile	*/
@@ -164,6 +177,8 @@ struct basin_object *construct_basin(
         int ii;
         int currentJ = julday(world[0].start_date);
         int currentJy = world[0].start_date.year;
+        
+        // world_base_stations = world[0].base_stations
         world_base_stations[i]->daily_clim[0].pretmin21ravg = (double *) alloc(world[0].duration.day*sizeof(double), "sequence","construct_clim_sequence");
         world_base_stations[i]->daily_clim[0].predaylestimate = (double *) alloc(world[0].duration.day*sizeof(double), "sequence","construct_clim_sequence");
         world_base_stations[i]->daily_clim[0].predayl21ravg = (double *) alloc(world[0].duration.day*sizeof(double), "sequence","construct_clim_sequence");
@@ -281,22 +296,22 @@ struct basin_object *construct_basin(
 	/*--------------------------------------------------------------*/
 	/*      Read each base_station ID and then point to that base_statio*/
 	/*--------------------------------------------------------------*/
-	for (i=0 ; i<basin[0].num_base_stations; i++) {
-        
-        
-		fscanf(world_file,"%d",&(base_stationID));
-		read_record(world_file, record);
-       
-		/*--------------------------------------------------------------*/
-		/*	Point to the appropriate base station in the base       	*/
-		/*              station list for this world.					*/
-		/*--------------------------------------------------------------*/
-		basin[0].base_stations[i] = assign_base_station(
-			base_stationID,
-			*num_world_base_stations,
-			world_base_stations);
-		
-	} /*end for*/
+//	for (i=0 ; i<basin[0].num_base_stations; i++) {
+//
+//
+//		fscanf(world_file,"%d",&(base_stationID));
+//		read_record(world_file, record);
+//
+//		/*--------------------------------------------------------------*/
+//		/*	Point to the appropriate base station in the base       	*/
+//		/*              station list for this world.					*/
+//		/*--------------------------------------------------------------*/
+//		basin[0].base_stations[i] = assign_base_station(
+//			base_stationID,
+//			*num_world_base_stations,
+//			world_base_stations);
+//
+//	} /*end for*/
     
 	/*--------------------------------------------------------------*/
 	/*	Create the grow subobject if needed.						*/
@@ -336,9 +351,9 @@ struct basin_object *construct_basin(
 	/*--------------------------------------------------------------*/
 	/*	Read in the number of hillslopes.						*/
 	/*--------------------------------------------------------------*/
-	fscanf(world_file,"%d",&(basin[0].num_hillslopes));
-	read_record(world_file, record);
-	
+//	fscanf(world_file,"%d",&(basin[0].num_hillslopes));
+//	read_record(world_file, record);
+	basin[0].num_hillslopes = getIntWorldfile(&paramCnt,&paramPtr,"NUM_of_","%d",0,0);
 	/*--------------------------------------------------------------*/
 	/*	Allocate a list of pointers to hillslope objects.			*/
 	/*--------------------------------------------------------------*/

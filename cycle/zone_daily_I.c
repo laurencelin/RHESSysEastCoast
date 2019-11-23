@@ -557,12 +557,12 @@ void zone_daily_I(
 	}
 	inx = zone[0].base_stations[0][0].hourly_clim[0].rain.inx;
 	if (inx==0){inx=-1;}
-	if(inx>-999){
-		clim_event=zone[0].base_stations[0][0].hourly_clim[0].rain.seq[inx+1];
+	if(inx > -999){
+		clim_event = zone[0].base_stations[0][0].hourly_clim[0].rain.seq[inx+1];
 		if ((clim_event.edate.year!=0)&&(julday(clim_event.edate)==julday(current_date))){
 			zone[0].rain_duration = 0;
-		}
-	}
+		}//if
+	}//if
 
 
 	/*--------------------------------------------------------------*/
