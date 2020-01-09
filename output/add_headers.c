@@ -437,7 +437,7 @@ void add_headers(struct world_output_file_object *world_output_files,
 	outfile = world_output_files[0].patch[0].daily;
 		check = fprintf(outfile,
 //                        "%s-%s-%s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s\n" ,
-                        "%s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s\n", // added 4 extra
+                        "%s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s\n", // added 4 extra
                         
                         // we are looking for hydrology behavoirs
 						"year", //1
@@ -466,7 +466,11 @@ void add_headers(struct world_output_file_object *world_output_files,
                         "top12cm_storage",
                         "top12cm_potential_sat",
                         "rootdepth",
-                        "soildepth"
+                        "soildepth",
+                        "top30cm_storage",
+                        "top30cm_potential_sat",
+                        "top60cm_storage",
+                        "top60cm_potential_sat"
 						); 
                         // patch daily
 	/*--------------------------------------------------------------*/

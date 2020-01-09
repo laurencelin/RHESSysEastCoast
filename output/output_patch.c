@@ -100,11 +100,17 @@ void	output_patch(
     double wilting = exp(-1.0*log(-100.0*patch[0].psi_max_veg/patch[0].soil_defaults[0][0].psi_air_entry) * patch[0].soil_defaults[0][0].pore_size_index);
     double wilting_mm = min(patch[0].rootzone.potential_sat,patch[0].sat_deficit) * wilting;
     double totalfc = patch[0].rootzone.field_capacity + patch[0].field_capacity;
-    double top12cm_storage;
-    double top23cm_potential_sat = patch[0].soil_defaults[0][0].rtz2sat_def_0z[120];
     double vksat0 = patch[0].soil_defaults[0][0].Ksat_0_v;
     double vksat_decay = patch[0].soil_defaults[0][0].mz_v;
     double vksat_decay_1 = -1.0/patch[0].soil_defaults[0][0].mz_v;
+    
+    double top12cm_storage;
+    double top12cm_potential_sat = patch[0].soil_defaults[0][0].rtz2sat_def_0z[120];
+    double top30cm_storage;
+    double top30cm_potential_sat = patch[0].soil_defaults[0][0].rtz2sat_def_0z[300];
+    double top60cm_storage;
+    double top60cm_potential_sat = patch[0].soil_defaults[0][0].rtz2sat_def_0z[600];
+    
     
     if(patch[0].rootzone.potential_sat>0){
         // plants and root
@@ -115,24 +121,50 @@ void	output_patch(
             top12cm_storage = totalfc * patch[0].soil_defaults[0][0].fc1_00012r[patch[0].sat_def_pct_index];
             top12cm_storage += (patch[0].rz_storage-patch[0].rootzone.field_capacity) * (1.0 - (1.0-exp(vksat_decay_1*0.12))/(1.0-exp(vksat_decay_1*patch[0].rootzone.depth))); // approximation
             
+            top30cm_storage = totalfc * patch[0].soil_defaults[0][0].fc1_003r[patch[0].sat_def_pct_index];
+            top30cm_storage += (patch[0].rz_storage-patch[0].rootzone.field_capacity) * (1.0 - (1.0-exp(vksat_decay_1*0.30))/(1.0-exp(vksat_decay_1*patch[0].rootzone.depth))); // approximation
+            
+            top60cm_storage = totalfc * patch[0].soil_defaults[0][0].fc1_006r[patch[0].sat_def_pct_index];
+            top60cm_storage += (patch[0].rz_storage-patch[0].rootzone.field_capacity) * (1.0 - (1.0-exp(vksat_decay_1*0.60))/(1.0-exp(vksat_decay_1*patch[0].rootzone.depth))); // approximation
+            
         }else if(patch[0].rz_storage < patch[0].rootzone.field_capacity){
             //bounded by wilting + (patch[0].rz_storage - wilting) follows ?
-            top12cm_storage = patch[0].sat_deficit>0.0? wilting_mm * top23cm_potential_sat/min(patch[0].rootzone.potential_sat,patch[0].sat_deficit) : 0.0;
+            top12cm_storage = patch[0].sat_deficit>0.0? wilting_mm * top12cm_potential_sat/min(patch[0].rootzone.potential_sat,patch[0].sat_deficit) : 0.0;
             if( patch[0].rz_storage > wilting_mm && patch[0].sat_deficit>0.0){
                 top12cm_storage += (patch[0].rz_storage-wilting_mm) * totalfc * patch[0].soil_defaults[0][0].fc1_00012r[patch[0].sat_def_pct_index] / patch[0].rootzone.field_capacity;
+            }
+            
+            top30cm_storage = patch[0].sat_deficit>0.0? wilting_mm * top30cm_potential_sat/min(patch[0].rootzone.potential_sat,patch[0].sat_deficit) : 0.0;
+            if( patch[0].rz_storage > wilting_mm && patch[0].sat_deficit>0.0){
+                top30cm_storage += (patch[0].rz_storage-wilting_mm) * totalfc * patch[0].soil_defaults[0][0].fc1_003r[patch[0].sat_def_pct_index] / patch[0].rootzone.field_capacity;
+            }
+            
+            top60cm_storage = patch[0].sat_deficit>0.0? wilting_mm * top60cm_potential_sat/min(patch[0].rootzone.potential_sat,patch[0].sat_deficit) : 0.0;
+            if( patch[0].rz_storage > wilting_mm && patch[0].sat_deficit>0.0){
+                top60cm_storage += (patch[0].rz_storage-wilting_mm) * totalfc * patch[0].soil_defaults[0][0].fc1_006r[patch[0].sat_def_pct_index] / patch[0].rootzone.field_capacity;
             }
             
         }else{
             // patch[0].rz_storage = patch[0].rootzone.field_capacity
             top12cm_storage = totalfc * patch[0].soil_defaults[0][0].fc1_00012r[patch[0].sat_def_pct_index];
+            top30cm_storage = totalfc * patch[0].soil_defaults[0][0].fc1_003r[patch[0].sat_def_pct_index];
+            top60cm_storage = totalfc * patch[0].soil_defaults[0][0].fc1_006r[patch[0].sat_def_pct_index];
         }
     }else{
         // no root / veg
         if(patch[0].unsat_storage > patch[0].field_capacity){
             top12cm_storage = totalfc * patch[0].soil_defaults[0][0].fc1_00012r[patch[0].sat_def_pct_index];
             top12cm_storage += (patch[0].unsat_storage-patch[0].field_capacity) * (1.0 - (1.0-exp(vksat_decay_1*0.12))/(1.0-exp(vksat_decay_1*patch[0].sat_deficit_z))); // approximation
+            
+            top30cm_storage = totalfc * patch[0].soil_defaults[0][0].fc1_003r[patch[0].sat_def_pct_index];
+            top30cm_storage += (patch[0].unsat_storage-patch[0].field_capacity) * (1.0 - (1.0-exp(vksat_decay_1*0.30))/(1.0-exp(vksat_decay_1*patch[0].sat_deficit_z))); // approximation
+            
+            top60cm_storage = totalfc * patch[0].soil_defaults[0][0].fc1_006r[patch[0].sat_def_pct_index];
+            top60cm_storage += (patch[0].unsat_storage-patch[0].field_capacity) * (1.0 - (1.0-exp(vksat_decay_1*0.60))/(1.0-exp(vksat_decay_1*patch[0].sat_deficit_z))); // approximation
         }else{
             top12cm_storage = totalfc * patch[0].soil_defaults[0][0].fc1_00012r[patch[0].sat_def_pct_index];
+            top30cm_storage = totalfc * patch[0].soil_defaults[0][0].fc1_003r[patch[0].sat_def_pct_index];
+            top60cm_storage = totalfc * patch[0].soil_defaults[0][0].fc1_006r[patch[0].sat_def_pct_index];
         }
     }//if else
     
@@ -147,7 +179,7 @@ void	output_patch(
 //    patch[0].rootzone.depth
 //    patch[0].soil_defaults[0][0].soil_depth
     
-	check = fprintf(outfile,"%d %d %d %d %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf\n", // \
+	check = fprintf(outfile,"%d %d %d %d %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf\n", // \
                              //%lf %lf %lf %lf %lf \
                              //%lf %lf %lf %lf %lf \
                              //%lf %lf %lf\n",
@@ -177,9 +209,13 @@ void	output_patch(
                     patch[0].rootzone.field_capacity*1000.0,
                     patch[0].unsat_storage*1000.0,
                     top12cm_storage * 1000.0,
-                    top23cm_potential_sat * 1000.0,
+                    top12cm_potential_sat * 1000.0,
                     patch[0].rootzone.depth * 1000.0,
-                    patch[0].soil_defaults[0][0].soil_depth * 1000.0
+                    patch[0].soil_defaults[0][0].soil_depth * 1000.0,
+                    top30cm_storage * 1000.0,
+                    top30cm_potential_sat * 1000.0,
+                    top60cm_storage * 1000.0,
+                    top60cm_potential_sat * 1000.0
                     );
  
     
