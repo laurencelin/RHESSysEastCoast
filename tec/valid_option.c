@@ -82,11 +82,11 @@ int	 valid_option( char *command_line){
 		(strcmp(command_line,"-fs") == 0) ||
 		(strcmp(command_line,"-vegspinup") == 0) ||
 
-        (strcmp(command_line,"-capr") == 0) ||
-        (strcmp(command_line,"-caprsplit") == 0) ||
-        (strcmp(command_line,"-capMax") == 0) ||
-        (strcmp(command_line,"-newcaprise") == 0) ||
-        (strcmp(command_line,"-slowDrain") == 0) ||
+        //(strcmp(command_line,"-capr") == 0) ||
+        //(strcmp(command_line,"-caprsplit") == 0) ||
+        //(strcmp(command_line,"-capMax") == 0) ||
+        //(strcmp(command_line,"-newcaprise") == 0) ||
+        //(strcmp(command_line,"-slowDrain") == 0) ||
         
         (strcmp(command_line,"-toptoff") == 0) ||
         (strcmp(command_line,"-rtz") == 0) ||
@@ -96,9 +96,12 @@ int	 valid_option( char *command_line){
         (strcmp(command_line,"-snowTs") == 0) ||
         (strcmp(command_line,"-snowEs") == 0) ||
         
+        (strcmp(command_line,"-max_snow_temp_value") == 0) ||
+        (strcmp(command_line,"-min_rain_temp_value") == 0) ||
+        
         (strcmp(command_line,"-Rsolute2gw") == 0) ||
-        (strcmp(command_line,"-root2active") == 0) ||
-        (strcmp(command_line,"-NH4root2active") == 0) ||
+        //(strcmp(command_line,"-root2active") == 0) ||
+        //(strcmp(command_line,"-NH4root2active") == 0) ||
         (strcmp(command_line,"-fracDirectNdep") == 0) ||
         (strcmp(command_line,"-BGC_flag") == 0) ||
         (strcmp(command_line,"-soilCNadaptation_falg") == 0) ||
@@ -106,9 +109,9 @@ int	 valid_option( char *command_line){
         (strcmp(command_line,"-rootNdecayRate") == 0) ||
         (strcmp(command_line,"-soluteLoss2GW") == 0) ||
         
-        (strcmp(command_line,"-leafDarkRespScalar") == 0) ||
-        (strcmp(command_line,"-frootRespScalar") == 0) ||
-        (strcmp(command_line,"-StemWoodRespScalar") == 0) ||
+        //(strcmp(command_line,"-leafDarkRespScalar") == 0) ||
+        //(strcmp(command_line,"-frootRespScalar") == 0) ||
+        //(strcmp(command_line,"-StemWoodRespScalar") == 0) ||
         
         (strcmp(command_line,"-patchPrintTh") == 0) ||
         (strcmp(command_line,"-aggregate_flag") == 0) ||
@@ -116,7 +119,7 @@ int	 valid_option( char *command_line){
         (strcmp(command_line,"-grassIrrigation_flag") == 0) ||
         (strcmp(command_line,"-fertilizer_flag") == 0) ||
         (strcmp(command_line,"-sewer_flag") == 0) ||
-        (strcmp(command_line,"-stormDrainFrac") == 0) ||
+        //(strcmp(command_line,"-stormDrainFrac") == 0) ||
         (strcmp(command_line,"-readinWFdoc_flag") == 0)
     )
 		i = 0;

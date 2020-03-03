@@ -213,7 +213,7 @@ void zone_daily_I(
             if (zone[0].defaults[0][0].lapse_rate_precip_default != -999.0)
                 isohyet_adjustment = zone[0].defaults[0][0].lapse_rate_precip_default*z_delta+1.0; // default it's NO Value
             else
-                isohyet_adjustment = zone[0].precip_lapse_rate;// last option
+                isohyet_adjustment = zone[0].precip_lapse_rate;// last option from worldfile (default is 1.0)
 
 		} else {
 			isohyet_adjustment = 

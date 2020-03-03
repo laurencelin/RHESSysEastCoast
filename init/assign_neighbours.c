@@ -90,6 +90,7 @@ int assign_neighbours( struct neighbour_object *neighbours,
             neighbours[inx].edgedistance = edgedistance;
             neighbours[inx].edge = edge;
 			neighbours[inx].patch = neigh; // patch_object
+            neighbours[inx].transmissivity_flux2neighbour = 0.0; // new variable Feb 11, 2020, Lin
 			inx += 1;
             
         }else{

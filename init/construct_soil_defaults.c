@@ -898,6 +898,7 @@ struct soil_default *construct_soil_defaults(
             zzz = ii*0.001;
             default_object_list[i].rtz2sat_def_0z[ii] = p0*p_decay*(1.0-exp(p_decay_1*zzz));
             default_object_list[i].rtz2sat_def_pct_index[ii] = (int)(default_object_list[i].rtz2sat_def_0z[ii]*default_object_list[i].max_sat_def_1*1000);
+            //default_object_list[i].rtz2sat_def_pct_indexM[ii] = 1000*(default_object_list[i].rtz2sat_def_0z[ii] - default_object_list[i].rtz2sat_def_pct_index[ii]*0.001);
             
             default_object_list[i].rtz2NO3prop[ii] = default_object_list[i].NO3decayRate*(1.0-exp(default_object_list[i].NO3decayRate_1*zzz)) * total_NO3;
             default_object_list[i].rtz2NH4prop[ii] = default_object_list[i].NH4decayRate*(1.0-exp(default_object_list[i].NH4decayRate_1*zzz)) * total_NH4;

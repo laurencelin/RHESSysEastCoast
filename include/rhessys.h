@@ -1024,6 +1024,7 @@ struct  neighbour_object
         double gammaCONST;      // stored the read-in value;
         double edgedistance;
         double edge;
+        double transmissivity_flux2neighbour; // new variable Feb 11, 2020, Lin
         struct patch_object *patch;
         };
 /*----------------------------------------------------------*/
@@ -1919,7 +1920,7 @@ struct  command_line_object
         int             surface_routing_flag;
         int             stream_routing_flag;
         int             gwtoriparian_flag;
-        int             gwtoriparian_ID;
+        //int             gwtoriparian_ID; // no longer use. Feb 11, 2020
         int             reservoir_operation_flag;
         int             ddn_routing_flag;
         int             dclim_flag;
@@ -1989,10 +1990,10 @@ struct  command_line_object
         struct  date            start_date;
         struct  date            end_date;
             // Laurence's added
-        int     newcaprise_flag;
-        double  capreduction;
-        double  caprsplit;
-        double  capMax;
+        //int     newcaprise_flag;// no longer use. Feb 11, 2020
+        //double  capreduction;// no longer use. Feb 11, 2020
+        //double  caprsplit;// no longer use. Feb 11, 2020
+        //double  capMax;// no longer use. Feb 11, 2020
         int outletPatchID;
         
         int toptoff_flag; //<<--- turn off topt for GPSN
@@ -2000,27 +2001,29 @@ struct  command_line_object
         int dynRtZoff_flag; //<<---- disable rooting depth dynamic in growth mode
         double snowT_scaler;
         double snowE_scaler;
+        double max_snow_temp_value;
+        double min_rain_temp_value;
         int iniBioRZ; //<<----- change name
-        int slowDrain_flag; //<<----- slow down drainage by not using the sv1 scalar
+        //int slowDrain_flag; //<<----- slow down drainage by not using the sv1 scalar // no longer use. Feb 11, 2020
         double Rsolute2gw; //<<----- reduce solute by passing to the root zone (does not change the water flux)
-        double root2active; //<--- set active_zone_depth be scale of rooting depth
-        double NH4root2active;
+        //double root2active; //<--- set active_zone_depth be scale of rooting depth // no longer use. Feb 11, 2020
+        //double NH4root2active; // no longer use. Feb 11, 2020
         double fracDirectNdep; //<<--- a fraction of n deposition is reaching ground directly
         int BGC_flag; //<-- enable BiomeBGC littering process
         int soilCNadaptation_flag;
         double soilDecayScalar;
-        int rootNdecayRate;
+        //int rootNdecayRate; // no longer use. Feb 11, 2020
         double soluteLoss2GW;
-        double leafDarkRespScalar;
-        double frootRespScalar;
-        double StemWoodRespScalar;
+        //double leafDarkRespScalar; // no longer use. Feb 11, 2020
+        //double frootRespScalar; // no longer use. Feb 11, 2020
+        //double StemWoodRespScalar; // no longer use. Feb 11, 2020
             
         int patchPrintTh;
         int aggregate_flag;
         int grassIrrigation_flag;
         int fertilizer_flag;
         int sewer_flag;
-        double stormDrainFrac;
+        //double stormDrainFrac; // no longer use. Feb 11, 2020
         int readinWFdoc_flag;
         };
 

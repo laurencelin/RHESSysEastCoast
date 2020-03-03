@@ -76,7 +76,7 @@ tissue N content and respiration rate given in:
 
 	/* leaf day and night maintenance respiration when leaves on */
 	if (cs->leafc > ZERO){
-		t1 = ns->leafn * mrpern * command_line[0].leafDarkRespScalar;
+		t1 = ns->leafn * mrpern;
 		/* leaf, day */
 		exponent = (metv->tday - 20.0) / 10.0;
 		cdf->leaf_day_mr = t1 * pow(q10, exponent) * metv->dayl / 86400.0;
@@ -93,7 +93,7 @@ tissue N content and respiration rate given in:
 	if (cs->frootc > ZERO){
 		exponent = (metv->tsoil - 20.0) / 10.0;
 		t1 = pow(q10, exponent);
-		cdf->froot_mr = ns->frootn * mrpern * command_line[0].frootRespScalar * t1;
+		cdf->froot_mr = ns->frootn * mrpern * t1;
 	}else /* no fine roots on */
 		cdf->froot_mr = 0.0;
     //cdf->froot_mr = 0.0; ///<<--------- testing, will be removed
@@ -104,11 +104,11 @@ tissue N content and respiration rate given in:
 		/* live stem maintenance respiration */
 		exponent = (metv->tavg - 20.0) / 10.0;
 		t1 = pow(q10, exponent);
-		cdf->livestem_mr = ns->live_stemn * mrpern * command_line[0].StemWoodRespScalar * t1;
+		cdf->livestem_mr = ns->live_stemn * mrpern * t1;
 		/* live coarse root maintenance respiration */
 		exponent = (metv->tsoil - 20.0) / 10.0;
 		t1 = pow(q10, exponent);
-		cdf->livecroot_mr = ns->live_crootn * mrpern * command_line[0].StemWoodRespScalar * t1;
+		cdf->livecroot_mr = ns->live_crootn * mrpern * t1;
 	}
     //cdf->livestem_mr = 0.0; cdf->livecroot_mr = 0.0; ///<<--------- testing, will be removed
     
