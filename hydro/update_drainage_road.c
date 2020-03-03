@@ -63,14 +63,13 @@ void  update_drainage_road(
          int signal,
          struct patch_object *patch);
 	
-	double compute_varbased_flow(
-		int,
-		double,
-		double,
-		double,
-		double,
-		double,
-		struct patch_object *patch);
+    double compute_varbased_flow(
+        int,
+        double,
+        int,
+        double,
+        double,
+        struct patch_object *patch);
 
 	double recompute_gamma(	
 		struct patch_object *,
@@ -205,13 +204,14 @@ void  update_drainage_road(
 	/*------------------------------------------------------------*/
 	/*	calculate amuount of water output to patches			*/
 	/*-----------------------------------------------------------*/
+        int z1_sat_def_pct_index_z2 = patch[0].soil_defaults[0][0].rtz2sat_def_pct_index[(int)(patch[0].road_cut_depth_def*1000)];
+        double z1_sat_def_pct_indexM_z2 = 1000*(patch[0].soil_defaults[0][0].rtz2sat_def_0z[(int)(patch[0].road_cut_depth_def*1000)]*patch[0].soil_defaults[0][0].max_sat_def_1 - z1_sat_def_pct_index_z2*0.001);
 		route_to_patch =  time_int * compute_varbased_flow(
 			patch[0].num_soil_intervals,
 			patch[0].std * command_line[0].std_scale, 
-			patch[0].road_cut_depth_def,
-			total_gamma, 
-			0.0,//patch[0].soil_defaults[0][0].interval_size,
-			0.0, //patch[0].transmissivity_profile,
+			z1_sat_def_pct_index_z2,
+            z1_sat_def_pct_indexM_z2,
+			total_gamma,
 			patch);
 
 		/*-----------------------------------------------------------*/
@@ -220,10 +220,9 @@ void  update_drainage_road(
 		route_to_stream =  time_int * compute_varbased_flow(
 			patch[0].num_soil_intervals,
 			patch[0].std * command_line[0].std_scale, 
-			patch[0].sat_deficit,
+			patch[0].sat_def_pct_index,
+            patch[0].sat_def_pct_indexM,
 			total_gamma, 
-			0.0, //patch[0].soil_defaults[0][0].interval_size,
-			0.0, //patch[0].transmissivity_profile,
 			patch) - route_to_patch;
 
 		if (route_to_patch < 0.0) route_to_patch = 0.0;
@@ -327,11 +326,10 @@ void  update_drainage_road(
 		route_to_stream = 0.0;
 		route_to_patch =  time_int * compute_varbased_flow(
 			patch[0].num_soil_intervals,
-			patch[0].std * command_line[0].std_scale, 
-			patch[0].sat_deficit,
-			total_gamma, 
-			0.0,//patch[0].soil_defaults[0][0].interval_size,
-			0.0,//patch[0].transmissivity_profile,
+            patch[0].std * command_line[0].std_scale,
+			patch[0].sat_def_pct_index,
+            patch[0].sat_def_pct_indexM,
+			total_gamma,
 			patch);
 
 		if (route_to_patch < 0.0) route_to_patch = 0.0;

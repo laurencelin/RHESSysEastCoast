@@ -42,12 +42,11 @@
 #include "phys_constants.h"
 
 double	compute_varbased_flow(
-				int num_soil_intervals,
-				double std,
-				double s1,
-				double gamma,	
-				double no_used1,
-				double no_used2,
+				int num_soil_intervals, // <-- patch[0].num_soil_intervals
+				double std, // <-- patch[0].std * std_scale
+				int sat_def_pct_index, // <-- patch[0].sat_def_pct_index
+                double sat_def_pct_indexM, // <-- patch[0].sat_def_pct_indexM
+				double gamma,
 				struct patch_object *patch)
 {
 
@@ -104,7 +103,7 @@ double	compute_varbased_flow(
     // c(0.2, 0.1, 0.1, 0.1, ..... 0.1); weight of the normal distribution
 	
 	flow = 0.0;
-	if (s1 < 0.0) s1 = 0.0;	// s1 = sat_def
+	//if (s1 < 0.0) s1 = 0.0;	// s1 = sat_def
 
 	if (std > ZERO) {
         
@@ -116,7 +115,7 @@ double	compute_varbased_flow(
             //if (didx > num_soil_intervals) didx = num_soil_intervals;
             //accum = transmissivity[didx];
             
-            didx = patch[0].sat_def_pct_index + (int)(normal[i]*std*1000);
+            didx = sat_def_pct_index + (int)(normal[i]*std*1000);
             if(didx<0) didx = 0;
             if(didx>1000) didx = 1000;
             accum = min( gamma*patch[0].soil_defaults[0][0].transmissivity_dailyflux[didx], patch[0].area * patch[0].soil_defaults[0][0].transmissivity_maxdailyflux[didx]);
@@ -156,10 +155,10 @@ double	compute_varbased_flow(
 		    //flow = transmissivity[didx] * fs_percolation; // fs_percolation defaults = 1
             //fs_percolation = 1 means no loss flow to GW?
             
-            //didx=patch[0].sat_def_pct_index
+            //didx=sat_def_pct_index
             //if(didx<0) didx = 0;
             
-            flow = min( gamma*(patch[0].sat_def_pct_indexM * patch[0].soil_defaults[0][0].transmissivity_dailyflux[patch[0].sat_def_pct_index+1] + (1.0-patch[0].sat_def_pct_indexM) * patch[0].soil_defaults[0][0].transmissivity_dailyflux[patch[0].sat_def_pct_index]), patch[0].area*(patch[0].sat_def_pct_indexM * patch[0].soil_defaults[0][0].transmissivity_maxdailyflux[patch[0].sat_def_pct_index+1] + (1.0-patch[0].sat_def_pct_indexM) * patch[0].soil_defaults[0][0].transmissivity_maxdailyflux[patch[0].sat_def_pct_index]));
+            flow = min( gamma*(sat_def_pct_indexM * patch[0].soil_defaults[0][0].transmissivity_dailyflux[sat_def_pct_index+1] + (1.0-sat_def_pct_indexM) * patch[0].soil_defaults[0][0].transmissivity_dailyflux[sat_def_pct_index]), patch[0].area*(sat_def_pct_indexM * patch[0].soil_defaults[0][0].transmissivity_maxdailyflux[sat_def_pct_index+1] + (1.0-sat_def_pct_indexM) * patch[0].soil_defaults[0][0].transmissivity_maxdailyflux[sat_def_pct_index]));
             flow *= fs_percolation;
     
 		}else{
@@ -172,7 +171,7 @@ double	compute_varbased_flow(
             didthr = (int)(threshold*1000*patch[0].soil_defaults[0][0].max_sat_def_1); // volumn
             thre_flow = min(gamma*patch[0].soil_defaults[0][0].transmissivity_dailyflux[didthr], patch[0].area*patch[0].soil_defaults[0][0].transmissivity_maxdailyflux[didthr]);
             
-            abovthre_flow = min(gamma*(patch[0].sat_def_pct_indexM * patch[0].soil_defaults[0][0].transmissivity_dailyflux[patch[0].sat_def_pct_index+1] + (1.0-patch[0].sat_def_pct_indexM) * patch[0].soil_defaults[0][0].transmissivity_dailyflux[patch[0].sat_def_pct_index]), patch[0].area *(patch[0].sat_def_pct_indexM * patch[0].soil_defaults[0][0].transmissivity_maxdailyflux[patch[0].sat_def_pct_index+1] + (1.0-patch[0].sat_def_pct_indexM) * patch[0].soil_defaults[0][0].transmissivity_maxdailyflux[patch[0].sat_def_pct_index]));
+            abovthre_flow = min(gamma*(sat_def_pct_indexM * patch[0].soil_defaults[0][0].transmissivity_dailyflux[sat_def_pct_index+1] + (1.0-sat_def_pct_indexM) * patch[0].soil_defaults[0][0].transmissivity_dailyflux[sat_def_pct_index]), patch[0].area *(sat_def_pct_indexM * patch[0].soil_defaults[0][0].transmissivity_maxdailyflux[sat_def_pct_index+1] + (1.0-sat_def_pct_indexM) * patch[0].soil_defaults[0][0].transmissivity_maxdailyflux[sat_def_pct_index]));
             abovthre_flow -= thre_flow;
             abovthre_flow *= (abovthre_flow>0.0? fs_spill : 0.0); // fs_spill default = 1
             

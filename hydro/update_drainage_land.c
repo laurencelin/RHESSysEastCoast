@@ -62,8 +62,7 @@ void  update_drainage_land(
 	double compute_varbased_flow(
 		int,
 		double,
-		double,
-		double,
+		int,
 		double,
 		double,
 		struct patch_object *);
@@ -101,20 +100,19 @@ void  update_drainage_land(
 	/*	Local variable definition.				*/
 	/*--------------------------------------------------------------*/
 	int j, d;
-	double m, Ksat, std_scale;
-	double NH4_leached_to_patch, NH4_leached_to_stream;
-	double NO3_leached_to_patch, NO3_leached_to_stream;
-	double DON_leached_to_patch, DON_leached_to_stream;
-	double DOC_leached_to_patch, DOC_leached_to_stream;
+	//double m, Ksat, std_scale;
+    double std_scale;
+	double NH4_leached_to_patch;
+	double NO3_leached_to_patch;
+	double DON_leached_to_patch;
+	double DOC_leached_to_patch;
 	double NO3_leached_to_surface; /* kg/m2 */
 	double NH4_leached_to_surface; /* kg/m2 */
 	double DON_leached_to_surface; /* kg/m2 */
 	double DOC_leached_to_surface; /* kg/m2 */
-	double N_leached_total; /* kg/m2 */
-	double DON_leached_total; /* kg/m2 */
-	double DOC_leached_total; /* kg/m2 */
+
 	double route_to_surface;  /* m3 */
-	double return_flow,route_to_patch ;  /* m3 */
+	double return_flow, route_to_patch ;  /* m3 */
 	double available_sat_water; /* m3 */
 	double Qin, Qout;  /* m */
 	double innundation_depth, infiltration; /* m */
@@ -129,13 +127,9 @@ void  update_drainage_land(
     extrawater = 0.0;
     
 	DON_leached_to_patch = 0.0;
-	DON_leached_to_stream = 0.0;
 	DOC_leached_to_patch = 0.0;
-	DOC_leached_to_stream = 0.0;
 	NH4_leached_to_patch = 0.0;
-	NH4_leached_to_stream = 0.0;
 	NO3_leached_to_patch = 0.0;
-	NO3_leached_to_stream = 0.0;
 	NO3_leached_to_surface = 0.0;
 	NH4_leached_to_surface = 0.0;
 	DOC_leached_to_surface = 0.0;
@@ -192,111 +186,208 @@ void  update_drainage_land(
     patch[0].soil_cs.DOC *= rate_;
     patch[0].soil_ns.DON *= rate_;
     
-    //double p_decayRate = 1.0/patch[0].soil_defaults[0][0].porosity_decay;
-    //double constantHold_SAT_proj_S0 = (1.0 - exp(-p_decayRate*activedepthz)) / (exp(-p_decayRate*z1)-exp(-p_decayRate*activedepthz));
     
-    //double N_decay_rate = (command_line[0].rootNdecayRate > 0? patch[0].rootzone.NO3decayRate : patch[0].soil_defaults[0][0].N_decay_rate);//lookup the term that has been using.
-	//double activedepthz = (command_line[0].rootNdecayRate > 0? patch[0].soil_defaults[0][0].soil_depth : (command_line[0].root2active > 0.0? patch[0].rootzone.depth * command_line[0].root2active : patch[0].soil_defaults[0][0].active_zone_z));
-//    double N_decay_rate = patch[0].soil_defaults[0][0].NO3decayRate;
-//    double activedepthz = patch[0].soil_defaults[0][0].active_zone_z;
-//    if(activedepthz > z1){
-//        constantHold_no3 = (exp(-N_decay_rate*z1)-exp(-N_decay_rate*activedepthz)) / (1.0 - exp(-N_decay_rate*activedepthz)) * 0.04166667;
-//        patch[0].sat_NO3 += patch[0].soil_ns.nitrate * constantHold_no3; //adjust for hourly
-//        patch[0].soil_ns.nitrate *= 1.0 - constantHold_no3;
-//    }
-    //double proj_total_sat_NO3 = patch[0].sat_NO3 * constantHold_SAT_proj_S0;
     
-    //N_decay_rate = (command_line[0].NH4root2active>0.0? patch[0].soil_defaults[0][0].N_decay_rate : (command_line[0].rootNdecayRate > 0? patch[0].rootzone.NH4decayRate : patch[0].soil_defaults[0][0].N_decay_rate));
-    //activedepthz = (command_line[0].NH4root2active>0.0? patch[0].rootzone.depth * command_line[0].NH4root2active : (command_line[0].rootNdecayRate > 0? patch[0].soil_defaults[0][0].soil_depth : (command_line[0].root2active>0.0? patch[0].rootzone.depth * command_line[0].root2active : patch[0].soil_defaults[0][0].active_zone_z)));
-//    N_decay_rate = patch[0].soil_defaults[0][0].NH4decayRate;
-//    if(activedepthz > z1){
-//        constantHold_nh4 = (exp(-N_decay_rate*z1)-exp(-N_decay_rate*activedepthz)) / (1.0 - exp(-N_decay_rate*activedepthz)) * 0.04166667;
-//        patch[0].sat_NH4 += patch[0].soil_ns.sminn * constantHold_nh4;
-//        patch[0].soil_ns.sminn *= 1.0 - constantHold_nh4;
-//    }
-    //double proj_total_sat_NH4 = patch[0].sat_NH4 * constantHold_SAT_proj_S0;
+    /*--------------------------------------------------------------*/
+    /*    available sat water  */
+    /*--------------------------------------------------------------*/
+    std_scale = command_line[0].std_scale;
+    available_sat_water = max(
+                patch[0].area*( patch[0].soil_defaults[0][0].soil_water_cap - max(patch[0].sat_deficit, 0.0) ),
+                0.0);
+        
+    //    if(patch[0].sat_deficit!=patch[0].sat_deficit || patch[0].sat_deficit_z!=patch[0].sat_deficit_z || patch[0].rootzone.field_capacity!=patch[0].rootzone.field_capacity || patch[0].field_capacity!=patch[0].field_capacity || patch[0].sat_def_pct_index!=patch[0].sat_def_pct_index || patch[0].sat_def_pct_indexM!=patch[0].sat_def_pct_indexM){
+    //        printf("drainage_land(1,%d): %lf %lf %lf %lf (%lf, %lf)\n", patch[0].ID,
+    //               patch[0].sat_deficit, patch[0].sat_deficit_z,
+    //               patch[0].rootzone.field_capacity, patch[0].field_capacity,
+    //               patch[0].sat_def_pct_index, patch[0].sat_def_pct_indexM);
+    //    }//debug
     
-    //N_decay_rate = (command_line[0].rootNdecayRate > 0? patch[0].rootzone.DOMdecayRate : patch[0].soil_defaults[0][0].DOM_decay_rate);
-    //activedepthz = (command_line[0].rootNdecayRate > 0? patch[0].soil_defaults[0][0].soil_depth : (command_line[0].root2active > 0.0? patch[0].rootzone.depth * command_line[0].root2active : patch[0].soil_defaults[0][0].active_zone_z));
-//    N_decay_rate = patch[0].soil_defaults[0][0].DOMdecayRate;
-//    if(activedepthz > z1){
-//        constantHold_dom = (exp(-N_decay_rate*z1)-exp(-N_decay_rate*activedepthz)) / (1.0 - exp(-N_decay_rate*activedepthz)) * 0.04166667;
-//        patch[0].sat_DOC += patch[0].soil_cs.DOC * constantHold_dom;
-//        patch[0].sat_DON += patch[0].soil_ns.DON * constantHold_dom;
-//        patch[0].soil_cs.DOC *= 1.0 - constantHold_dom;
-//        patch[0].soil_ns.DON *= 1.0 - constantHold_dom;
-//    }
-    //double proj_total_sat_DOC = patch[0].sat_DOC * constantHold_SAT_proj_S0;
-    //double proj_total_sat_DON = patch[0].sat_DON * constantHold_SAT_proj_S0;
-	// we need to know the vertical profile of NO3, not just the total amount!
-	// "sat_solute" does not have the profile! 
-	// solution 1a: we borrow decay from NO3 in whole soil column
-	// solution 1b: we project a virtual sat_no3_0 for the profile to work.
-	// ----------------- then we need to update the leaching function below.
-	// change 1a: passing "sat_solute", N_decay_rate, and projected sat_no3_0 to the function
-	// change 1b: passing "sat_deficit_z"; and we still need to determine the critial pt. for integration
-	
-	// after neighbor "sat_solute" is filled by the hourly step, we need to sort out resources in SAT to UNSAT, which should be done in "where?"
-	
+    
+    
 	/*--------------------------------------------------------------*/
 	/*	recalculate gamma based on current saturation deficits  */
 	/*      to account the effect of changes in water table slope 	*/
+    /*  move gamma caluclation (function call) to here, Feb 11, 2020, Lin  */
+    /*  move varbased_flow caluclation (function call) to here, Feb 11, 2020, Lin  */
 	/*--------------------------------------------------------------*/
-    d=0; total_gamma = recompute_gamma(patch, patch[0].innundation_list[d].gamma);
+    int i; //j and d are used
+    double adjustment = 0.0;
+    double revised_total_gamma = 0.0;
+    double totaledge = 0.0;
+    double z1, z2, water_table_z1, water_table_z2;
+    double soil_depth_z1, soil_depth_z2;
+    int z1_sat_def_pct_index_z2;
+    double z1_sat_def_pct_indexM_z2;
+    double z1_soildepth_z2;
+    
+    z1 = patch[0].z;
+    if(patch[0].sat_deficit_z > 0){
+        water_table_z1 = (z1 - patch[0].sat_deficit_z);
+    }else{
+        water_table_z1 = z1;
+    }
+    soil_depth_z1 = z1 - patch[0].soil_defaults[0][0].soil_depth; // elevation of soil bottom
+//    if(patch[0].sat_deficit_z>patch[0].soil_defaults[0][0].soil_depth) printf("warning0 patch %d(%f,%f)->(%f,%f)\n", patch[0].ID, patch[0].sat_deficit_z, patch[0].soil_defaults[0][0].soil_depth, water_table_z1, soil_depth_z1);
+    
+    
+    d = 0;
+    if (patch[0].innundation_list[d].num_neighbours > 0){
+        
+        // have neighbor
+        for (i =0; i < patch[0].innundation_list[d].num_neighbours; i++) {
+            
+            z2 = patch[0].innundation_list[d].neighbours[i].patch[0].z;
+            if(patch[0].innundation_list[d].neighbours[i].patch[0].sat_deficit_z > 0){
+                water_table_z2 = (z2 - patch[0].innundation_list[d].neighbours[i].patch[0].sat_deficit_z);
+            }else{
+                water_table_z2 = z2;
+            }
+            
+            // new code, Sept 19, 2018
+            // - patch[0].innundation_list[d].neighbours[i].patch[0].constraintWaterTableTopDepth
+            if( (water_table_z1 - water_table_z2 )>0 ){
+                // updating the gamma fractions: step 1 comparing water table depths
+                patch[0].innundation_list[d].neighbours[i].gamma = (water_table_z1 - water_table_z2) * patch[0].innundation_list[d].neighbours[i].edgedistance; // (edge/distance)
+                revised_total_gamma += patch[0].innundation_list[d].neighbours[i].gamma;
+                totaledge += patch[0].innundation_list[d].neighbours[i].edge;
+            }else{
+                patch[0].innundation_list[d].neighbours[i].gamma = 0.0;
+            }// end of if
+            
+        }//end of for neighbour i loop
+        
+        
+        if(revised_total_gamma>0){
+            
+            for (i =0; i < patch[0].innundation_list[d].num_neighbours; i++) {
+                
+                z2 = patch[0].innundation_list[d].neighbours[i].patch[0].z;
+                soil_depth_z2 = z2 - patch[0].innundation_list[d].neighbours[i].patch[0].soil_defaults[0][0].soil_depth;
+                if(patch[0].innundation_list[d].neighbours[i].patch[0].sat_deficit_z > 0){
+                    water_table_z2 = (z2 - patch[0].innundation_list[d].neighbours[i].patch[0].sat_deficit_z);
+                }else{
+                    water_table_z2 = z2;
+                }
+                // new code, Feb 11, 2020
+                if( patch[0].innundation_list[d].neighbours[i].gamma>0.0 ){
+                    
+                    // updating the gamma fractions: step 2 elevation of soil bottoms
+                    patch[0].innundation_list[d].neighbours[i].transmissivity_flux2neighbour = time_int * compute_varbased_flow(
+                        patch[0].num_soil_intervals,
+                        patch[0].std * std_scale,
+                        patch[0].sat_def_pct_index,
+                        patch[0].sat_def_pct_indexM,
+                        patch[0].innundation_list[d].neighbours[i].gamma*patch[0].area/totaledge,
+                        patch);
+//                    if(patch[0].innundation_list[d].neighbours[i].transmissivity_flux2neighbour<0.0) printf("warning1 negative routing from patch %d(%f,%f) -> %d(%f,%f) with gamma (fraction) %lf\n",patch[0].ID, water_table_z1, soil_depth_z1, patch[0].innundation_list[d].neighbours[i].patch[0].ID, water_table_z2, soil_depth_z2, patch[0].innundation_list[d].neighbours[i].transmissivity_flux2neighbour);
+                    
+                    
+                    
+                    // count for soil depth blocking
+                    if( soil_depth_z2 > soil_depth_z1){
+                        z1_soildepth_z2 = patch[0].soil_defaults[0][0].soil_depth-(soil_depth_z2-soil_depth_z1);
+                        z1_sat_def_pct_index_z2 = patch[0].soil_defaults[0][0].rtz2sat_def_pct_index[(int)(z1_soildepth_z2*1000)];
+                        z1_sat_def_pct_indexM_z2 = 1000*(patch[0].soil_defaults[0][0].rtz2sat_def_0z[(int)(z1_soildepth_z2*1000)]*patch[0].soil_defaults[0][0].max_sat_def_1 - z1_sat_def_pct_index_z2*0.001);
+                        
+//                        if(z1_sat_def_pct_indexM_z2<0.0 || z1_sat_def_pct_indexM_z2>1.0) printf("warning1.5 patch %d %f<%f %f %f\n", patch[0].ID, z1_soildepth_z2, patch[0].soil_defaults[0][0].soil_depth, patch[0].soil_defaults[0][0].rtz2sat_def_0z[(int)(z1_soildepth_z2*1000)], z1_sat_def_pct_index_z2*0.001);
+                        
+                        patch[0].innundation_list[d].neighbours[i].transmissivity_flux2neighbour -= time_int * compute_varbased_flow(
+                            patch[0].num_soil_intervals,
+                            patch[0].std * std_scale,
+                            z1_sat_def_pct_index_z2,//<---- problem; the function is reading "patch[0].sat_def_pct_index"
+                            z1_sat_def_pct_indexM_z2,
+                            patch[0].innundation_list[d].neighbours[i].gamma*patch[0].area/totaledge,
+                            patch);
+                        
+                        if(patch[0].innundation_list[d].neighbours[i].transmissivity_flux2neighbour<0.0 && patch[0].innundation_list[d].neighbours[i].transmissivity_flux2neighbour > -0.0001){
+                            
+                            patch[0].innundation_list[d].neighbours[i].transmissivity_flux2neighbour = 0.0;
+                        }else if(patch[0].innundation_list[d].neighbours[i].transmissivity_flux2neighbour<0.0) printf("warning2 negative routing from patch %d(%f,%f) -> %d(%f,%f) with gamma (fraction) %lf, %d(%f,%f), %d(%f,%f)\n",patch[0].ID, water_table_z1, soil_depth_z1, patch[0].innundation_list[d].neighbours[i].patch[0].ID, water_table_z2, soil_depth_z2, patch[0].innundation_list[d].neighbours[i].transmissivity_flux2neighbour, patch[0].sat_def_pct_index, patch[0].sat_def_pct_indexM, patch[0].sat_deficit_z, z1_sat_def_pct_index_z2, z1_sat_def_pct_indexM_z2, z1_soildepth_z2 );
+                    }//if
+                    
+                }else{
+                    patch[0].innundation_list[d].neighbours[i].transmissivity_flux2neighbour = 0.0;
+                }// end of if
+                
+                route_to_patch += patch[0].innundation_list[d].neighbours[i].transmissivity_flux2neighbour;
+                
+            }//end of for neighbour i loop
+            
+            if(route_to_patch!=route_to_patch){
+                printf("drainage_land(2,%d): %lf %lf %lf %lf (%lf,%d, %lf)\n", patch[0].ID,
+                       patch[0].sat_deficit, patch[0].sat_deficit_z,
+                       patch[0].rootzone.field_capacity, patch[0].field_capacity,
+                       patch[0].sat_def_pct, patch[0].sat_def_pct_index, patch[0].sat_def_pct_indexM);
+            }//debug
+            if (route_to_patch <=0.0){
+                route_to_patch = 0.0;
+                for (i =0; i < patch[0].innundation_list[d].num_neighbours; i++) {
+                    patch[0].innundation_list[d].neighbours[i].gamma = 0.0;
+                }//end of for neighbour i loop
+                revised_total_gamma = 0.0;
+            }else{
+                
+                for (i =0; i < patch[0].innundation_list[d].num_neighbours; i++) {
+                    patch[0].innundation_list[d].neighbours[i].gamma = patch[0].innundation_list[d].neighbours[i].transmissivity_flux2neighbour/route_to_patch;
+                    // neighbours' gamma (fractions) are still in use in the code below
+                }//end of for neighbour i loop
+            }// end of if else
+            
+            // ---- just keep the total gamma here, but no use in further down
+            revised_total_gamma /= totaledge;
+            revised_total_gamma *= patch[0].area;
+        }else{
+            revised_total_gamma = 0.0;
+            route_to_patch = 0.0;
+            //default: patch[0].innundation_list[d].neighbours[i].gamma = 0;
+        }//
+        total_gamma = revised_total_gamma;
+        
+    }else{
+        // no neighbor; num_neighbours = 0
+        // adjustment = 1.0;
+        total_gamma = patch[0].innundation_list[d].gamma;
+        route_to_patch = time_int * compute_varbased_flow(
+            patch[0].num_soil_intervals,
+            patch[0].std * std_scale,
+            patch[0].sat_def_pct_index,
+            patch[0].sat_def_pct_indexM,
+            total_gamma,
+            patch);
+    }// end of if
+    
+    //d=0; total_gamma = recompute_gamma(patch, patch[0].innundation_list[d].gamma);
+    
 
-	available_sat_water = max(
-            patch[0].area*( patch[0].soil_defaults[0][0].soil_water_cap - max(patch[0].sat_deficit, 0.0) ),
-            0.0);
-    
-//    if(patch[0].sat_deficit!=patch[0].sat_deficit || patch[0].sat_deficit_z!=patch[0].sat_deficit_z || patch[0].rootzone.field_capacity!=patch[0].rootzone.field_capacity || patch[0].field_capacity!=patch[0].field_capacity || patch[0].sat_def_pct_index!=patch[0].sat_def_pct_index || patch[0].sat_def_pct_indexM!=patch[0].sat_def_pct_indexM){
-//        printf("drainage_land(1,%d): %lf %lf %lf %lf (%lf, %lf)\n", patch[0].ID,
-//               patch[0].sat_deficit, patch[0].sat_deficit_z,
-//               patch[0].rootzone.field_capacity, patch[0].field_capacity,
-//               patch[0].sat_def_pct_index, patch[0].sat_def_pct_indexM);
-//    }//debug
-    
-    
-	/*------------------------------------------------------------*/
-	/*	calculate amuount of water output to OTHER patches			*/
-	/*	this only computes subsurface flow, not overland flow	*/
-	/*-----------------------------------------------------------*/
-
-	std_scale = command_line[0].std_scale;
-
-	route_to_patch = time_int * compute_varbased_flow(
-		patch[0].num_soil_intervals,
-		patch[0].std * std_scale, 
-		patch[0].sat_deficit,
-		total_gamma, 
-		0.0, //patch[0].soil_defaults[0][0].interval_size,
-		0.0, //patch[0].transmissivity_profile,
-		patch);
-    if(route_to_patch!=route_to_patch){
-        printf("drainage_land(2,%d): %lf %lf %lf %lf (%lf,%d, %lf)\n", patch[0].ID,
-               patch[0].sat_deficit, patch[0].sat_deficit_z,
-               patch[0].rootzone.field_capacity, patch[0].field_capacity,
-               patch[0].sat_def_pct, patch[0].sat_def_pct_index, patch[0].sat_def_pct_indexM);
-    }//debug
-    
-	if (route_to_patch < 0.0) route_to_patch = 0.0;
+    if (route_to_patch < 0.0) route_to_patch = 0.0;
     if (route_to_patch > 0.0 && route_to_patch > available_sat_water) route_to_patch=available_sat_water; //volumn
     patch[0].satzZ_balance = 0.0; // mm
     
     
-    //Sept 18
-    extrawater = patch[0].rz_storage+patch[0].unsat_storage - patch[0].sat_deficit - route_to_patch/patch[0].area + patch[0].constraintWaterTableTopDepth_def;
+    
+    
+    
+    
+    //Sept 18, 2019
+    extrawater = patch[0].rz_storage+patch[0].unsat_storage - patch[0].sat_deficit - route_to_patch/patch[0].area;// + patch[0].constraintWaterTableTopDepth_def;
     if(extrawater>0){
         // bounded by impervious surface
         // trigger returnflow and fully saturation
-        return_flow = compute_varbased_returnflow(
-                              patch[0].std * std_scale,
-                              (patch[0].rz_storage+patch[0].unsat_storage+patch[0].constraintWaterTableTopDepth_def)*patch[0].Ksat_vertical,
-                              (patch[0].sat_deficit+route_to_patch/patch[0].area)*patch[0].Ksat_vertical,
-                              &(patch[0].litter));// mm
+        double imp_unsat_storage = (patch[0].rz_storage+patch[0].unsat_storage)*patch[0].Ksat_vertical;
+        double imp_sat_def = (patch[0].sat_deficit+route_to_patch/patch[0].area)*patch[0].Ksat_vertical;
+        return_flow = max( (imp_unsat_storage-imp_sat_def),0.0); // no counting litter storage
         
         //route_to_patch = max(route_to_patch,extrawater*patch[0].area*(1.0-patch[0].Ksat_vertical)); // volumn
         route_to_patch += (extrawater>return_flow? (extrawater-return_flow)*patch[0].area : 0.0);  // volumn
-        patch[0].satzZ_balance -= (extrawater>return_flow? (extrawater-return_flow) : 0.0); // mm
+        //patch[0].satzZ_balance -= (extrawater>return_flow? (extrawater-return_flow) : 0.0); // mm (no use)
+        
+        // counting litter storage for returnflow
+        return_flow = compute_varbased_returnflow(
+            patch[0].std * std_scale,
+            imp_unsat_storage,
+            imp_sat_def,
+            &(patch[0].litter));// mm
         
         patch[0].detention_store += return_flow;
         //patch[0].sat_deficit = 0.0; // wrong; because Qout will modify sat_deficit, outside of this function call, hourly
@@ -544,7 +635,7 @@ void  update_drainage_land(
             if(patch[0].aggregate_ID != neigh[0].aggregate_ID && patch[0].aggregate_ID>0 && patch[0].aggregate_ID % 5 ==0){neigh[0].fromSTREAM_Q+=Qin; }
             
             
-            if (Qin < 0) printf("\n warning negative routing from patch %d with gamma %lf", patch[0].ID, total_gamma);
+            if (Qin < 0) printf("warning negative routing from patch %d with gamma %lf\n", patch[0].ID, total_gamma);
             if (command_line[0].grow_flag > 0) {
                 
                 //Note that: "xxx_leached_to_patch" is flux, i.e., not areal

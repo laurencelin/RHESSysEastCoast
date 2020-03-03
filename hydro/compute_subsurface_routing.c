@@ -348,6 +348,8 @@ void compute_subsurface_routing(struct command_line_object *command_line,
                 // any other codes, e.g.,PAVEDROAD, IMP, RIPARIAN // Sept 7
 				//update_drainage_land(patch, command_line, time_int, verbose_flag);
                 update_drainage_land(patch, command_line, time_int, k);
+                // actually modifies neigh[0].detention_store (surface)
+                // and it modifies neigh[0].Qin (subsurface; but not directly to neigh[0].sat_def ); this is done outside of this 24-h loop
 			}
             
             if(patch[0].soil_ns.nitrate!=patch[0].soil_ns.nitrate || patch[0].soil_ns.nitrate<0 ||
@@ -847,6 +849,13 @@ void compute_subsurface_routing(struct command_line_object *command_line,
 	} /* end k hourly step */
 
 
+    
+    
+    
+    
+    
+    
+    
     // outside the hourly loop, the end of day
     for (i = 0; i < basin->route_list->num_patches; i++) {
         patch = basin->route_list->list[i];
