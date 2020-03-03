@@ -108,8 +108,7 @@ int update_nitrif(
         if( patch[0].soil_defaults[0][0].active_zone_z > patch[0].sat_deficit_z){
             theta = (patch[0].rz_storage + patch[0].unsat_storage + patch[0].soil_defaults[0][0].active_zone_sat_0z - patch[0].sat_deficit) * patch[0].soil_defaults[0][0].active_zone_sat_0z_1;
             
-            //perc_sat = (patch[0].soil_defaults[0][0].active_zone_sat_0z - patch[0].sat_deficit) * patch[0].soil_defaults[0][0].active_zone_sat_oz_1;
-            perc_sat = (patch[0].soil_defaults[0][0].active_zone_sat_0z - patch[0].sat_deficit)/patch[0].available_soil_water;
+            perc_sat = max(0.0,min(1.0,(patch[0].soil_defaults[0][0].active_zone_sat_0z - patch[0].sat_deficit)/patch[0].available_soil_water));
             
         }else if(patch[0].soil_defaults[0][0].active_zone_z > patch[0].rootzone.depth){
             theta = (patch[0].rz_storage+patch[0].unsat_storage) / patch[0].sat_deficit; // approximate
