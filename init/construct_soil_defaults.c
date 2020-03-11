@@ -156,7 +156,6 @@ struct soil_default *construct_soil_defaults(
 		default_object_list[i].psi_max = 		getDoubleParam(&paramCnt, &paramPtr, "psi_max", "%lf", 0.01, 1);
 		default_object_list[i].soil_depth = 		getDoubleParam(&paramCnt, &paramPtr, "soil_depth", "%lf", 200.0, 1);
 		
-//		default_object_list[i].detention_store_size = 	getDoubleParam(&paramCnt, &paramPtr, "detention_store_size", "%lf", 0.0, 1); // non sense
 		default_object_list[i].deltaz = 		getDoubleParam(&paramCnt, &paramPtr, "deltaZ", "%lf", 1.0, 1); // param name contains uppercase "Z" in param file
 		default_object_list[i].active_zone_z = 		getDoubleParam(&paramCnt, &paramPtr, "active_zone_z", "%lf", 5.0, 1);
 		if(default_object_list[i].active_zone_z > default_object_list[i].soil_depth){
@@ -204,14 +203,6 @@ struct soil_default *construct_soil_defaults(
 			+ default_object_list[i].soil_type.silt
 			+ default_object_list[i].soil_type.clay;
 		if  (fabs(soil - 1.0) > 1e-5) {
-//			fprintf(stderr,
-//				"FATAL ERROR:in construct_soil_defaults\n proportion sand, silt, clay = %f\n\n", soil);
-//			printf("\n %d -  %f %f %f %f \n",
-//				default_object_list[i].ID,
-//				default_object_list[i].NO3decayRate,
-//				default_object_list[i].soil_type.sand,
-//				default_object_list[i].soil_type.silt,
-//				default_object_list[i].soil_type.clay);
             if(soil>0){
                 default_object_list[i].soil_type.sand /= soil;
                 default_object_list[i].soil_type.silt /= soil;
@@ -304,8 +295,7 @@ struct soil_default *construct_soil_defaults(
                 // 2) transmissivity -- detect negative and use ksat0;
             
 		}//if
-        // default_object_list[i].porosity_0 < 1
-        // default_object_list[i].porosity_0*exp(default_object_list[i].soil_depth/default_object_list[i].porosity_decay) < 1
+        
         
         if( default_object_list[i].porosity_0>=1.0 ){
             printf("soil construct (%d) porosity_0 problem (reset to 0.8).\n");
@@ -333,15 +323,7 @@ struct soil_default *construct_soil_defaults(
             default_object_list[i].soil_depth = proposed_soildepth;
         }//if
 
-		/*--------------------------------------------------------------*/
-		/*      calculate water_equivalent depth of soil                */
-		/*--------------------------------------------------------------*/
-//		default_object_list[i].soil_water_cap = compute_delta_water(
-//			0, default_object_list[i].porosity_0,
-//			default_object_list[i].porosity_decay,
-//			default_object_list[i].soil_depth,
-//			default_object_list[i].soil_depth,
-//			0.0);
+
 
 		/*--------------------------------------------------------------*/
 		/* initialization of optional default file parms		*/
@@ -358,7 +340,7 @@ struct soil_default *construct_soil_defaults(
 		default_object_list[i].DOC_adsorption_rate = 	getDoubleParam(&paramCnt, &paramPtr, "DOC_adsorption_rate", "%lf", 0.000023, 1);
 		default_object_list[i].DON_adsorption_rate = 	getDoubleParam(&paramCnt, &paramPtr, "DON_adsorption_rate", "%lf", 0.000001, 1);
 		default_object_list[i].interval_size = 		getDoubleParam(&paramCnt, &paramPtr, "interval_size", "%lf", INTERVAL_SIZE, 1);
-        default_object_list[i].DON_adsorption_rate = default_object_list[i].DOC_adsorption_rate;//should keep them the same
+        
         
         /*--------------------------------------------------------------*/
         /* sensitivity adjustment of vertical drainage  soil paramters    */
@@ -383,56 +365,7 @@ struct soil_default *construct_soil_defaults(
         /*--------------------------------------------------------------*/
         /*        Close the ith default file.                                */
         /*--------------------------------------------------------------*/
-//
-//                memset(strbuf, '\0', strbufLen);
-//                strcpy(strbuf, default_files[i]);
-//                char *s = strbuf;
-//                char *y = NULL;
-//                char *token = NULL;
-//                char filename[256];
-//
-//                // Store filename portion of path in 't'
-//                while ((token = strtok(s, "/")) != NULL) {
-//                    // Save the latest component of the filename
-//                    strcpy(filename, token);
-//                    s = NULL;
-//                }
-//
-//                // Remove the file extension, if one exists
-//                memset(strbuf, '\0', strbufLen);
-//                strcpy(strbuf, filename);
-//                free(s);
-//                s = strbuf;
-//                token = strtok(s, ".");
-//                if (token != NULL) {
-//                    strcpy(filename, token);
-//                }
-//
-//                memset(outFilename, '\0', filenameLen);
-//
-//
-//
-//            // Concatenate the output prefix with the filename of the input .def file
-//            // and "_soil.params"
-//            if (command_line[0].output_prefix != NULL) {
-//                strcat(outFilename, command_line[0].output_prefix);
-//                if (filename != NULL) {
-//                    strcat(outFilename, "_");
-//                    strcat(outFilename, filename);
-//                }
-//                strcat(outFilename, "_soil.params");
-//            }
-//            else {
-//                if (filename != NULL) {
-//                    strcat(outFilename, "_");
-//                    strcat(outFilename, filename);
-//                }
-//                strcat(outFilename, "soil.params");
-//            }
-//
-//        printParams(paramCnt, paramPtr, outFilename);
-//
-        
+
         
         if (paramPtr != NULL){ free(paramPtr); paramPtr=NULL; }
         

@@ -134,14 +134,6 @@ void  update_drainage_land(
 	NH4_leached_to_surface = 0.0;
 	DOC_leached_to_surface = 0.0;
 	DON_leached_to_surface = 0.0;
-	
-	// by the way, editing on ipad. hope it's saved.
-	// in the mother routine, "update_drainage_land.c" is called hourly for every patch (below). 
-	// ideally, I wanna track hourly "leached_solute" and add to the neighbor "SAT_solute" (hourly).
-	// at the same time, this "SAT_solute" is used for the local leaching calculation. 
-	// by the local vertical movement of solute, local "SAT_solute" is supplied from the upper layer.
-    // ** important note: sat_deficit_z is updated hourly to count for later IN/OUT from the outside function before calling this function
-    // double constantHold_no3, constantHold_nh4, constantHold_dom;
     
     if(patch[0].soil_ns.nitrate!=patch[0].soil_ns.nitrate || patch[0].soil_ns.nitrate<0 ||
        patch[0].soil_ns.sminn!=patch[0].soil_ns.sminn || patch[0].soil_ns.sminn<0 ||
@@ -356,9 +348,6 @@ void  update_drainage_land(
             total_gamma,
             patch);
     }// end of if
-    
-    //d=0; total_gamma = recompute_gamma(patch, patch[0].innundation_list[d].gamma);
-    
 
     if (route_to_patch < 0.0) route_to_patch = 0.0;
     if (route_to_patch > 0.0 && route_to_patch > available_sat_water) route_to_patch=available_sat_water; //volumn
@@ -390,13 +379,6 @@ void  update_drainage_land(
             &(patch[0].litter));// mm
         
         patch[0].detention_store += return_flow;
-        //patch[0].sat_deficit = 0.0; // wrong; because Qout will modify sat_deficit, outside of this function call, hourly
-        //patch[0].sat_deficit += (return_flow - (patch[0].unsat_storage+patch[0].rz_storage));//original; i think it's wrong. it did not consider the ouside Qout-Qin hourly process.
-        // patch[0].Qout is "route_to_patch" (hourly)
-        // ---------- cannot do it here.
-        // patch[0].sat_deficit = -route_to_patch/patch[0].area + return_flow; //
-        // patch[0].unsat_storage = 0.0;
-        // patch[0].rz_storage = 0.0;
     }// extra water
     
 	/*--------------------------------------------------------------*/
@@ -496,18 +478,6 @@ void  update_drainage_land(
 //               patch[0].sat_def_pct_index, patch[0].sat_def_pct_indexM);
 //    }//debug
     
-	/*--------------------------------------------------------------*/
-	/*	calculate any return flow associated with this patch	*/
-	/*	and route any infiltration excess			*/
-	/*	return flow is flow leaving patch (i.e surface_Qout)  	*/
-	/*	note that return flow that becomes detention storage   */
-	/*	is added to surface_Qin					*/
-	/*	similarly with associated nitrogen			*/
-	/* 	note we move unsat_storage into saturated storage in this case */
-	/*	saturated zone will be updated in compute_subsurface_routing	*/
-	/*	i.e becomes part of Qout				*/
-	/*--------------------------------------------------------------*/
-	// calculation is moved up
    
     // below is the returnflow associated solute processes
 	/*--------------------------------------------------------------*/
@@ -569,8 +539,7 @@ void  update_drainage_land(
             if(Nout<0 || Nout!=Nout) printf("update_drainage_land[%d,%e]: return DOC (%e) flux (%e)\n", patch[0].ID,return_flow,patch[0].soil_cs.DOC - (DOC_leached_to_patch/patch[0].area), Nout);
 		}//
     
-    patch[0].overland_flow += return_flow; //max(0.0, patch[0].detention_store - patch[0].landuse_defaults[0][0].detention_store_size);
-    //<<--- reset by compute_subsurface_routing.c
+    patch[0].overland_flow += return_flow;
     
 	/*--------------------------------------------------------------*/
 	/*	route water and nitrogen lossed due to infiltration excess */

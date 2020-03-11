@@ -319,30 +319,6 @@ void  update_drainage_stream(
             patch);
     }// end of if
     
-    //d=0; total_gamma = recompute_gamma(patch, patch[0].innundation_list[d].gamma);
-    
-    
-    
-//    //old code
-//    d=0; total_gamma =  patch[0].innundation_list[d].gamma; //total_gamma = recompute_gamma(patch, patch[0].innundation_list[d].gamma);
-//    if (total_gamma < ZERO ) {
-//		//gamma = patch[0].soil_defaults[0][0].Ksat_0 * m * 2.0 * sqrt(patch[0].area) * time_int;
-//        gamma = 2.0 * sqrt(patch[0].area) * time_int;
-//	} else {
-//		gamma = total_gamma * time_int;
-//	}
-//    patch[0].satzZ_balance = 0.0; // mm
-//    double available_sat_water = max(
-//    patch[0].area*(patch[0].soil_defaults[0][0].soil_water_cap- max(patch[0].sat_deficit, 0.0)),
-//    0.0);
-//
-//	route_to_patch = compute_varbased_flow(
-//		patch[0].num_soil_intervals,
-//		patch[0].std * command_line[0].std_scale,
-//		patch[0].sat_def_pct_index,
-//        patch[0].sat_def_pct_indexM,
-//		gamma,
-//		patch);
 	if (route_to_patch < 0.0) route_to_patch = 0.0;
     if (route_to_patch > 0.0 && route_to_patch > available_sat_water) route_to_patch=available_sat_water;
     patch[0].satzZ_balance = 0.0; // mm
@@ -368,11 +344,6 @@ void  update_drainage_stream(
             &(patch[0].litter));
         
         patch[0].detention_store += return_flow;
-        //patch[0].sat_deficit = 0.0; // wrong; because Qout will modify sat_deficit, outside of this function call, hourly
-        //patch[0].sat_deficit += (return_flow - (patch[0].unsat_storage+patch[0].rz_storage));//original; i think it's wrong. it did not consider the ouside Qout-Qin hourly process.
-        // patch[0].sat_deficit = -route_to_patch/patch[0].area;
-        // patch[0].unsat_storage = 0.0;
-        // patch[0].rz_storage = 0.0;
     }// extra water
 		
 	/*--------------------------------------------------------------*/
@@ -420,23 +391,9 @@ void  update_drainage_stream(
 			patch[0].soil_defaults[0][0].DOC_adsorption_rate,
 			14,patch);
 		patch[0].soil_cs.DOC_Qout += DOC_leached_to_stream;
-        
-//      // not here
-//		patch[0].streamflow_NO3 += NO3_leached_to_stream;
-//      patch[0].streamflow_NH4 += NH4_leached_to_stream;
-//      patch[0].streamflow_DON += DON_leached_to_stream;
-//      patch[0].streamflow_DOC += DOC_leached_to_stream;
-//
-//		patch[0].streamNO3_from_sub += NO3_leached_to_stream;
-//		patch[0].hourly[0].streamflow_NO3 += NO3_leached_to_stream;
-//		patch[0].hourly[0].streamflow_NO3_from_sub += NO3_leached_to_stream;
-
+    
 	}//growth flag
-
 	patch[0].Qout += (route_to_patch / patch[0].area);
-//  // not here
-//	patch[0].base_flow += (route_to_patch / patch[0].area);
-//	patch[0].hourly_subsur2stream_flow += route_to_patch / patch[0].area;
 
     if(extrawater>0){
         // set this to be  "-route_to_patch/patch[0].area" and later += Qout = "route_to_patch/patch[0].area"
@@ -445,22 +402,6 @@ void  update_drainage_stream(
         patch[0].unsat_storage = 0.0; // converted to be part of sat
         patch[0].rz_storage = 0.0; // converted to be part of sat
     }// extra water
-
-
-	/*--------------------------------------------------------------*/
-	/*	calculate any return flow to the stream in this patch   */
-	/*	and route any infiltration excess			*/
-	/*--------------------------------------------------------------*/
-    // move up
-//    if ((patch[0].sat_deficit-patch[0].rz_storage-patch[0].unsat_storage) < -1.0*ZERO) {
-//        return_flow = compute_varbased_returnflow(patch[0].std * command_line[0].std_scale,
-//            patch[0].rz_storage+patch[0].unsat_storage,
-//            patch[0].sat_deficit, &(patch[0].litter));
-//        patch[0].detention_store += return_flow;
-//        patch[0].sat_deficit += (return_flow - (patch[0].unsat_storage+patch[0].rz_storage));;
-//        patch[0].unsat_storage = 0.0;
-//        patch[0].rz_storage = 0.0;
-//    }
 
 	/*--------------------------------------------------------------*/
 	/*	calculated any N-transport associated with return flow  */
@@ -564,26 +505,6 @@ void  update_drainage_stream(
         patch[0].return_flow += Qout; // <<---------------- the contribution of the "returnflow" (proportion of streamflow) from current grid.
         patch[0].hourly_sur2stream_flow += Qout;
      
-    
-//		Nout = (min(1.0, Qout / patch[0].detention_store)) * patch[0].surface_DOC;
-//		patch[0].surface_DOC  -= Nout;
-//		patch[0].streamflow_DOC += Nout;
-//
-//		Nout = (min(1.0, Qout / patch[0].detention_store)) * patch[0].surface_DON;
-//		patch[0].surface_DON  -= Nout;
-//		patch[0].streamflow_DON += Nout;
-//
-//        Nout = (min(1.0, Qout / patch[0].detention_store)) * patch[0].surface_NO3;
-//        patch[0].surface_NO3  -= Nout;
-//        patch[0].streamflow_NO3 += Nout;
-//        patch[0].hourly[0].streamflow_NO3 += Nout;
-//        patch[0].streamNO3_from_surface +=Nout;
-//        patch[0].hourly[0].streamflow_NO3_from_surface +=Nout;
-//        patch[0].surface_ns_leach += Nout;//?
-//
-//		Nout = (min(1.0, Qout / patch[0].detention_store)) * patch[0].surface_NH4;
-//		patch[0].surface_NH4  -= Nout;
-//		patch[0].streamflow_NH4 += Nout;
     }//end if if
 
     
@@ -661,181 +582,6 @@ void  update_drainage_stream(
             
         }// end of for subsurface routing loop
 
-        
-//        this is a stream grid, we assume all surface fluxes are going to streamflow (Feb 13, 2020)
-//        /*--------------------------------------------------------------*/
-//        /* surface downslope routing */
-//        /*--------------------------------------------------------------*/
-//        /*--------------------------------------------------------------*/
-//        /* determine which innundation depth to consider        */
-//        /*--------------------------------------------------------------*/
-//        if (patch[0].num_innundation_depths > 0) {
-//            innundation_depth = patch[0].detention_store + route_to_surface/patch[0].area;
-//            d=0;
-//            while ((innundation_depth > patch[0].innundation_list[d].critical_depth) && (d < patch[0].num_innundation_depths-1)) {
-//                d++;}// while
-//            }// if
-//        else d=0;
-//
-//        for (j = 0; j < patch[0].surface_innundation_list[d].num_neighbours; j++) {
-//
-//            neigh = patch[0].surface_innundation_list[d].neighbours[j].patch;
-//
-//            /*--------------------------------------------------------------*/
-//            /* now transfer surface water and nitrogen */ // -------------- surface (updated Spet 12)
-//            /*    - first nitrogen                    */
-//            /*--------------------------------------------------------------*/
-//            // route_to_surface = patch[0].area * (patch[0].detention_store - patch[0].landuse_defaults[0][0].detention_store_size);
-//            if (command_line[0].grow_flag > 0) {
-//                if(neigh[0].drainage_type==STREAM){
-//
-//                    Nin = (patch[0].surface_innundation_list[d].neighbours[j].gamma * NO3_leached_to_surface) / neigh[0].area;
-//                    neigh[0].streamflow_NO3 += Nin;
-//                    if(neigh[0].ID==command_line[0].outletPatchID && patch[0].drainage_type!=STREAM){neigh[0].stormdrained_NO3 += Nin;}
-//
-//                    Nin = (patch[0].surface_innundation_list[d].neighbours[j].gamma * NH4_leached_to_surface) / neigh[0].area;
-//                    neigh[0].streamflow_NH4 += Nin;
-//                    if(neigh[0].ID==command_line[0].outletPatchID && patch[0].drainage_type!=STREAM){neigh[0].stormdrained_NH4 += Nin;}
-//
-//                    Nin = (patch[0].surface_innundation_list[d].neighbours[j].gamma * DON_leached_to_surface) / neigh[0].area;
-//                    neigh[0].streamflow_DON += Nin;
-//                    if(neigh[0].ID==command_line[0].outletPatchID && patch[0].drainage_type!=STREAM){neigh[0].stormdrained_DON += Nin;}
-//
-//                    Nin = (patch[0].surface_innundation_list[d].neighbours[j].gamma * DOC_leached_to_surface) / neigh[0].area;
-//                    neigh[0].streamflow_DOC += Nin;
-//                    if(neigh[0].ID==command_line[0].outletPatchID && patch[0].drainage_type!=STREAM){neigh[0].stormdrained_DOC += Nin;}
-//                }else{
-//                    Nin = (patch[0].surface_innundation_list[d].neighbours[j].gamma * NO3_leached_to_surface) / neigh[0].area;
-//                    neigh[0].surface_NO3 += Nin;
-//                    Nin = (patch[0].surface_innundation_list[d].neighbours[j].gamma * NH4_leached_to_surface) / neigh[0].area;
-//                    neigh[0].surface_NH4 += Nin;
-//                    Nin = (patch[0].surface_innundation_list[d].neighbours[j].gamma * DON_leached_to_surface) / neigh[0].area;
-//                    neigh[0].surface_DON += Nin;
-//                    Nin = (patch[0].surface_innundation_list[d].neighbours[j].gamma * DOC_leached_to_surface) / neigh[0].area;
-//                    neigh[0].surface_DOC += Nin;
-//                }
-//            }//if growth
-//
-//            /*--------------------------------------------------------------*/
-//            /*    - now surface water                     */
-//            /*    surface stores should be updated to facilitate transfer */
-//            /* added net surface water transfer to detention store        */
-//            /*--------------------------------------------------------------*/
-//
-//            // re-work here!!
-//            Qin = (patch[0].surface_innundation_list[d].neighbours[j].gamma * route_to_surface) / neigh[0].area;
-//            if( neigh[0].drainage_type==STREAM && neigh[0].ID==command_line[0].outletPatchID && patch[0].drainage_type>0 && patch[0].drainage_type % actionSTORMDRAIN==0 ){
-//
-//                //patch[0].drainage_type!=STREAM
-//                patch[0].stormdrainYield += Qin; //Spet 17 tracking how much is storm drain yielded at "local patch"
-//                neigh[0].stormdrained += Qin; //Spet 15 tracking how much storm drain to the "outlet" (basin)
-//
-//                neigh[0].surface_Qin += Qin;
-//                neigh[0].streamflow += Qin; // short-cut by passing the detention and infilration at stream patch; but trying to seperate return and stormdrain
-//                // perviously was if neigh[0].drainage_type==STREAM, then all surface water becomes streamflow
-//
-//            }else{
-//                neigh[0].detention_store += Qin;// need fix this ****
-//                neigh[0].surface_Qin += Qin;
-//            }
-//
-//            /*--------------------------------------------------------------*/
-//            /* try to infiltrate this water                    */
-//            /* use time_int as duration */
-//            /*--------------------------------------------------------------*/
-//            if (neigh[0].detention_store > ZERO) {
-//
-//                infiltration = compute_infiltration(
-//                    command_line[0].verbose_flag,
-//                    neigh[0].sat_deficit_z,
-//                    0.0, //neigh[0].aboveWT_SatPct, // initiated in daily_I()
-//                    neigh[0].Ksat_vertical, // 1- impervious
-//                    neigh[0].sat_def_pct_indexM * neigh[0].soil_defaults[0][0].vksat_0zm[neigh[0].sat_def_pct_index+1] + (1.0-neigh[0].sat_def_pct_indexM) * neigh[0].soil_defaults[0][0].vksat_0zm[neigh[0].sat_def_pct_index],
-//                    neigh[0].rz_storage+neigh[0].unsat_storage,
-//                    neigh[0].sat_def_pct_indexM * neigh[0].soil_defaults[0][0].sat_def_0zm[neigh[0].sat_def_pct_index+1] + (1.0-neigh[0].sat_def_pct_indexM) * neigh[0].soil_defaults[0][0].sat_def_0zm[neigh[0].sat_def_pct_index],
-//                    neigh[0].sat_deficit,
-//                    neigh[0].detention_store,
-//                    time_int,
-//                    neigh[0].soil_defaults[0][0].psi_air_entry);
-//
-//
-//            } else infiltration = 0.0;
-//            /*--------------------------------------------------------------*/
-//            /* added an surface N flux to surface N pool    and        */
-//            /* allow infiltration of surface N                */
-//            /*--------------------------------------------------------------*/
-//            if ((command_line[0].grow_flag > 0 ) && (infiltration > ZERO)) {
-//                Nin = ((infiltration / neigh[0].detention_store) * neigh[0].surface_DOC);
-//                neigh[0].soil_cs.DOC_Qin += Nin;
-//                neigh[0].surface_DOC -= Nin;
-//                if(patch[0].aggregate_ID != neigh[0].aggregate_ID && patch[0].aggregate_ID>0 && patch[0].aggregate_ID % 11 ==0){patch[0].fromLAND_surfsubDOC+=Nin; }
-//                if(patch[0].aggregate_ID != neigh[0].aggregate_ID && patch[0].aggregate_ID>0 && patch[0].aggregate_ID % 7 ==0){patch[0].fromRIPARIAN_surfsubDOC+=Nin; }
-//                if(patch[0].aggregate_ID != neigh[0].aggregate_ID && patch[0].aggregate_ID>0 && patch[0].aggregate_ID % 5 ==0){patch[0].fromSTREAM_surfsubDOC+=Nin; }
-//
-//                Nin = ((infiltration / neigh[0].detention_store) * neigh[0].surface_DON);
-//                neigh[0].soil_ns.DON_Qin += Nin;
-//                neigh[0].surface_DON -= Nin;
-//                if(patch[0].aggregate_ID != neigh[0].aggregate_ID && patch[0].aggregate_ID>0 && patch[0].aggregate_ID % 11 ==0){patch[0].fromLAND_surfsubDON+=Nin; }
-//                if(patch[0].aggregate_ID != neigh[0].aggregate_ID && patch[0].aggregate_ID>0 && patch[0].aggregate_ID % 7 ==0){patch[0].fromRIPARIAN_surfsubDON+=Nin; }
-//                if(patch[0].aggregate_ID != neigh[0].aggregate_ID && patch[0].aggregate_ID>0 && patch[0].aggregate_ID % 5 ==0){patch[0].fromSTREAM_surfsubDON+=Nin; }
-//
-//                Nin = ((infiltration / neigh[0].detention_store) * neigh[0].surface_NO3);
-//                neigh[0].soil_ns.NO3_Qin += Nin;
-//                neigh[0].surface_NO3 -= Nin;
-//                if(patch[0].aggregate_ID != neigh[0].aggregate_ID && patch[0].aggregate_ID>0 && patch[0].aggregate_ID % 11 ==0){patch[0].fromLAND_surfsubNO3+=Nin; }
-//                if(patch[0].aggregate_ID != neigh[0].aggregate_ID && patch[0].aggregate_ID>0 && patch[0].aggregate_ID % 7 ==0){patch[0].fromRIPARIAN_surfsubNO3+=Nin; }
-//                if(patch[0].aggregate_ID != neigh[0].aggregate_ID && patch[0].aggregate_ID>0 && patch[0].aggregate_ID % 5 ==0){patch[0].fromSTREAM_surfsubNO3+=Nin; }
-//
-//                Nin = ((infiltration / neigh[0].detention_store) * neigh[0].surface_NH4);
-//                neigh[0].soil_ns.NH4_Qin += Nin;
-//                neigh[0].surface_NH4 -= Nin;
-//                if(patch[0].aggregate_ID != neigh[0].aggregate_ID && patch[0].aggregate_ID>0 && patch[0].aggregate_ID % 11 ==0){patch[0].fromLAND_surfsubNH4+=Nin; }
-//                if(patch[0].aggregate_ID != neigh[0].aggregate_ID && patch[0].aggregate_ID>0 && patch[0].aggregate_ID % 7 ==0){patch[0].fromRIPARIAN_surfsubNH4+=Nin; }
-//                if(patch[0].aggregate_ID != neigh[0].aggregate_ID && patch[0].aggregate_ID>0 && patch[0].aggregate_ID % 5 ==0){patch[0].fromSTREAM_surfsubNH4+=Nin; }
-//            }
-//
-//            if (infiltration > neigh[0].sat_deficit - neigh[0].unsat_storage - neigh[0].rz_storage) {
-//                neigh[0].sat_deficit -= (infiltration + neigh[0].unsat_storage + neigh[0].rz_storage);
-//                neigh[0].unsat_storage = 0.0;
-//                neigh[0].rz_storage = 0.0;
-//                neigh[0].field_capacity = 0.0;
-//                neigh[0].rootzone.field_capacity = 0.0;
-//            }
-//
-//            else if ((neigh[0].sat_deficit > neigh[0].rootzone.potential_sat) &&
-//                (infiltration > neigh[0].rootzone.potential_sat - neigh[0].rz_storage)) {
-//            /*------------------------------------------------------------------------------*/
-//            /*        Just add the infiltration to the rz_storage and unsat_storage    */
-//            /*------------------------------------------------------------------------------*/
-//                neigh[0].unsat_storage += infiltration - (neigh[0].rootzone.potential_sat - neigh[0].rz_storage);
-//                neigh[0].rz_storage = neigh[0].rootzone.potential_sat;
-//            }
-//            /* Only rootzone layer saturated - perched water table case */
-//            else if ((neigh[0].sat_deficit > neigh[0].rootzone.potential_sat) &&
-//                (infiltration <= neigh[0].rootzone.potential_sat - neigh[0].rz_storage)) {
-//                /*--------------------------------------------------------------*/
-//                /*        Just add the infiltration to the rz_storage    */
-//                /*--------------------------------------------------------------*/
-//                neigh[0].rz_storage += infiltration;
-//            }
-//            else if ((neigh[0].sat_deficit <= neigh[0].rootzone.potential_sat) &&
-//                (infiltration <= neigh[0].sat_deficit - neigh[0].rz_storage - neigh[0].unsat_storage)) {
-//                neigh[0].rz_storage += neigh[0].unsat_storage;
-//                /* transfer left water in unsat storage to rootzone layer */
-//                neigh[0].unsat_storage = 0;
-//                neigh[0].rz_storage += infiltration;
-//                neigh[0].field_capacity = 0;
-//            }
-//
-//            neigh[0].detention_store -= infiltration;
-//
-//        }// surface routing loop
-        
-        
-
-        
-        
-        
 
     }
     
