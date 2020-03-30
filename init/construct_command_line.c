@@ -131,15 +131,6 @@ struct	command_line_object	*construct_command_line(
 	command_line[0].snow_scale_tol = 999999999;
     
     command_line[0].gwtoriparian_flag = 0;
-    //command_line[0].gwtoriparian_ID = 400; // any LU ID between [gwtoriparian_ID, gwtoriparian_ID+100) = ripiarn
-    
-    // mostly added by Laurence
-	//command_line[0].capreduction = 1.0; // scaler to cap rise
-    //command_line[0].caprsplit = 1.0; // % to rootzone and unsat below root zont
-    //command_line[0].capMax = 0.0;// disable at 0.0; upper bound fpr cap rise
-    //command_line[0].newcaprise_flag = 0; // new cap rise mechanism, passing unsat first then root
-    //command_line[0].slowDrain_flag = 0; // reduce drainage
-    
     command_line[0].snowT_scaler = 1.0;// snowT scaler
     command_line[0].snowE_scaler = 1.0;
     command_line[0].max_snow_temp_value = -9999;
@@ -153,36 +144,19 @@ struct	command_line_object	*construct_command_line(
     command_line[0].soilDecayScalar = 1.0;// scale to litter/soilc decay rate base values
     command_line[0].BGC_flag = 0; // BGC decomposition flag
     command_line[0].soilCNadaptation_flag = 0; // current soil4CN is fixed <<---- still confusing!
-    
-    //command_line[0].rootNdecayRate = 0;// (flag) <<---- still confusing!
-    //command_line[0].root2active = -1.0; // scale (x) <<---- still confusing!
-    //command_line[0].NH4root2active = -1.0; // scale (x); <<---- still confusing!
-        /*
-                            root2active(x)      NH4root2active(x)        rootNdecayRate
-            nitrif_decay    N_decay_rate        N_decay_rate             NH4decayRate       N_decay_rate
-            nitrif_depth    x*rootdepth         x*rootdepth              soildepth          active_zone_z
-         
-            denitrif_decay  N_decay_rate        N_decay_rate             NO3decayRate       N_decay_rate
-            denitrif_depth  x*rootdepth         x*rootdepth              soildepth          active_zone_z
-         
-                                                                         DOMdecayRate
-            leaching_depth  x*rootdepth         x*rootdepth              soildepth          active_zone_z
-            decomp/immobilization/uptake
-         */
+
     command_line[0].Rsolute2gw = 1.0; // reduce solute directly entering GW from surface
     command_line[0].soluteLoss2GW = 0; // subsurface solute to GW without return to surface
     
-    //command_line[0].leafDarkRespScalar = 1.0; // scaler
-    //command_line[0].frootRespScalar = 1.0; // scaler
-    //command_line[0].StemWoodRespScalar = 1.0; // scaler
     command_line[0].aggregate_flag = 0; // make aggreated result based on a special flow table.
     command_line[0].patchPrintTh = 0; // any LU ID between [patchPrintTh, patchPrintTh+100) = print out (patch output)
     
     command_line[0].grassIrrigation_flag=0;
     command_line[0].fertilizer_flag=0;
     command_line[0].sewer_flag=0;
-//    command_line[0].stormDrainFrac = 0.0; //<------ becomes no use Spet 12
-    command_line[0].readinWFdoc_flag=0;
+    command_line[0].septicProcess_flag=0;
+
+    command_line[0].readinWFdoc_flag=0;// no use?
 	/*-------------------------------------------------*/
 	/* Loop through each arguement in the command line.*/
 	/*-------------------------------------------------*/
@@ -362,6 +336,14 @@ struct	command_line_object	*construct_command_line(
             else if ( strcmp(main_argv[i],"-sewer_flag") == 0 ){
                 printf("active sewer_flag\n");
                 command_line[0].sewer_flag = 1;
+                i++;
+            }
+            /*------------------------------------------*/
+            /*Check if the septicProcess_flag flag is next.           */
+            /*------------------------------------------*/
+            else if ( strcmp(main_argv[i],"-septicProcess_flag") == 0 ){
+                printf("active septicProcess_flag\n");
+                command_line[0].septicProcess_flag = 1;
                 i++;
             }
             /*------------------------------------------*/

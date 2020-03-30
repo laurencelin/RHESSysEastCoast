@@ -56,19 +56,24 @@ struct routing_list_object *construct_routing_topology(char *routing_filename,
 		int,
 		struct basin_object *,
 		FILE *);
-	
+    int assign_drainIN (struct drainIN_object *,
+        int,
+        struct basin_object *,
+        FILE *,
+        struct patch_object *);
+        
 	void *alloc(size_t, char *, char *);
 
-	double * compute_transmissivity_curve( double, struct patch_object *, struct command_line_object *);
 	
 	/*--------------------------------------------------------------*/
 	/*	Local variable definition.									*/
 	/*--------------------------------------------------------------*/
 	int		i,d,j;
-	int		num_patches, num_neighbours;
+    int		num_patches, num_neighbours, num_drainIN_septic, num_drainIN_irrigation;
+    double  fnum_drainIN_septic, fnum_drainIN_irrigation;
 	int		patch_ID, zone_ID, hill_ID, aggregate_ID, aggregate_index;
 	int		drainage_type;
-	double	x,y,z, area, gamma, width, wttd;// --> constraintWaterTableTopDepth
+	double	x,y, area, gamma, width, wttd;// --> constraintWaterTableTopDepth
 	FILE	*routing_file;
 	struct routing_list_object	*rlist;
 	struct	patch_object	*patch;
@@ -107,8 +112,9 @@ struct routing_list_object *construct_routing_topology(char *routing_filename,
                 &patch_ID,
                 &zone_ID,
                 &hill_ID,
-                &x,&y,&z,
-                &area,
+                &x,&y,
+                &fnum_drainIN_septic,
+                &fnum_drainIN_irrigation,
                 &wttd,
                 &drainage_type,
                 &gamma,
@@ -123,15 +129,16 @@ struct routing_list_object *construct_routing_topology(char *routing_filename,
                    &patch_ID,
                    &zone_ID,
                    &hill_ID,
-                   &x,&y,&z,
-                   &area,
+                   &x,&y,
+                   &fnum_drainIN_septic,
+                   &fnum_drainIN_irrigation,
                    &wttd,
                    &drainage_type,
                    &gamma,
                    &num_neighbours);
             aggregate_ID=0;
             aggregate_index=0;
-        }
+        }//end of if
         
         // under patch loop
 		if  ( (patch_ID != 0) && (zone_ID != 0) && (hill_ID != 0) )
@@ -143,69 +150,14 @@ struct routing_list_object *construct_routing_topology(char *routing_filename,
             patch[0].aggregate_ID = aggregate_ID;
             patch[0].aggregate_index = aggregate_index;
             
+            // basement implementation is disabled
             // 3m basement depth then 3*baseFrac + 0*(1-baseFrac) = wttd --> baseFrac = wttd/3.0;
             patch[0].constraintWaterTableTopDepth = wttd;
             patch[0].basementFrac = 0.0; //min(1.0,wttd/3.0);
-            patch[0].constraintWaterTableTopDepth_def = 0.0; //patch[0].basementFrac * patch[0].soil_defaults[0][0].rtz2sat_def_0z[(patch[0].soil_defaults[0][0].soildepthLen>3001? 3000:patch[0].soil_defaults[0][0].soildepthLen-1)];
-            
-            if(patch[0].constraintWaterTableTopDepth_def > patch[0].soil_defaults[0][0].soil_water_cap){
-//                if(patch[0].constraintWaterTableTopDepth_def > patch[0].soil_defaults[0][0].soil_water_cap + ZERO){
-//                    printf("reading routing table (%d) %f(%f,%d)-->(%f,%f,%f) | %f(%f)\n",
-//                           patch[0].ID,
-//                           patch[0].soil_defaults[0][0].soil_water_cap,
-//                           patch[0].soil_defaults[0][0].soil_depth,
-//                           patch[0].soil_defaults[0][0].soildepthLen,
-//
-//                           patch[0].soil_defaults[0][0].rtz2sat_def_0z[0],
-//                           patch[0].soil_defaults[0][0].rtz2sat_def_0z[patch[0].soil_defaults[0][0].soildepthLen-1],
-//                           patch[0].soil_defaults[0][0].rtz2sat_def_0z[3000],
-//
-//                           patch[0].constraintWaterTableTopDepth_def, patch[0].basementFrac);
-//                }
-                patch[0].constraintWaterTableTopDepth_def = patch[0].soil_defaults[0][0].soil_water_cap;
-            }//debug
-//            patch[0].constraintWaterTableTopDepth_def = patch[0].basementFrac * compute_delta_water(
-//                                                                              command_line[0].verbose_flag,
-//                                                                              patch[0].soil_defaults[0][0].porosity_0,
-//                                                                              patch[0].soil_defaults[0][0].porosity_decay,
-//                                                                              patch[0].soil_defaults[0][0].soil_depth,
-//                                                                              3.0, 0.0);
-            
-            // come back later
-            // assume soil OM is 0.35 decay; (patch averaged) basement; disturbed soil lost 60% OM is set in worldfile.
-            double remainPerc = (exp(-0.12*wttd)-exp(-0.12*patch[0].soil_defaults[0][0].soil_depth))/(1.0-exp(-0.12*patch[0].soil_defaults[0][0].soil_depth));
-            
-            patch[0].soil_ns.sminn *= remainPerc;
-            patch[0].soil_ns.nitrate *= remainPerc;
-            
-            patch[0].soil_cs.soil1c *= remainPerc;
-            patch[0].soil_cs.soil2c *= remainPerc;
-            patch[0].soil_cs.soil3c *= remainPerc;
-            patch[0].soil_cs.soil4c *= remainPerc;
-            
-            patch[0].soil_ns.soil1n *= remainPerc;
-            patch[0].soil_ns.soil2n *= remainPerc;
-            patch[0].soil_ns.soil3n *= remainPerc;
-            patch[0].soil_ns.soil4n *= remainPerc;
-            
-            // veg root for water (does not work!!)
-            //patch[0].rootzone.depth += wttd*10; // it affects nitrif, denitrif, and decomp processes
-            
+            patch[0].constraintWaterTableTopDepth_def = 0.0;
             
         }// not surface
 		rlist->list[i] = patch;
-
-        // under patch loop
-        soilD = &patch[0].soil_defaults[0][0];
-		if ((soilD->Ksat_0 < ZERO))
-			printf("\n WARNING lateral Ksat (%lf) are close to zero for patch %d",
-				soilD->Ksat_0, patch[0].ID);
-		
-        // do this in tranmissivity (already done in soil.def read-in)
-//		if (soilD->m < ZERO)
-//		 	gamma = gamma * soilD->Ksat_0;
-//		else
-//		 	gamma = gamma * soilD->m * soilD->Ksat_0;
 
 		/*--------------------------------------------------------------*/
 		/*  Allocate innundation list array				*/
@@ -234,19 +186,50 @@ struct routing_list_object *construct_routing_topology(char *routing_filename,
 		innundation_list->gamma = gamma;
 		// TODO: what should critical depth be for a surface flow table?
 		innundation_list->critical_depth = NULLVAL;
-
-		if ( !surface ) {
+        
+        fnum_drainIN_septic = (fnum_drainIN_septic<0? -fnum_drainIN_septic : 0.0);
+        fnum_drainIN_irrigation = (fnum_drainIN_irrigation<0? -fnum_drainIN_irrigation : 0.0);
+        num_drainIN_septic = (int) fnum_drainIN_septic;
+        num_drainIN_irrigation = (int) fnum_drainIN_irrigation;
+        innundation_list->num_drainIN_septic = num_drainIN_septic;
+        innundation_list->num_drainIN_irrigation = num_drainIN_irrigation;
+		
+//        if ( !surface ) printf("(%d %d %d %lf %lf %lf %lf %lf %d %lf %d)\n",
+//                               patch_ID,
+//                               zone_ID,
+//                               hill_ID,
+//                               x,y,
+//                               fnum_drainIN_septic,
+//                               fnum_drainIN_irrigation,
+//                               wttd,
+//                               drainage_type,
+//                               gamma,
+//                               num_neighbours,
+//                               innundation_list->num_drainIN_septic,
+//                               innundation_list->num_drainIN_irrigation);
+        
+        if ( !surface ) {
             // <<----------------- very important: patch[0].drainage_type is defined by subsurface flowtable
             // "stream_gamma" is no use in the model so far
 			patch[0].stream_gamma = 0.0;
 			patch[0].drainage_type = drainage_type;
 			if ( (patch[0].drainage_type != STREAM) && (patch[0].innundation_list[d].gamma < ZERO) ) {
 				printf(
-						"\n non-stream patches with zero gamma %d switched to stream for now",
-						patch[0].ID);
+						"\n non-stream patches with zero gamma %d switched to stream for now (%d %d %d %lf %lf %lf %lf %lf %d %lf %d)",
+						patch[0].ID,
+                       patch_ID,
+                       zone_ID,
+                       hill_ID,
+                       x,y,
+                       fnum_drainIN_septic,
+                       fnum_drainIN_irrigation,
+                       wttd,
+                       drainage_type,
+                       gamma,
+                       num_neighbours);
 				patch[0].drainage_type = STREAM;
-			}
-		}
+			}//end of if
+		}// end of if
 
         // under patch loop
 		/*--------------------------------------------------------------*/
@@ -277,22 +260,29 @@ struct routing_list_object *construct_routing_topology(char *routing_filename,
 				stream = find_patch(patch_ID, zone_ID, hill_ID, basin);
 				patch[0].next_stream = stream;
 			}
-		}
+		}//end of "road" if
 
-        // under patch loop
-		if ( !surface ) {
-			/*--------------------------------------------------------------*/
-			/*	create a vector of transmssivities 			*/
-			/*--------------------------------------------------------------*/
-            // already done in soil.def read-in
-            
-//			patch[0].num_soil_intervals = (int) lround(patch[0].soil_defaults[0][0].soil_water_cap / patch[0].soil_defaults[0][0].interval_size);
-//			if (patch[0].num_soil_intervals > MAX_NUM_INTERVAL) {
-//				patch[0].num_soil_intervals = MAX_NUM_INTERVAL;
-//				patch[0].soil_defaults[0][0].interval_size = patch[0].soil_defaults[0][0].soil_water_cap / MAX_NUM_INTERVAL;
-//				}
-//			patch[0].transmissivity_profile = compute_transmissivity_curve(gamma, patch, command_line);
-        }
+        // 3) reading the drainIN rows information
+        if(num_drainIN_septic>0){
+            // septic
+            innundation_list->drainIN_septic = (struct drainIN_object *)alloc(num_drainIN_septic *
+                    sizeof(struct drainIN_object), "drainIN_septic", "construct_routing_topology");
+            num_drainIN_septic = assign_drainIN(innundation_list->drainIN_septic, num_drainIN_septic, basin, routing_file,patch);
+            if (num_drainIN_septic == -9999) { printf("WARNING drainIN_septic error", patch[0].ID); }
+        }else{
+            innundation_list->drainIN_septic = NULL;
+        }// end of if "num_drainIN_septic"
+
+        if(num_drainIN_irrigation>0){
+            // septic
+            innundation_list->drainIN_irrigation = (struct drainIN_object *)alloc(num_drainIN_irrigation *
+                    sizeof(struct drainIN_object), "drainIN_irrigation", "construct_routing_topology");
+            num_drainIN_irrigation = assign_drainIN(innundation_list->drainIN_irrigation, num_drainIN_irrigation, basin, routing_file,patch);
+            if (num_drainIN_irrigation == -9999) { printf("WARNING drainIN_irrigation error", patch[0].ID); }
+        }else{
+            innundation_list->drainIN_irrigation = NULL;
+        }// end of if "num_drainIN_septic"
+        
 
         command_line[0].outletPatchID = patch[0].ID;// shortcut to save this info on commandline obj; ideally it would be basin.
 	}// end of i for loop (scanning flow table)

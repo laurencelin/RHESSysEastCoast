@@ -37,16 +37,17 @@
 #define INTERVAL_SIZE 0.001 
 #define MAX_NUM_INTERVAL 5000
 //-------- drainage types
-#define STREAM 1 //Sept 7 prefixed class actions: STREAM; no GW
-#define ROAD 2 //Sept 7 prefixed class actions: dirt road interrept; yes GW; additiona next_stream neighbour; any excess surfaceQ is directly going to next_stream
+#define STREAM 1 //prefixed class actions: STREAM; no GW
+#define ROAD 2 //prefixed class actions: dirt road interrept; yes GW; additiona next_stream neighbour; any excess surfaceQ is directly going to next_stream
     //LAND //Sept 7  any excess surfaceQ is surface_Qout
-#define actionSTORMDRAIN 3 // Sept 7 LAND; surface storm drainage (bounded by impervious cover fraction); additiona next_stream neighbour
-#define actionGWDRAIN 5    // Sept 7 LAND; GW drainage (from surface to GW); (bounded by 1-impervious cover fraction)
-#define actionRIPARIAN 7  // Sept 7 LAND; receive GW discharge (GW to sub-surface)
-#define actionSEWER 11     // Sept 7 LAND; sewer drainage (subruface water loss, not come back to streamflow) (bounded by non-forest cover fraction)
-#define actionPIPEDRAIN 17 // Sept 28 LAND; drainage subsurface water (top 1-m) and route to streamflow
-#define actionIRRIGRATION 13 // Sept 7 LAND; irrigration (bounded by lawn cover fraction)
-#define actionFERTILIZE 13 // same as irrigration --Aug 19,2019 //19 // Nov 5 LAND; adding N to lawn; bounded by lawn cover fraction; LULC give the max fertilize rate (weekly); perhaps apply weekly but in the code it's going to average out daily.
+#define actionSTORMDRAIN 3 //LAND; surface storm drainage (bounded by impervious cover fraction); additiona next_stream neighbour
+#define actionGWDRAIN 5    //LAND; GW drainage (from surface to GW); (bounded by 1-impervious cover fraction)
+#define actionRIPARIAN 7  //LAND; receive GW discharge (GW to sub-surface)
+#define actionSEWER 11     //LAND; sewer drainage (subruface water loss, not come back to streamflow) (bounded by non-forest cover fraction)
+#define actionPIPEDRAIN 17 //LAND; drainage subsurface water (top 1-m) and route to streamflow
+#define actionIRRIGRATION 13 //LAND; irrigration (bounded by lawn cover fraction)
+#define actionFERTILIZE 13 // same as irrigration adding N to lawn; bounded by lawn cover fraction; LULC give the max fertilize rate (weekly); perhaps apply weekly but in the code it's going to average out daily.
+#define actionSeptic 19 //LAND; receiving septic drain; a septic drain field.
 // ----------- veg types
 #define NON_VEG 20
 #define TREE 1
@@ -1012,8 +1013,13 @@ struct  innundation_object
         {
         double  critical_depth;         /* m */
         double  gamma;
-        int     num_neighbours;
-        struct  neighbour_object *neighbours;
+        int     num_neighbours; // drain-to patches
+        struct  neighbour_object *neighbours; // drain-to patches
+        
+        int     num_drainIN_septic; // drain-in patches
+        struct  drainIN_object *drainIN_septic; // drain-in patches
+        int     num_drainIN_irrigation;
+        struct  drainIN_object *drainIN_irrigation;
         };
 /*----------------------------------------------------------*/
 /*      Define a neighbours object.                                                             */
@@ -1026,6 +1032,18 @@ struct  neighbour_object
         double edge;
         double transmissivity_flux2neighbour; // new variable Feb 11, 2020, Lin
         struct patch_object *patch;
+        };
+/*----------------------------------------------------------*/
+/*      Define a neighbours object.                                                             */
+/*----------------------------------------------------------*/
+struct  drainIN_object
+        {
+        double maxDailyDrain;
+        double propDrainFrmSurf;     
+        double DrainFrac;
+        struct patch_object *patch;
+        double transfer_flux_surf;
+        double transfer_flux_sub;
         };
 /*----------------------------------------------------------*/
 /*      Define litter  and soil cn flux objects                     */
@@ -1366,7 +1384,24 @@ struct stratum_spinup_object
         double max_years;                      /* years */
 
 };
-
+struct accumulate_patch_object
+{
+    double subQnet;
+    double surfQnet;
+    double precip;
+    double recharge;
+    double PET;
+    double ET;
+    double sat_deficit_z;
+    double peakLAI;
+    double psn;
+    double days;
+    double denitrif;
+    double mineralization;
+    double uptake;
+    double subNO3net;
+    double subDOCnet;
+};
 /*----------------------------------------------------------*/
 /*      Define an patch object                              */      
 /*----------------------------------------------------------*/
@@ -1586,6 +1621,7 @@ struct patch_object
         //double  active_zone_z;
         struct  zone_object             *zone; /* parent zone *///<<------------------- not set
         double  grassIrrigation_m;
+        double  septicReleaseQ_m;
         double  sewerdrained; //<------- Spet 28 tracking how much is subsurface sewer drain
             double  sewerdrained_NO3;
             double  sewerdrained_NH4;
@@ -1668,9 +1704,6 @@ struct patch_object
         double  unsat_zone_volume;                      /* meters water         */
         double  unsat_deficit;                           /* meters water by Laurence Lin */
         double  rz_deficit;                             /* meters water by Laurence Lin */
-//            double  newcapZ0;                             /* meters water by Laurence Lin */
-//            double  newcapSlope;                             /* meters water by Laurence Lin */
-//            double  newcapInter;                             /* meters water by Laurence Lin */
             
             // come in through subsurface
             double fromSTREAM_Q;
@@ -1744,7 +1777,9 @@ struct patch_object
         struct  litter_n_object *shadow_litter_ns;
         struct cdayflux_patch_struct    cdf;
         struct ndayflux_patch_struct    ndf;
-        };
+        struct  accumulate_patch_object acc_month;
+        struct  accumulate_patch_object acc_year;
+        };//patch_object
 
 /*----------------------------------------------------------*/
 /*      Define the l;ayer object structure.                     */
@@ -1989,11 +2024,7 @@ struct  command_line_object
         struct  date            output_yearly_date;
         struct  date            start_date;
         struct  date            end_date;
-            // Laurence's added
-        //int     newcaprise_flag;// no longer use. Feb 11, 2020
-        //double  capreduction;// no longer use. Feb 11, 2020
-        //double  caprsplit;// no longer use. Feb 11, 2020
-        //double  capMax;// no longer use. Feb 11, 2020
+
         int outletPatchID;
         
         int toptoff_flag; //<<--- turn off topt for GPSN
@@ -2004,26 +2035,18 @@ struct  command_line_object
         double max_snow_temp_value;
         double min_rain_temp_value;
         int iniBioRZ; //<<----- change name
-        //int slowDrain_flag; //<<----- slow down drainage by not using the sv1 scalar // no longer use. Feb 11, 2020
         double Rsolute2gw; //<<----- reduce solute by passing to the root zone (does not change the water flux)
-        //double root2active; //<--- set active_zone_depth be scale of rooting depth // no longer use. Feb 11, 2020
-        //double NH4root2active; // no longer use. Feb 11, 2020
         double fracDirectNdep; //<<--- a fraction of n deposition is reaching ground directly
         int BGC_flag; //<-- enable BiomeBGC littering process
         int soilCNadaptation_flag;
         double soilDecayScalar;
-        //int rootNdecayRate; // no longer use. Feb 11, 2020
         double soluteLoss2GW;
-        //double leafDarkRespScalar; // no longer use. Feb 11, 2020
-        //double frootRespScalar; // no longer use. Feb 11, 2020
-        //double StemWoodRespScalar; // no longer use. Feb 11, 2020
-            
         int patchPrintTh;
         int aggregate_flag;
         int grassIrrigation_flag;
         int fertilizer_flag;
         int sewer_flag;
-        //double stormDrainFrac; // no longer use. Feb 11, 2020
+            int septicProcess_flag;
         int readinWFdoc_flag;
         };
 

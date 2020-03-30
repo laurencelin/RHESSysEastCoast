@@ -198,8 +198,7 @@ void  update_drainage_land(
     
     
 	/*--------------------------------------------------------------*/
-	/*	recalculate gamma based on current saturation deficits  */
-	/*      to account the effect of changes in water table slope 	*/
+	/*	calculate drain-to fluxes (i.e., drain out from current patch)
     /*  move gamma caluclation (function call) to here, Feb 11, 2020, Lin  */
     /*  move varbased_flow caluclation (function call) to here, Feb 11, 2020, Lin  */
 	/*--------------------------------------------------------------*/
@@ -221,8 +220,7 @@ void  update_drainage_land(
     }
     soil_depth_z1 = z1 - patch[0].soil_defaults[0][0].soil_depth; // elevation of soil bottom
 //    if(patch[0].sat_deficit_z>patch[0].soil_defaults[0][0].soil_depth) printf("warning0 patch %d(%f,%f)->(%f,%f)\n", patch[0].ID, patch[0].sat_deficit_z, patch[0].soil_defaults[0][0].soil_depth, water_table_z1, soil_depth_z1);
-    
-    
+
     d = 0;
     if (patch[0].innundation_list[d].num_neighbours > 0){
         
@@ -246,6 +244,9 @@ void  update_drainage_land(
             }else{
                 patch[0].innundation_list[d].neighbours[i].gamma = 0.0;
             }// end of if
+            
+            // how to handle cliff effect?
+            
             
         }//end of for neighbour i loop
         
@@ -354,8 +355,26 @@ void  update_drainage_land(
     patch[0].satzZ_balance = 0.0; // mm
     
     
+    /*--------------------------------------------------------------*/
+    /*  calculate drain-in fluxes (i.e., drain into current patch from remote patches through "irrigration")
+    /*  this is different from pipe / sewer drainage that any "left-over" water will be drain from the current patch, */
+    /*  and there are no concerns of how much destination patches will receive the water */
+    /*  "irrigration" is a control-transport of water, and its controls are on the destination patches, not the source ones. */
+    /*  For example, when a lawn does need irrigration, then there is no transfer of the water from the source even if there */
+    /*  is "left-over" water.  */
+    /*  the workflow of this drain-in process starts from patch_dailyF(). */
+    /*  in patch_dailyF(), the drainIN transfer flux is calculated and distributed to the source patches */
+    /*  note that "maxDailyDrain" and "DrainFrac" in the drainIN object control the how much water can be withdraw from source */
+    /*--------------------------------------------------------------*/
+//    // 1) calculating transfers; this is calculated in patch_dailyF()
+//    for (i =0; i < patch[0].innundation_list[d].num_drainIN; i++){
+//        patch[0].innundation_list[d].drainIN[i].transfer_flux;
+//    }// end of for loop i
     
-    
+//    // 2) adding transfers to the patch; this is calculated in patch_dailyF()
+//    patch[0].grassIrrigation_m; // added in patch_dailyF(), patch[0].detention_store @LINE 1687
+//    patch[0].landuse_defaults[0][0].septic_water_load // added in patch_dailyF() @LINE 920
+//    patch[0].landuse_defaults[0][0].septic_NO3_load // added in patch_dailyF() @LINE 920
     
     
     //Sept 18, 2019

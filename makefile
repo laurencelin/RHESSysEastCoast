@@ -19,6 +19,7 @@ $(OBJ)/allocate_daily_growth.o \
 $(OBJ)/assign_base_station.o \
 $(OBJ)/assign_base_station_xy.o \
 $(OBJ)/assign_neighbours.o \
+$(OBJ)/assign_drainIN.o \
 $(OBJ)/basin_daily_F.o \
 $(OBJ)/basin_daily_I.o \
 $(OBJ)/basin_hourly.o \
@@ -569,6 +570,8 @@ $(OBJ)/construct_hillslope.o: init/construct_hillslope.c
 	$(CC) -c $(CFLAGS) -I include init/construct_hillslope.c -o $(OBJ)/construct_hillslope.o
 $(OBJ)/assign_neighbours.o: init/assign_neighbours.c
 	$(CC) -c $(CFLAGS) -I include init/assign_neighbours.c -o $(OBJ)/assign_neighbours.o
+$(OBJ)/assign_drainIN.o: init/assign_drainIN.c
+	$(CC) -c $(CFLAGS) -I include init/assign_drainIN.c -o $(OBJ)/assign_drainIN.o	
 $(OBJ)/assign_base_station.o: init/assign_base_station.c
 	$(CC) -c $(CFLAGS) -I include init/assign_base_station.c -o $(OBJ)/assign_base_station.o
 $(OBJ)/assign_base_station_xy.o: init/assign_base_station_xy.c
