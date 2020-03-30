@@ -498,8 +498,8 @@ void	execute_daily_output_event(
 												|| (hillID == -999))
 												if (( world[0].basins[b][0].hillslopes[h][0].zones[z][0].ID == zoneID)
 													|| (zoneID == -999))
-													if (( world[0].basins[b][0].hillslopes[h][0].zones[z][0].patches[p][0].ID == patchID)
-														|| (patchID == -999 && world[0].basins[b]->hillslopes[h]->zones[z]->patches[p]->landuse_defaults[0]->ID >= command_line[0].patchPrintTh)){
+													if ( (world[0].basins[b][0].hillslopes[h][0].zones[z][0].patches[p][0].ID == patchID)
+														|| (patchID == -999 && world[0].basins[b]->hillslopes[h]->zones[z]->patches[p]->landuse_defaults[0]->ID >= command_line[0].patchPrintTh) ){
                                                             output_patch(
                                                                      world[0].basins[b]->ID,
                                                                      world[0].basins[b]->hillslopes[h]->ID,

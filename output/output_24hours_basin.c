@@ -73,6 +73,7 @@ void	output_24hours_basin(			int routing_flag,
     double apipedrainDON;
     double apipedrainDOC;
     double alawnirrigated;
+    double asepticQ;
 	double asublimation, acanopysubl;
 	double asat_area, adetention_store;
 	double apsn, alaiTREE, alaiGRASS, acrain, acsnow;
@@ -147,7 +148,7 @@ void	output_24hours_basin(			int routing_flag,
     apipedrainDON = 0.0;
     apipedrainDOC = 0.0;
     alawnirrigated = 0.0;
-    
+    asepticQ = 0.0;
 	arecharge = 0.0;
 	apsn = 0.0 ;
 	aPET = 0.0;
@@ -317,6 +318,7 @@ void	output_24hours_basin(			int routing_flag,
                     apipedrainDON += patch[0].pipedrainYield_DON * patch[0].area;
                     apipedrainDOC += patch[0].pipedrainYield_DOC * patch[0].area;
                     alawnirrigated += patch[0].grassIrrigation_m * patch[0].area;
+                    asepticQ += patch[0].septicReleaseQ_m * patch[0].area;
 				}
 				else {
 						/* for Topmodel version compute only return flow and later added to streamflow */
@@ -470,6 +472,7 @@ void	output_24hours_basin(			int routing_flag,
     apipedrainDON /= aarea;
     apipedrainDOC /= aarea;
     alawnirrigated /= aarea;
+    asepticQ /= aarea;
 	asat_area /= aarea;
 	aacctrans /= aarea; 
 
@@ -545,7 +548,7 @@ void	output_24hours_basin(			int routing_flag,
 	var_acctrans /= aarea;
 				
 
-	fprintf(outfile,"%d %d %d %d %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %e %e %e %e %lf %e %e %e %e %lf %e %e %e %e %lf %lf %lf %lf %lf %lf\n", //added 3 extra
+	fprintf(outfile,"%d %d %d %d %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %e %e %e %e %lf %e %e %e %e %lf %e %e %e %e %lf %lf %lf %lf %lf %lf %lf\n", //added 3 extra
 		date.day,
 		date.month,
 		date.year,
@@ -645,6 +648,7 @@ void	output_24hours_basin(			int routing_flag,
             apipedrainDON* 1000.0,
             apipedrainDOC* 1000.0,
         alawnirrigated * 1000.0,
+        asepticQ * 1000.0,
         alaiGRASS,
             aPAR,
             unsat_capacity * 1000.0,

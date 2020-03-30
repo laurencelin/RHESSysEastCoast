@@ -35,7 +35,7 @@ void	output_yearly_growth_patch(
 				struct	date	current_date,
 				FILE *outfile)
 {
-	printf("this function has been removed./n");
+	
 
 	return;
 } /*end output_yearly_growth_patch*/
