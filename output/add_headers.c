@@ -159,7 +159,7 @@ void add_headers(struct world_output_file_object *world_output_files,
 	/*--------------------------------------------------------------*/
     ///<<<---------- here basin daily
 	outfile = world_output_files[0].basin[0].daily;
-	fprintf(outfile,"%s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s\n" , // added 3 extra
+	fprintf(outfile,"%s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s\n" , // added 3 extra
 		"day",
 		"month",
 		"year",
@@ -235,7 +235,13 @@ void add_headers(struct world_output_file_object *world_output_files,
             "apipedrainNH4",
             "apipedrainDON",
             "apipedrainDOC",
-        "lawnIrrigated","laiNontree","PAR","unsat_cap","unsat_fc","rtz_fc"); // basin daily
+        "lawnIrrigated",
+        "septicQ",
+        "laiNontree",
+        "PAR",
+        "unsat_cap",
+        "unsat_fc",
+        "rtz_fc"); // basin daily
 
 	/*--------------------------------------------------------------*/
 	/*	Monthly							*/
@@ -478,43 +484,39 @@ void add_headers(struct world_output_file_object *world_output_files,
 	/*--------------------------------------------------------------*/
 	outfile = world_output_files[0].patch[0].monthly;
 	check = fprintf(outfile,
-		"%s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s \n", 
-		"month",
+		"%s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s\n",
 		"year",
-		"basinID",
-		"hillID",
-		"zoneID",
+        "month",
 		"patchID",
-		"leach",
-		"denitrif",
-		"soil_moist_deficit",
-		"et",
-		"psn",
-		"DOC",
-		"DON","lai","nitrif","mineralized","uptake","theta","snow","area","nitrate","sminn");
+		"subQnet",
+		"surfQnet",
+		"precip",
+		"recharge",
+		"pet",
+        "et"
+		"sat_deficit_z",
+		"peakLAI",
+        "psn",
+        "denitrif",
+        "mineralization","uptake","subNO3net","subDOCnet");
 	/*--------------------------------------------------------------*/
 	/*	Yearly							*/
 	/*--------------------------------------------------------------*/
 	outfile = world_output_files[0].patch[0].yearly;
-	fprintf(outfile, "%s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s\n" ,
-			"year",
-			"basinID",
-			"hillID",
-			"zoneID",
-			"patchID",
-			"num_threshold_sat_def",
-			"peaksweday",
-			"meltday",
-			"leach",
-			"denitrif",
-			"DOC_loss",
-			"DON_loss",
-			"psn", "trans",
-			"et","lai","nitrif","mineralized",
-			"uptake","Theta","sd",
-			"pkswe", "pktrans", "pkpet", "streamflow", "Qin","Qout","rec.wyd","rec.pet.wyd", 
-			"ndays_sat", "ndays_sat70", "midsm_wyd",
-			"area","pet","pcp","burn","snowin","pot_recharge","recharge","recharge.wyd","pot_recharge.wyd"
+	fprintf(outfile, "%s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s\n\n" ,
+            "year",
+            "patchID",
+            "subQnet",
+            "surfQnet",
+            "precip",
+            "recharge",
+            "pet",
+            "et"
+            "sat_deficit_z",
+            "peakLAI",
+            "psn",
+            "denitrif",
+            "mineralization","uptake","subNO3net","subDOCnet"
 			);
 	}
 

@@ -955,39 +955,42 @@ struct patch_object *construct_patch(
 	patch[0].num_layers = 0;
 	sort_patch_layers(patch);
 	
-
-//    /*--------------------------------------------------------------*/
-//    /*	compute actual depth to water tablke			*/
-//    /*--------------------------------------------------------------*/
-//    int tmpjj, z0_;
-//    double mc = 2.0+3.0*patch[0].soil_defaults[0][0].pore_size_index;
-//    for( tmpjj=20000; tmpjj>100; tmpjj-- ){
-//        z0_ = 0.01*tmpjj*patch[0].soil_defaults[0][0].psi_air_entry;
-//
-//        if( patch[0].soil_defaults[0][0].Ksat_0_v*command_line[0].capreduction*(1+1.5/(mc -1.0))*
-//           (1+z0_/patch[0].soil_defaults[0][0].mz_v+z0_*mc/(z0_-patch[0].soil_defaults[0][0].psi_air_entry))*
-//           pow((0.01*tmpjj-1),-mc)*
-//           exp(-z0_/patch[0].soil_defaults[0][0].mz_v) > command_line[0].capMax){break;}
-//    }//for
-//
-//    tmpjj++;
-//    patch[0].newcapZ0 = 0.01*tmpjj*patch[0].soil_defaults[0][0].psi_air_entry;
-//
-//    patch[0].newcapSlope = -patch[0].soil_defaults[0][0].Ksat_0_v*command_line[0].capreduction*(1+1.5/(mc -1.0))*
-//        exp(-patch[0].newcapZ0/patch[0].soil_defaults[0][0].mz_v)*
-//        pow(patch[0].soil_defaults[0][0].psi_air_entry/(patch[0].newcapZ0-patch[0].soil_defaults[0][0].psi_air_entry),mc)*
-//        (mc/(patch[0].newcapZ0-patch[0].soil_defaults[0][0].psi_air_entry)+1.0/patch[0].soil_defaults[0][0].mz_v);
-//
-//    patch[0].newcapInter = patch[0].soil_defaults[0][0].Ksat_0_v*command_line[0].capreduction*(1+1.5/(mc -1.0))*exp(-patch[0].newcapZ0/patch[0].soil_defaults[0][0].mz_v)*pow(patch[0].soil_defaults[0][0].psi_air_entry/(patch[0].newcapZ0-patch[0].soil_defaults[0][0].psi_air_entry),mc) - patch[0].newcapSlope * patch[0].newcapZ0;
-//
-//    /*if(patch[0].ID==218675){
-//        printf("ID,pore,psi");
-//        printf("%d,%f,%f,%f,%f,%f,%f,%f",
-//               patch[0].ID,
-//               patch[0].soil_defaults[0][0].pore_size_index,
-//               patch[0].soil_defaults[0][0].psi_air_entry,
-//               );
-//    }*/
+    // accumlations
+    //patch[0].acc_month = (struct accumulate_patch_object *) alloc( 1 * sizeof( struct accumulate_patch_object ),"accumulate_patch_object", "construct_patch" );
+    patch[0].acc_month.subQnet = 0.0;
+    patch[0].acc_month.surfQnet = 0.0;
+    patch[0].acc_month.precip = 0.0;
+    patch[0].acc_month.recharge = 0.0;
+    patch[0].acc_month.PET = 0.0;
+    patch[0].acc_month.ET = 0.0;
+    patch[0].acc_month.sat_deficit_z = 0.0;
+    patch[0].acc_month.peakLAI = 0.0;
+    patch[0].acc_month.psn = 0.0;
+    patch[0].acc_month.days = 0.0;
+    patch[0].acc_month.denitrif = 0.0;
+    patch[0].acc_month.mineralization = 0.0;
+    patch[0].acc_month.uptake = 0.0;
+    patch[0].acc_month.subNO3net = 0.0;
+    patch[0].acc_month.subDOCnet = 0.0;
+    
+    
+    // annual
+    //patch[0].acc_year = (struct accumulate_patch_object *) alloc( 1 * sizeof( struct accumulate_patch_object ),"accumulate_patch_object", "construct_patch" );
+    patch[0].acc_year.subQnet = 0.0;
+    patch[0].acc_year.surfQnet = 0.0;
+    patch[0].acc_year.precip = 0.0;
+    patch[0].acc_year.recharge = 0.0;
+    patch[0].acc_year.PET = 0.0;
+    patch[0].acc_year.ET = 0.0;
+    patch[0].acc_year.sat_deficit_z = 0.0;
+    patch[0].acc_year.peakLAI = 0.0;
+    patch[0].acc_year.psn = 0.0;
+    patch[0].acc_year.days = 0.0;
+    patch[0].acc_year.denitrif = 0.0;
+    patch[0].acc_year.mineralization = 0.0;
+    patch[0].acc_year.uptake = 0.0;
+    patch[0].acc_year.subNO3net = 0.0;
+    patch[0].acc_year.subDOCnet = 0.0;
 
 	return(patch);
 } /*end construct_patch.c*/

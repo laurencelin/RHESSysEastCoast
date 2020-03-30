@@ -44,38 +44,15 @@ void	output_patch(
 	/*	Local Variable Definition. 							*/
 	/*------------------------------------------------------*/
 	int check, c, layer;
-    double alai; //, asub, apsn, litterS, aheight, agsi;
-    double coverf;
-//    double mean_gl, gl_scalar;
-//    double coverf, totalcoverf;
-//    struct mult_conduct_struct *mc;
-//    double mc_scalar;
     
-//    if (patch[0].litter.rain_capacity > ZERO)
-//        litterS = patch[0].litter.rain_stored / patch[0].litter.rain_capacity;
-//    else
-//        litterS = 1.0;
-
-//    apsn = 0.0;
-//    asub = 0.0;
-	alai = 0.0;
-//    aheight = 0.0;
-//    agsi = 0.0;
-//    mean_gl = 0.0;
-//    gl_scalar= 0.0;
-//    totalcoverf = 0.0;
+    double coverf;
+    double alai = 0.0;
     double treeLAI = 0.0;
     double nontreeLAI = 0.0;
 	for ( layer=0 ; layer<patch[0].num_layers; layer++ ){
 		for ( c=0 ; c<patch[0].layers[layer].count; c++ ){
             
             coverf = patch[0].canopy_strata[(patch[0].layers[layer].strata[c])][0].cover_fraction;
-//            mc = &patch[0].canopy_strata[(patch[0].layers[layer].strata[c])][0].mult_conductance;
-//            mc_scalar = mc->APAR * mc->tavg * mc->LWP * mc->CO2 * mc->tmin * mc->vpd;
-            
-//            apsn += coverf * patch[0].canopy_strata[(patch[0].layers[layer].strata[c])][0].cs.net_psn ;
-//            asub += coverf * patch[0].canopy_strata[(patch[0].layers[layer].strata[c])][0].sublimation;
-//            aheight += coverf * patch[0].canopy_strata[(patch[0].layers[layer].strata[c])][0].epv.height;
 			alai += coverf * patch[0].canopy_strata[(patch[0].layers[layer].strata[c])][0].epv.proj_lai;
             
             if(patch[0].canopy_strata[(patch[0].layers[layer].strata[c])][0].defaults[0][0].epc.veg_type == TREE && patch[0].canopy_strata[(patch[0].layers[layer].strata[c])][0].defaults[0][0].ID!=802){
@@ -85,17 +62,8 @@ void	output_patch(
                 nontreeLAI += coverf * patch[0].canopy_strata[(patch[0].layers[layer].strata[c])][0].epv.proj_lai;
             }//non-tree
             
-            
-
-            
-//            agsi += coverf * patch[0].canopy_strata[(patch[0].layers[layer].strata[c])][0].phen.gsi;
-//            mean_gl += coverf * patch[0].canopy_strata[(patch[0].layers[layer].strata[c])][0].defaults[0][0].epc.gl_smax * mc_scalar;
-//            gl_scalar += coverf * mc_scalar;
-//            totalcoverf += coverf;
-//
-		}
-	}
-//    if(totalcoverf>1.0){ mean_gl/=totalcoverf; gl_scalar/=totalcoverf;  }
+        }// for c
+	}//for layer
     
     double wilting = exp(-1.0*log(-100.0*patch[0].psi_max_veg/patch[0].soil_defaults[0][0].psi_air_entry) * patch[0].soil_defaults[0][0].pore_size_index);
     double wilting_mm = min(patch[0].rootzone.potential_sat,patch[0].sat_deficit) * wilting;
@@ -168,29 +136,17 @@ void	output_patch(
         }
     }//if else
     
-//    default_object_list[i].vksat_0zm[ii] = default_object_list[i].sat_def_z[ii]>0? vksat_decay* vksat0*(1-exp(vksat_decay_1*default_object_list[i].sat_def_z[ii]))/default_object_list[i].sat_def_z[ii] : vksat0;
-//    patch[0].sat_deficit
-//    patch[0].rootzone.potential_sat
-//    patch[0].soil_defaults[0][0].rtz2sat_def_0z[120] / patch[0].rootzone.potential_sat; //wilting prop
-//    patch[0].psi_max_veg
-//    patch[0].sat_def_pct_index
-//    patch[0].rtz2_index = (int)(round(patch[0].rootzone.depth*1000));
-//    patch[0].rootzone.potential_sat = patch[0].soil_defaults[0][0].rtz2sat_def_0z[patch[0].rtz2_index];
-//    patch[0].rootzone.depth
-//    patch[0].soil_defaults[0][0].soil_depth
+
     
-	check = fprintf(outfile,"%d %d %d %d %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf\n", // \
-                             //%lf %lf %lf %lf %lf \
-                             //%lf %lf %lf %lf %lf \
-                             //%lf %lf %lf\n",
-                                // added 4 extra to track fc
+	check = fprintf(outfile,"%d %d %d %d %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf\n",
+                    
 					current_date.year, current_date.month, current_date.day, //1,2,3,
 					patch[0].ID, //4
                     (patch[0].Qout_total - patch[0].Qin_total) * 1000.0, //5
                     (patch[0].surface_Qout_total - patch[0].surface_Qin_total) * 1000.0, //6
                     patch[0].detention_store*1000.0, //7
                     patch[0].stormdrainYield*1000.0, //8
-                    patch[0].overland_flow * 1000.0, //9 <-- local yielded returnflow (not all made to the stream); not include surface Qin and Qout
+                    patch[0].overland_flow * 1000.0, //9 <-- locally yielded returnflow (not all made to the stream); not include surface Qin and Qout
                     patch[0].rain_throughfall*1000.0, //10
 					(patch[0].rain_throughfall - patch[0].recharge)*1000.0,//11
                     (patch[0].cap_rise - patch[0].unsat_drainage)*1000.0,//12
@@ -217,27 +173,6 @@ void	output_patch(
                     top60cm_storage * 1000.0,
                     top60cm_potential_sat * 1000.0
                     );
- 
-    
-                    //patch[0].sat_deficit*1000.0, //patch[0].sat_DOC*1000.0,
-                    //patch[0].rootzone.potential_sat*1000.0, //patch[0].soil_ns.nitrate*1000.0,
-                    
-                    //---extra
-//                    patch[0].sat_NO3*1000.0,
-//                    patch[0].sat_NH4*1000.0,
-//                    patch[0].soil_ns.sminn*1000.0,
-//                    patch[0].soil_cs.DOC,
-//                    patch[0].z,
-//                    patch[0].ndf.denitrif*1000.0,
-//                    patch[0].ndf.sminn_to_nitrate*1000.0,
-//                    patch[0].ndf.plant_avail_uptake*1000.0, // plant uptake?
-//                    patch[0].ndf.net_mineralized*1000.0, // net from decay
-//                    (patch[0].ndf.net_mineralized - patch[0].ndf.mineralized)*1000.0, // decay uptake?
-//                    patch[0].soil_ns.NO3_Qout_total*1000.0,
-//                    patch[0].soil_ns.NO3_Qin_total*1000.0,
-//                    patch[0].sat_deficit_z>0? patch[0].rootzone.depth/patch[0].sat_deficit_z : 1000.0
-//                    );
-	
 
 	if (check <= 0) {
 		fprintf(stdout, "\nWARNING: output error has occured in output_patch, file");
