@@ -147,9 +147,9 @@ void	basin_daily_F(
 	/*--------------------------------------------------------------*/
 	/* update basin patch accumulator				*/
 	/*--------------------------------------------------------------*/
-//    update_basin_patch_accumulator(command_line,
-//                    basin,
-//                    current_date);
+    update_basin_patch_accumulator(command_line,
+                    basin,
+                    current_date);
 
 	/*--------------------------------------------------------------*/
 	/* update hillslope accumulator					*/
