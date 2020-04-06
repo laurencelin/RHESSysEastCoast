@@ -101,8 +101,8 @@ struct landuse_default *construct_landuse_defaults(
         // 1.0 - exp(-10/(1.0*default_object_list[i].fertilizer_freq));
         // for period "default_object_list[i].fertilizer_freq", the stored fertilizer should have been gone 10% N0)
         
-		default_object_list[i].septic_NO3_load = 	getDoubleParam(&paramCnt, &paramPtr, "septic_NO3_load", "%lf", 0.0, 1) / 365.0; // convert annual to daily from kgN/m2/yr
-		default_object_list[i].septic_water_load = 	getDoubleParam(&paramCnt, &paramPtr, "septic_water_load", "%lf", 0.0, 1) / 365.0; // convert annual to daily
+		default_object_list[i].septic_NO3_load = 	getDoubleParam(&paramCnt, &paramPtr, "septic_NO3_load", "%lf", 0.0, 1) / 365.0; // convert annual kgN/yr to daily
+		default_object_list[i].septic_water_load = 	getDoubleParam(&paramCnt, &paramPtr, "septic_water_load", "%lf", 0.0, 1) / 365.0; // convert annual m3/yr to daily
 		default_object_list[i].detention_store_size = 	getDoubleParam(&paramCnt, &paramPtr, "detention_store_size", "%lf", 0.0, 1);
         
         //// ------------ non sense below

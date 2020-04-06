@@ -978,14 +978,14 @@ void		patch_daily_F(
         double sourceTransferWater = 0.0;
         double totalTransferWater = 0.0;
         double tmp_fraction = 0.0;
-        patch[0].septicReleaseQ_m = patch[0].landuse_defaults[0][0].septic_water_load;
+        patch[0].septicReleaseQ_m = patch[0].landuse_defaults[0][0].septic_water_load/patch[0].area;
         
         for (i =0; i < patch[0].innundation_list[d].num_drainIN_septic; i++){
             // from surface to surface
             sourceTransferWater = min(
                               patch[0].innundation_list[d].drainIN_septic[i].maxDailyDrain,
                               patch[0].innundation_list[d].drainIN_septic[i].DrainFrac *
-                                patch[0].landuse_defaults[0][0].septic_water_load);
+                                patch[0].landuse_defaults[0][0].septic_water_load/patch[0].area);
             
             
             patch[0].innundation_list[d].drainIN_septic[i].transfer_flux_surf = max(0.0, min(sourceTransferWater * patch[0].innundation_list[d].drainIN_septic[i].propDrainFrmSurf,
@@ -1027,8 +1027,8 @@ void		patch_daily_F(
         }// for loop of sources
         if(patch[0].innundation_list[d].num_drainIN_septic>0){ patch[0].septicReleaseQ_m = totalTransferWater; }
         
-        //patch[0].soil_ns.nitrate += patch[0].landuse_defaults[0][0].septic_NO3_load; // septic source of N
-        patch[0].surface_NO3 += patch[0].landuse_defaults[0][0].septic_NO3_load;
+        //patch[0].soil_ns.nitrate += patch[0].landuse_defaults[0][0].septic_NO3_load/patch[0].area; // septic source of N
+        patch[0].surface_NO3 += patch[0].landuse_defaults[0][0].septic_NO3_load/patch[0].area;
         
     }//if
 
@@ -2966,7 +2966,7 @@ void		patch_daily_F(
 	  patch[0].water_balance = zone[0].rain + zone[0].snow*patch[0].snow_redist_scale 
 		+ patch[0].preday_detention_store +
 		+ irrigation 
-		+ patch[0].landuse_defaults[0][0].septic_water_load 
+		+ patch[0].landuse_defaults[0][0].septic_water_load/patch[0].area
 		+ zone[0].rain_hourly_total - ( patch[0].gw_drainage
 		+ patch[0].transpiration_sat_zone + patch[0].transpiration_unsat_zone
 		+ patch[0].evaporation + patch[0].evaporation_surf 
@@ -2980,7 +2980,7 @@ void		patch_daily_F(
 	  patch[0].water_balance = zone[0].rain + zone[0].snow 
 		+ patch[0].preday_detention_store +
 		+ irrigation 
-		+ patch[0].landuse_defaults[0][0].septic_water_load 
+		+ patch[0].landuse_defaults[0][0].septic_water_load/patch[0].area
 		+ zone[0].rain_hourly_total - ( patch[0].gw_drainage
 		+ patch[0].transpiration_sat_zone + patch[0].transpiration_unsat_zone
 		+ patch[0].evaporation + patch[0].evaporation_surf 
