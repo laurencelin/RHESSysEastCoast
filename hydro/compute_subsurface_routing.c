@@ -453,12 +453,13 @@ void compute_subsurface_routing(struct command_line_object *command_line,
                 patch[0].sat_DOC += (patch[0].soil_cs.DOC_Qin - patch[0].soil_cs.DOC_Qout);
                 patch[0].sat_DON += (patch[0].soil_ns.DON_Qin - patch[0].soil_ns.DON_Qout);
                 
-                if( patch[0].sat_deficit_z > patch[0].preday_sat_deficit_z){
+                if( patch[0].sat_deficit > patch[0].preday_sat_deficit){
                     // water table drops
                     //double sat_leftbehind_frac = (exp(-patch[0].preday_sat_deficit_z/patch[0].soil_defaults[0][0].porosity_decay)-exp(-patch[0].sat_deficit_z/patch[0].soil_defaults[0][0].porosity_decay)) / (exp(-patch[0].preday_sat_deficit_z/patch[0].soil_defaults[0][0].porosity_decay)-exp(-patch[0].soil_defaults[0][0].soil_depth/patch[0].soil_defaults[0][0].porosity_decay));
                         // 0 < sat_leftbehind_frac < 1
                     
-                    double sat_leftbehind_frac = (patch[0].sat_deficit - patch[0].preday_sat_deficit) / (patch[0].soil_defaults[0][0].soil_water_cap - patch[0].preday_sat_deficit);// wrong here?
+                    // (patch[0].soil_defaults[0][0].soil_water_cap - patch[0].preday_sat_deficit) has to be greater than zero
+                    double sat_leftbehind_frac = (patch[0].sat_deficit - patch[0].preday_sat_deficit) / (patch[0].soil_defaults[0][0].soil_water_cap - patch[0].preday_sat_deficit);
                     
                     if(sat_leftbehind_frac<0 || sat_leftbehind_frac>1.0 || patch[0].sat_NO3<0 || patch[0].sat_NO3!=patch[0].sat_NO3) printf("sub_routing (%d) [%e,%e,%e], %f %f %f \n", patch[0].ID, sat_leftbehind_frac, patch[0].soil_ns.nitrate, patch[0].sat_NO3,
                         patch[0].sat_deficit,  patch[0].preday_sat_deficit, patch[0].soil_defaults[0][0].soil_water_cap);
