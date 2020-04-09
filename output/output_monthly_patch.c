@@ -36,7 +36,7 @@ void	output_monthly_patch(
 							 FILE *outfile)
 {
     int check;
-    check = fprintf(outfile,"%d %d %d %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf\n",
+    check = fprintf(outfile,"%d %d %d %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf\n",
     
     current_date.year,
     current_date.month,
@@ -49,6 +49,7 @@ void	output_monthly_patch(
     patch[0].acc_month.ET*1000.0,
     patch[0].acc_month.sat_deficit_z*1000.0 / patch[0].acc_month.days,
     patch[0].acc_month.peakLAI,
+    patch[0].acc_month.meanLAI/ patch[0].acc_month.days,
     patch[0].acc_month.psn*1000.0, //12
     patch[0].acc_month.denitrif*1000.0,
     patch[0].acc_month.mineralization*1000.0,
@@ -65,6 +66,7 @@ void	output_monthly_patch(
     patch[0].acc_month.ET = 0.0;
     patch[0].acc_month.sat_deficit_z = 0.0;
     patch[0].acc_month.peakLAI = 0.0;
+    patch[0].acc_month.meanLAI = 0.0;
     patch[0].acc_month.psn = 0.0;
     patch[0].acc_month.days = 0.0;
     patch[0].acc_month.denitrif = 0.0;

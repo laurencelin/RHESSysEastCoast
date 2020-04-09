@@ -36,7 +36,7 @@ void	output_yearly_patch(
 				FILE *outfile)
 {
     int check;
-	check = fprintf(outfile,"%d %d %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf\n",
+	check = fprintf(outfile,"%d %d %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf\n",
     
     current_date.year,
     patch[0].ID,//3
@@ -48,6 +48,7 @@ void	output_yearly_patch(
     patch[0].acc_year.ET*1000.0,
     patch[0].acc_year.sat_deficit_z*1000.0 / patch[0].acc_year.days,
     patch[0].acc_year.peakLAI,
+    patch[0].acc_year.meanLAI/ patch[0].acc_year.days,
     patch[0].acc_year.psn*1000.0, //12
     patch[0].acc_year.denitrif*1000.0,
     patch[0].acc_year.mineralization*1000.0,
@@ -64,6 +65,7 @@ void	output_yearly_patch(
     patch[0].acc_year.ET = 0.0;
     patch[0].acc_year.sat_deficit_z = 0.0;
     patch[0].acc_year.peakLAI = 0.0;
+    patch[0].acc_year.meanLAI = 0.0;
     patch[0].acc_year.psn = 0.0;
     patch[0].acc_year.days = 0.0;
     patch[0].acc_year.denitrif = 0.0;
