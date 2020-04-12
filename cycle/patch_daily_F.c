@@ -1025,11 +1025,11 @@ void		patch_daily_F(
             
             totalTransferWater += patch[0].innundation_list[d].drainIN_septic[i].transfer_flux_sub + patch[0].innundation_list[d].drainIN_septic[i].transfer_flux_surf;
         }// for loop of sources
-        if(patch[0].innundation_list[d].num_drainIN_septic>0){ patch[0].septicReleaseQ_m = totalTransferWater; }
-        
-        //patch[0].soil_ns.nitrate += patch[0].landuse_defaults[0][0].septic_NO3_load/patch[0].area; // septic source of N
-        patch[0].surface_NO3 += patch[0].landuse_defaults[0][0].septic_NO3_load/patch[0].area;
-        
+        if(patch[0].innundation_list[d].num_drainIN_septic>0){
+            patch[0].septicReleaseQ_m = totalTransferWater;
+            // one source per septic output
+            patch[0].surface_NO3 += patch[0].landuse_defaults[0][0].septic_NO3_load/patch[0].area * patch[0].innundation_list[d].num_drainIN_septic;
+        }
     }//if
 
 
