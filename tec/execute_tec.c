@@ -241,11 +241,10 @@ void	execute_tec(
 				fclose(tecfile[0].tfile);
 				exit(EXIT_FAILURE);
 			} /*end if*/
-		} /*end if*/
-		/*--------------------------------------------------------------*/
-		/* 	if end of tec file next event is the end of the world		*/
-		/*--------------------------------------------------------------*/
-		else{
+		}else{
+            /*--------------------------------------------------------------*/
+            /*     if end of tec file next event is the end of the world        */
+            /*--------------------------------------------------------------*/
 			event =  construct_tec_entry(world[0].end_date, "none");
 		} /*end if-else*/
 		/*--------------------------------------------------------------*/
@@ -288,7 +287,7 @@ void	execute_tec(
 							  command_line,
 							  current_date,
 							  outfile);
-			}
+            };//end of if hourly
 
 			if(command_line[0].output_flags.hourly_growth ==1 &&
 					(command_line[0].grow_flag > 0) ){
@@ -298,7 +297,7 @@ void	execute_tec(
 							      current_date, 
 							      growth_outfile);
 				  
-				};
+            };//end of if hourly
 			/*--------------------------------------------------------------*/
 			/*			Increment to the next hour.							*/
 			/*--------------------------------------------------------------*/
@@ -325,45 +324,47 @@ void	execute_tec(
 						command_line,
 						current_date,
 						growth_outfile);
-				}
+				} //end of if daily
 				if (command_line[0].output_flags.daily == 1) {
 						execute_daily_output_event(
 						world,
 						command_line,
 						current_date,
 						outfile);
-                }
+                } //end of if daily
 				/*--------------------------------------------------------------*/
-        /*  Output world state in spinup mode if targets met            */
+                /*  Output world state in spinup mode if targets met            */
 				/*--------------------------------------------------------------*/
 
 				if((command_line[0].vegspinup_flag > 0) && (world[0].target_status > 0)) {
-		      execute_state_output_event(world, current_date, world[0].end_date,command_line);
-          printf("\nSpinup completed YEAR %d MONTH %d DAY %d \n", current_date.year,current_date.month,current_date.day);
-          exit(0);
-        } 
+                    execute_state_output_event(world, current_date, world[0].end_date,command_line);
+                    printf("\nSpinup completed YEAR %d MONTH %d DAY %d \n", current_date.year,current_date.month,current_date.day);
+                    exit(0);
+                }
 
 				/*--------------------------------------------------------------*/
 				/*			Perform any requested yearly output					*/
 				/*--------------------------------------------------------------*/
 				if ((command_line[0].output_flags.yearly == 1) &&
+                    //(world[0].start_date.year < current_date.year) &&
 					(command_line[0].output_yearly_date.month==current_date.month)&&
 					(command_line[0].output_yearly_date.day == current_date.day))
-							execute_yearly_output_event(
+                        execute_yearly_output_event(
 							world,
 							command_line,
 							current_date,
 							outfile);
 
 				if ((command_line[0].output_flags.yearly_growth == 1) &&
+                    //(world[0].start_date.year < current_date.year) &&
 					(command_line[0].output_yearly_date.month==current_date.month)&&
 					(command_line[0].output_yearly_date.day == current_date.day) &&
 					(command_line[0].grow_flag > 0) )
-					execute_yearly_growth_output_event(
-					world,
-					command_line,
-					current_date,
-					growth_outfile);
+                        execute_yearly_growth_output_event(
+                            world,
+                            command_line,
+                            current_date,
+                            growth_outfile);
 				/*--------------------------------------------------------------*/
 				/*				Determine the new calendar date if we add 1 day.*/
 				/*				Do this by first conversting the current cal	*/

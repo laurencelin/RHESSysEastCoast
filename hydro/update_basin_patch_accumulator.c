@@ -53,7 +53,8 @@ void update_basin_patch_accumulator(
     for (h=0; h < basin->num_hillslopes; ++h) {
         for(z=0; z < basin->hillslopes[h][0].num_zones; ++z) {
             for (p=0; p < basin->hillslopes[h][0].zones[z][0].num_patches; p++) {
-
+                
+                alai = 0.0;
                 patch=basin->hillslopes[h]->zones[z]->patches[p];
                 for ( layer=0 ; layer<patch[0].num_layers; layer++ ){
                     for ( c=0 ; c<patch[0].layers[layer].count; c++ ){
@@ -62,15 +63,39 @@ void update_basin_patch_accumulator(
                     }// for c
                 }//for layer
                 
+// for debug
+//                if(patch[0].ID==5017){
+//                    printf("%d %d %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf\n",
+//                           current_date.year,
+//                           patch[0].ID,//3
+//                           patch[0].acc_year.subQnet*1000.0,
+//                           patch[0].acc_year.surfQnet*1000.0,
+//                           patch[0].acc_year.precip*1000.0,
+//                           patch[0].acc_year.recharge*1000.0,
+//                           patch[0].acc_year.PET*1000.0,
+//                           patch[0].acc_year.ET*1000.0,
+//                           patch[0].acc_year.sat_deficit_z*1000.0 / patch[0].acc_year.days,
+//                           patch[0].acc_year.peakLAI,
+//                           patch[0].acc_year.meanLAI/ patch[0].acc_year.days,
+//                           patch[0].acc_year.psn*1000.0, //12
+//                           patch[0].acc_year.denitrif*1000.0,
+//                           patch[0].acc_year.mineralization*1000.0,
+//                           patch[0].acc_year.uptake*1000.0,
+//                           patch[0].acc_year.subNO3net*1000.0,
+//                           patch[0].acc_year.subDOCnet*1000.0,
+//                           patch[0].acc_year.days);
+//                }
+                
+                
                 // annual monthly
                 patch[0].acc_month.subQnet += (patch[0].Qout_total - patch[0].Qin_total);
                 patch[0].acc_month.surfQnet += (patch[0].surface_Qout_total - patch[0].surface_Qin_total);
-                patch[0].acc_month.precip += basin->hillslopes[h][0].zones[z][0].rain_hourly_total+basin->hillslopes[h][0].zones[z][0].rain+basin->hillslopes[h][0].zones[z][0].snow;
-                patch[0].acc_month.recharge += patch[0].recharge;
+                patch[0].acc_month.precip += basin->hillslopes[h][0].zones[z][0].rain_hourly_total+basin->hillslopes[h][0].zones[z][0].rain+basin->hillslopes[h][0].zones[z][0].snow; // ERROR
+                patch[0].acc_month.recharge += patch[0].recharge; // ERROR
                 patch[0].acc_month.PET += patch[0].PET;
                 patch[0].acc_month.ET += (patch[0].transpiration_sat_zone + patch[0].transpiration_unsat_zone + patch[0].evaporation + patch[0].evaporation_surf  + patch[0].exfiltration_sat_zone + patch[0].exfiltration_unsat_zone);
                 patch[0].acc_month.sat_deficit_z += patch[0].sat_deficit_z;
-                patch[0].acc_month.peakLAI += max(patch[0].acc_month.peakLAI,alai);
+                patch[0].acc_month.peakLAI = max(patch[0].acc_month.peakLAI,alai);
                 patch[0].acc_month.meanLAI += alai;
                 patch[0].acc_month.psn += patch[0].net_plant_psn; //check
                 patch[0].acc_month.days += 1.0;
@@ -85,21 +110,21 @@ void update_basin_patch_accumulator(
                 // annual
                 patch[0].acc_year.subQnet += (patch[0].Qout_total - patch[0].Qin_total);
                 patch[0].acc_year.surfQnet += (patch[0].surface_Qout_total - patch[0].surface_Qin_total);
-                patch[0].acc_year.precip += basin->hillslopes[h][0].zones[z][0].rain_hourly_total+basin->hillslopes[h][0].zones[z][0].rain+basin->hillslopes[h][0].zones[z][0].snow;
-                patch[0].acc_year.recharge += patch[0].recharge;
-                patch[0].acc_year.PET += patch[0].PET;
-                patch[0].acc_year.ET += (patch[0].transpiration_sat_zone + patch[0].transpiration_unsat_zone + patch[0].evaporation + patch[0].evaporation_surf  + patch[0].exfiltration_sat_zone + patch[0].exfiltration_unsat_zone);
+                patch[0].acc_year.precip += basin->hillslopes[h][0].zones[z][0].rain_hourly_total+basin->hillslopes[h][0].zones[z][0].rain+basin->hillslopes[h][0].zones[z][0].snow; // ERROR
+                patch[0].acc_year.recharge += patch[0].recharge; // ERROR
+                patch[0].acc_year.PET += patch[0].PET; // ERROR
+                patch[0].acc_year.ET += (patch[0].transpiration_sat_zone + patch[0].transpiration_unsat_zone + patch[0].evaporation + patch[0].evaporation_surf  + patch[0].exfiltration_sat_zone + patch[0].exfiltration_unsat_zone); // ERROR
                 patch[0].acc_year.sat_deficit_z += patch[0].sat_deficit_z;
-                patch[0].acc_year.peakLAI += max(patch[0].acc_year.peakLAI,alai);
-                patch[0].acc_year.meanLAI += alai;
-                patch[0].acc_year.psn += patch[0].net_plant_psn; //check
+                patch[0].acc_year.peakLAI = max(patch[0].acc_year.peakLAI,alai); // ERROR
+                patch[0].acc_year.meanLAI += alai; // ERROR
+                patch[0].acc_year.psn += patch[0].net_plant_psn; // ERROR
                 patch[0].acc_year.days += 1.0;
         
-                patch[0].acc_year.denitrif += patch[0].ndf.denitrif;
-                patch[0].acc_year.mineralization += patch[0].ndf.net_mineralized;
-                patch[0].acc_year.uptake += patch[0].ndf.sminn_to_npool;
-                patch[0].acc_year.subNO3net += patch[0].soil_ns.NO3_Qout_total - patch[0].soil_ns.NO3_Qin_total;
-                patch[0].acc_year.subDOCnet += patch[0].soil_cs.DOC_Qout_total - patch[0].soil_cs.DOC_Qin_total;
+                patch[0].acc_year.denitrif += patch[0].ndf.denitrif; // ERROR
+                patch[0].acc_year.mineralization += patch[0].ndf.net_mineralized; // ERROR
+                patch[0].acc_year.uptake += patch[0].ndf.sminn_to_npool; // ERROR
+                patch[0].acc_year.subNO3net += patch[0].soil_ns.NO3_Qout_total - patch[0].soil_ns.NO3_Qin_total; // ERROR
+                patch[0].acc_year.subDOCnet += patch[0].soil_cs.DOC_Qout_total - patch[0].soil_cs.DOC_Qin_total; // ERROR
                 
         
             } /* end of p*/
