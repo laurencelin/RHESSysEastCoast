@@ -53,7 +53,8 @@ void	execute_daily_output_event(
 		FILE	*);
 	
 	void output_hillslope(	int,
-		struct	hillslope_object *,
+		struct	basin_object *,
+        int hID,
 		struct	date,
 		FILE	*);
 	
@@ -439,7 +440,8 @@ void	execute_daily_output_event(
 								|| (hillID == -999))
 								output_hillslope(
 								world[0].basins[b][0].ID,
-								world[0].basins[b]->hillslopes[h],
+								world[0].basins[b],
+                                world[0].basins[b]->hillslopes[h]->ID,
 								date,
 								outfile->hillslope->daily);
 					}

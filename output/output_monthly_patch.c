@@ -36,13 +36,14 @@ void	output_monthly_patch(
 							 FILE *outfile)
 {
     int check;
-    check = fprintf(outfile,"%d %d %d %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf\n",
+    check = fprintf(outfile,"%d %d %d %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf\n",
     
     current_date.year,
     current_date.month,
     patch[0].ID,//3
     patch[0].acc_month.subQnet*1000.0,
     patch[0].acc_month.surfQnet*1000.0,
+    patch[0].acc_month.subQvnet*1000.0,
     patch[0].acc_month.precip*1000.0,
     patch[0].acc_month.recharge*1000.0,
     patch[0].acc_month.PET*1000.0,
@@ -55,11 +56,13 @@ void	output_monthly_patch(
     patch[0].acc_month.mineralization*1000.0,
     patch[0].acc_month.uptake*1000.0,
     patch[0].acc_month.subNO3net*1000.0,
+    patch[0].acc_month.subNO3vnet*1000.0,
     patch[0].acc_month.subDOCnet*1000.0
     );
     
     patch[0].acc_month.subQnet = 0.0;
     patch[0].acc_month.surfQnet = 0.0;
+    patch[0].acc_month.subQvnet = 0.0;
     patch[0].acc_month.precip = 0.0;
     patch[0].acc_month.recharge = 0.0;
     patch[0].acc_month.PET = 0.0;
@@ -73,6 +76,7 @@ void	output_monthly_patch(
     patch[0].acc_month.mineralization = 0.0;
     patch[0].acc_month.uptake = 0.0;
     patch[0].acc_month.subNO3net = 0.0;
+    patch[0].acc_month.subNO3vnet = 0.0;
     patch[0].acc_month.subDOCnet = 0.0;
     
 	return;

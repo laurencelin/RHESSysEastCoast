@@ -32,7 +32,7 @@
 
 void	output_yearly_growth_hillslope(
 				int basinID,
-				struct	hillslope_object	*hillslope,
+                struct    hillslope_object    *hillslope,
 				struct	date	date,
 				FILE *outfile)
 {

@@ -207,7 +207,7 @@ void	execute_tec(
 	/*	Initialize the tec event									*/
 	/*--------------------------------------------------------------*/
 	
-	event =  construct_tec_entry(world[0].end_date,"none");
+	event =  construct_tec_entry(world[0].end_date,"none");// local variable
 	
 	/*--------------------------------------------------------------*/
 	/*	Loop from the start of the world to the end of the world.	*/
@@ -219,6 +219,7 @@ void	execute_tec(
 		/*		Perform the tec event.									*/
 		/*--------------------------------------------------------------*/
 		handle_event(event,command_line,current_date,world);
+        // default is "none" from the beginning. so the first "while" below would skip all flag settings
 		/*--------------------------------------------------------------*/
 		/*		read the next tec file entry.							*/
 		/*		if we are not at the end of the tec file.				*/
@@ -255,6 +256,8 @@ void	execute_tec(
 		if ( cal_date_lt(event[0].cal_date,	world[0].end_date) == 0  ){
 			event =  construct_tec_entry(world[0].end_date,	"none");
 		} /*end if*/
+        
+        
 		/*--------------------------------------------------------------*/
 		/*		Do stuff until the next tec event.						*/
 		/*--------------------------------------------------------------*/
@@ -346,17 +349,20 @@ void	execute_tec(
 				/*			Perform any requested yearly output					*/
 				/*--------------------------------------------------------------*/
 				if ((command_line[0].output_flags.yearly == 1) &&
-                    //(world[0].start_date.year < current_date.year) &&
 					(command_line[0].output_yearly_date.month==current_date.month)&&
-					(command_line[0].output_yearly_date.day == current_date.day))
+                    (command_line[0].output_yearly_date.day == current_date.day)){
+                        printf("from exe_tec(); trigger print yearly at %d-%d-%d\n",
+                               current_date.year,
+                               current_date.month,
+                               current_date.day);
                         execute_yearly_output_event(
 							world,
 							command_line,
 							current_date,
 							outfile);
-
+                } // end of yearly end
+                
 				if ((command_line[0].output_flags.yearly_growth == 1) &&
-                    //(world[0].start_date.year < current_date.year) &&
 					(command_line[0].output_yearly_date.month==current_date.month)&&
 					(command_line[0].output_yearly_date.day == current_date.day) &&
 					(command_line[0].grow_flag > 0) )

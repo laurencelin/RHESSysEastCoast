@@ -290,11 +290,10 @@ void add_headers(struct world_output_file_object *world_output_files,
 	/*--------------------------------------------------------------*/
 	outfile = world_output_files[0].hillslope[0].daily;
 	//fprintf(outfile,"%s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s\n,"
-    fprintf(outfile,"%s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s\n" ,
+    fprintf(outfile,"%s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s\n" ,
 		"day", //1
 		"month", //2
 		"year", //3
-		"basinID", //4
 		"hillID", //5
         "area", //6
 		"sat_def_z", //7
@@ -346,19 +345,24 @@ void add_headers(struct world_output_file_object *world_output_files,
 	/*	Yearly 							*/
 	/*--------------------------------------------------------------*/
 	outfile = world_output_files[0].hillslope[0].yearly;
-	check = fprintf(outfile,
-		"%s %s %s %s %s %s %s %s %s %s %s %s %s %s %s\n", 
-		"year",
-		"basinID",
-		"hillslopeID",
-		"streamflow",
-		"streamflow_NO3",
-		"denitrif",
-		"DOC",
-		"DON",
-		"et",
-		"psn","lai","nitrif",
-		"mineralized", "uptake","area");
+        
+        check = fprintf(outfile, "%s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s\n" ,
+        "year",
+        "patchID",
+        "subQnet",
+        "surfQnet",
+        "subQvnet",
+        "precip",
+        "recharge",
+        "pet",
+        "et",
+        "sat_deficit_z",
+        "peakLAI",
+        "meanLAI",
+        "psn",
+        "denitrif",
+        "mineralization","uptake","subNO3net", "subNO3vnet","subDOCnet"
+        );
 	}
 	/*--------------------------------------------------------------*/
 	/*	Zone file headers					*/
@@ -484,12 +488,13 @@ void add_headers(struct world_output_file_object *world_output_files,
 	/*--------------------------------------------------------------*/
 	outfile = world_output_files[0].patch[0].monthly;
 	check = fprintf(outfile,
-		"%s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s\n",
+		"%s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s\n",
 		"year",
         "month",
 		"patchID",
 		"subQnet",
 		"surfQnet",
+        "subQvnet",
 		"precip",
 		"recharge",
 		"pet",
@@ -499,16 +504,17 @@ void add_headers(struct world_output_file_object *world_output_files,
         "meanLAI",
         "psn",
         "denitrif",
-        "mineralization","uptake","subNO3net","subDOCnet");
+        "mineralization","uptake","subNO3net","subNO3vnet","subDOCnet");
 	/*--------------------------------------------------------------*/
 	/*	Yearly							*/
 	/*--------------------------------------------------------------*/
 	outfile = world_output_files[0].patch[0].yearly;
-	fprintf(outfile, "%s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s\n" ,
+	fprintf(outfile, "%s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s\n" ,
             "year",
             "patchID",
             "subQnet",
             "surfQnet",
+            "subQvnet",
             "precip",
             "recharge",
             "pet",
@@ -518,7 +524,7 @@ void add_headers(struct world_output_file_object *world_output_files,
             "meanLAI",
             "psn",
             "denitrif",
-            "mineralization","uptake","subNO3net","subDOCnet"
+            "mineralization","uptake","subNO3net", "subNO3vnet","subDOCnet"
 			);
 	}
 

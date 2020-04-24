@@ -29,8 +29,9 @@
 #include <stdio.h>
 #include "rhessys.h"
 
-void	output_hillslope(				int basinID,
-						 struct	hillslope_object	*hillslope,
+void	output_hillslope(int basinID,
+						 struct	basin_object	*basin,
+                         int hID,
 						 struct	date	date,
 						 FILE *outfile)
 {
@@ -41,10 +42,8 @@ void	output_hillslope(				int basinID,
 	/*------------------------------------------------------*/
 	/*	Local Variable Definition. 							*/
 	/*------------------------------------------------------*/
-	int z,p,c;
+	int z,p,c,hh;
 	int layer;
-	//double arain_throughfall;
-	//double asnow_throughfall;
 	double asat_deficit_z;
 	double asat_deficit;
 	double aunsat_storage;
@@ -95,68 +94,63 @@ void	output_hillslope(				int basinID,
     arecharge = 0.0;
     zone_area = 0.0;
     apcp = 0.0;
-	for (z=0; z<hillslope[0].num_zones; z++){
-		zone = hillslope[0].zones[z];
-        apcp += (zone[0].rain_hourly_total+zone[0].rain+zone[0].snow)*zone[0].area;
-        zone_area += zone[0].area;
-        
-		for (p=0; p< zone[0].num_patches; p++){
-			patch = zone[0].patches[p];
-			//arain_throughfall += patch[0].rain_throughfall * patch[0].area;
-			//asnow_throughfall += patch[0].snow_throughfall * patch[0].area;
-			asat_deficit_z += patch[0].sat_deficit_z * patch[0].area;
-			asat_deficit += patch[0].sat_deficit * patch[0].area;
-
-			/* determine actual amount in upper 20cm */
-//            if (patch[0].sat_deficit_z > 0.020)
-//                u20 = patch[0].unsat_storage * 0.020/patch[0].sat_deficit_z;
-//            else
-//                u20 = patch[0].unsat_storage + (0.020 - patch[0].sat_deficit_z)*
-//                        patch[0].soil_defaults[0][0].porosity_0;
-//            au20 += u20 * patch[0].area;
-            
-			arz_storage += patch[0].rz_storage * patch[0].area;
-            asnowmelt += patch[0].snow_melt*patch[0].area;
-            adetention_store += patch[0].detention_store*patch[0].area;
-            
-			aunsat_drainage += patch[0].unsat_drainage * patch[0].area;
-			acap_rise += patch[0].cap_rise * patch[0].area;
-			abase_flow += patch[0].base_flow * patch[0].area;
-			areturn_flow += patch[0].return_flow * patch[0].area;
-            astormdrain += patch[0].stormdrained * patch[0].area;
-			aevaporation += patch[0].evaporation * patch[0].area;
-			aarea += patch[0].area;
-            arecharge += patch[0].recharge * patch[0].area;
-            if (patch[0].sat_deficit <= ZERO) asat_area += patch[0].area;
-            alawnirrigation += patch[0].grassIrrigation_m * patch[0].area;
-			atranspiration += (patch[0].transpiration_sat_zone
-				+ patch[0].transpiration_unsat_zone)  *  patch[0].area;
-			
-			for ( layer=0 ; layer<patch[0].num_layers; layer++ ){
-				for ( c=0 ; c<patch[0].layers[layer].count; c++ ){
-                    
-					apsn += patch[0].canopy_strata[(patch[0].layers[layer].strata[c])][0].cover_fraction
-						* patch[0].canopy_strata[(patch[0].layers[layer].strata[c])][0].cs.net_psn
-						* patch[0].area;
-                    
-//                    alai += patch[0].canopy_strata[(patch[0].layers[layer].strata[c])][0].cover_fraction
-//                        * patch[0].canopy_strata[(patch[0].layers[layer].strata[c])][0].epv.proj_lai
-//                        * patch[0].area;
-                    
-                    if(patch[0].canopy_strata[(patch[0].layers[layer].strata[c])][0].defaults[0][0].epc.veg_type == TREE && patch[0].canopy_strata[(patch[0].layers[layer].strata[c])][0].defaults[0][0].ID!=802){
-                        alaitree += patch[0].canopy_strata[(patch[0].layers[layer].strata[c])][0].cover_fraction * patch[0].canopy_strata[(patch[0].layers[layer].strata[c])][0].epv.proj_lai * patch[0].area;
-                    }//if tree
-                    if(patch[0].canopy_strata[(patch[0].layers[layer].strata[c])][0].defaults[0][0].epc.veg_type == GRASS || patch[0].canopy_strata[(patch[0].layers[layer].strata[c])][0].defaults[0][0].ID==802){
-                        alaigrass += patch[0].canopy_strata[(patch[0].layers[layer].strata[c])][0].cover_fraction * patch[0].canopy_strata[(patch[0].layers[layer].strata[c])][0].epv.proj_lai * patch[0].area;
-                    }//if grass
-                    
-				}// for c
-			}// for layer
-		}// for patch
-	}// for zone
-    aarea = 1.0/aarea;
     
-	
+    struct hillslope_object *hillslope;
+    for (hh=0; hh < basin[0].num_hillslopes; hh++){
+        hillslope = basin[0].hillslopes[hh];
+        if(hillslope[0].ID == hID || hillslope[0].ID == hID-1){
+         
+            for (z=0; z<hillslope[0].num_zones; z++){
+                    zone = hillslope[0].zones[z];
+                    apcp += (zone[0].rain_hourly_total+zone[0].rain+zone[0].snow)*zone[0].area;
+                    zone_area += zone[0].area;
+                    
+                    for (p=0; p< zone[0].num_patches; p++){
+                        patch = zone[0].patches[p];
+                        asat_deficit_z += patch[0].sat_deficit_z * patch[0].area;
+                        asat_deficit += patch[0].sat_deficit * patch[0].area;
+                        
+                        arz_storage += patch[0].rz_storage * patch[0].area;
+                        asnowmelt += patch[0].snow_melt*patch[0].area;
+                        adetention_store += patch[0].detention_store*patch[0].area;
+                        
+                        aunsat_drainage += patch[0].unsat_drainage * patch[0].area;
+                        acap_rise += patch[0].cap_rise * patch[0].area;
+                        abase_flow += patch[0].base_flow * patch[0].area;
+                        areturn_flow += patch[0].return_flow * patch[0].area;
+                        astormdrain += patch[0].stormdrained * patch[0].area;
+                        aevaporation += patch[0].evaporation * patch[0].area;
+                        aarea += patch[0].area;
+                        arecharge += patch[0].recharge * patch[0].area;
+                        if (patch[0].sat_deficit <= ZERO) asat_area += patch[0].area;
+                        alawnirrigation += patch[0].grassIrrigation_m * patch[0].area;
+                        atranspiration += (patch[0].transpiration_sat_zone
+                            + patch[0].transpiration_unsat_zone)  *  patch[0].area;
+                        
+                        for ( layer=0 ; layer<patch[0].num_layers; layer++ ){
+                            for ( c=0 ; c<patch[0].layers[layer].count; c++ ){
+                                
+                                apsn += patch[0].canopy_strata[(patch[0].layers[layer].strata[c])][0].cover_fraction
+                                    * patch[0].canopy_strata[(patch[0].layers[layer].strata[c])][0].cs.net_psn
+                                    * patch[0].area;
+                                
+                                if(patch[0].canopy_strata[(patch[0].layers[layer].strata[c])][0].defaults[0][0].epc.veg_type == TREE && patch[0].canopy_strata[(patch[0].layers[layer].strata[c])][0].defaults[0][0].ID!=802){
+                                    alaitree += patch[0].canopy_strata[(patch[0].layers[layer].strata[c])][0].cover_fraction * patch[0].canopy_strata[(patch[0].layers[layer].strata[c])][0].epv.proj_lai * patch[0].area;
+                                }//if tree
+                                if(patch[0].canopy_strata[(patch[0].layers[layer].strata[c])][0].defaults[0][0].epc.veg_type == GRASS || patch[0].canopy_strata[(patch[0].layers[layer].strata[c])][0].defaults[0][0].ID==802){
+                                    alaigrass += patch[0].canopy_strata[(patch[0].layers[layer].strata[c])][0].cover_fraction * patch[0].canopy_strata[(patch[0].layers[layer].strata[c])][0].epv.proj_lai * patch[0].area;
+                                }//if grass
+                                
+                            }// for c
+                        }// for layer
+                    }// for patch
+                }// for zone
+        }// end of if
+    }//end of for loop
+    
+    
+	// after aggregate all hillslopes
+    aarea = 1.0/aarea;
 	asat_deficit_z *= aarea ;
 	asat_deficit *= aarea ;
 	aunsat_drainage *= aarea ;
@@ -179,12 +173,11 @@ void	output_hillslope(				int basinID,
 	abase_flow += hillslope[0].base_flow;
 
 
-	fprintf(outfile,"%d %d %d %d %d %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf\n",
+	fprintf(outfile,"%d %d %d %d %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf\n",
 		date.day, //1
 		date.month, //2
 		date.year, //3
-		basinID, //4
-		hillslope[0].ID, //5
+		hID, //5
         hillslope[0].area, //6
 		asat_deficit_z * 1000.0, //7 mm
 		asat_deficit * 1000.0, //8 mm
