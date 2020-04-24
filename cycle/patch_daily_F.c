@@ -978,14 +978,14 @@ void		patch_daily_F(
         double sourceTransferWater = 0.0;
         double totalTransferWater = 0.0;
         double tmp_fraction = 0.0;
-        patch[0].septicReleaseQ_m = patch[0].landuse_defaults[0][0].septic_water_load/patch[0].area;
+        patch[0].septicReleaseQ_m = patch[0].landuse_defaults[0][0].septic_water_load/patch[0].area; // release to patch
         
         for (i =0; i < patch[0].innundation_list[d].num_drainIN_septic; i++){
             // from surface to surface
             sourceTransferWater = min(
                               patch[0].innundation_list[d].drainIN_septic[i].maxDailyDrain,
                               patch[0].innundation_list[d].drainIN_septic[i].DrainFrac *
-                                patch[0].landuse_defaults[0][0].septic_water_load/patch[0].area);
+                                patch[0].landuse_defaults[0][0].septic_water_load/patch[0].area);// water depth release to patch
             
             
             patch[0].innundation_list[d].drainIN_septic[i].transfer_flux_surf = max(0.0, min(sourceTransferWater * patch[0].innundation_list[d].drainIN_septic[i].propDrainFrmSurf,

@@ -465,6 +465,22 @@ struct	command_line_object	*construct_command_line(
 				i++;
 				command_line[0].gw_loss_coeff_mult = (double)atof(main_argv[i]);
 				i++;
+                /*--------------------------------------------------------------*/
+                /*    check to see if there is a 3rd sensitivity parameter     */
+                /*    if not set to 1.0                    */
+                /*--------------------------------------------------------------*/
+//                if (  (i != main_argc) && (valid_option(main_argv[i]) == 0) ){
+//                    command_line[0].gw_loss_coeff_mult = (double)atof(main_argv[i]);
+//                    i++;
+//                }  /*end if*/
+                /*--------------------------------------------------------------*/
+                /*    check to see if there is a 3rd sensitivity parameter     */
+                /*    if not set to 1.0                    */
+                /*--------------------------------------------------------------*/
+//                if (  (i != main_argc) && (valid_option(main_argv[i]) == 0) ){
+//                    command_line[0].gw_loss_coeff_mult = (double)atof(main_argv[i]);
+//                    i++;
+//                }  /*end if*/
 			}/* end if */
             /*-------------------------------------------------*/
             /*    scaler to adjust fracDirectNdep      */

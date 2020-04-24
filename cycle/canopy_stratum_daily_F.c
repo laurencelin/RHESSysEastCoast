@@ -995,10 +995,11 @@ void	canopy_stratum_daily_F(
 		stratum[0].defaults[0][0].epc.vpd_close,
 		stratum[0].ppfd_sunlit,
 		stratum[0].epv.proj_lai_sunlit,
-		9999.0,
+		9999.0, //<<---------------------------------------------------
 		zone[0].metv.tsoil,
-		stratum[0].defaults[0][0].epc.topt,
-		stratum[0].defaults[0][0].epc.vpd_open-1.0, zone[0].CO2,
+		stratum[0].defaults[0][0].epc.topt, //<<-----------------------
+		stratum[0].defaults[0][0].epc.vpd_open-1.0, //<<---------------
+        zone[0].CO2,
 		stratum[0].defaults[0][0].epc.coef_CO2,
 		stratum[0].ID,
 		stratum, patch);
@@ -1692,7 +1693,7 @@ void	canopy_stratum_daily_F(
 			exit(EXIT_FAILURE);
 		}
         if(stratum[0].phen.gwseasonday>0){
-            stratum[0].gwMResp += stratum[0].cdf.leaf_day_mr + stratum[0].cdf.leaf_night_mr;
+            stratum[0].gwMResp += stratum[0].cdf.leaf_day_mr + stratum[0].cdf.leaf_night_mr + stratum[0].cdf.livecroot_mr + stratum[0].cdf.livestem_mr + stratum[0].cdf.froot_mr;
         }
         
 		if ((stratum[0].epv.all_lai > ZERO) && (stratum[0].snow_stored < ZERO))  {

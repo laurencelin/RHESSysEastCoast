@@ -66,9 +66,9 @@ int allocate_annual_growth(				int id,
 	
 	int ok=1;
 
-    double totalLeafCarbon, totalFrootCarbon, totalLiveStemCarbon, totalLiveCrootCarbon;
-	double rem_excess_carbon, excess_nitrogen;
-	double total_store, total_livebiomass;
+    double existingLeafCarbon, existingFrootCarbon, existingLiveStemCarbon, existingLiveCrootCarbon;
+	double excess_nitrogen;
+	double total_store, existingLivebiomass;
     double npoolwithdraw, fillN, fillC;
     
     double f1 = epc.alloc_frootc_leafc; //2
@@ -89,50 +89,9 @@ int allocate_annual_growth(				int id,
 	double cndw = epc.deadwood_cn;
 
     
-    
-    
-    
     //annual plant report for its growth period performance
     double what = 1.0/(1.0*stratum->gDayCount);
     double evaluate = stratum[0].cs.cpool + (stratum->gwPSN - stratum->gwMResp)*what*(1.0*stratum->gDayCount) - stratum->gwMResp*what*(365.0-1.0*stratum->gDayCount);
-    if((epc.veg_type == TREE && evaluate < -0.09) || (epc.veg_type == GRASS && evaluate < -0.04)){
-        printf("report,%d,%d,%d,%d,%d,%d,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e\n",
-               patch[0].ID, stratum->defaults[0][0].ID, current_date.day, current_date.month, current_date.year,
-               stratum->gDayCount,
-               stratum->nFactor *what, // 1 is good
-               stratum->wFactor *what, // 1 is good
-               stratum->lFactor *what, // large is good
-               stratum->gFactor *what, // 1 is good
-               patch[0].constraintWaterTableTopDepth,
-               stratum[0].cover_fraction,
-               stratum[0].cs.cpool,
-               stratum->gwPSN *what,   // flux
-               stratum->gwMResp *what, // flux
-               stratum->gwAPAR *what, // 1 is good
-               stratum->gwLWP *what, // 1 is good
-               stratum->gwVPD *what, // 1 is good
-               patch[0].sat_deficit_z,          //<<---------------- instant
-               patch[0].basementSideAdjustWTZ,  //<<---------------- instant
-               patch[0].basementSideAdjustH2O,  //<<---------------- instant
-               patch[0].Ksat_vertical, //(stratum[0].cs.leafc + stratum[0].cs.leafc_store + stratum[0].cs.leafc_transfer),
-               (stratum[0].cs.frootc + stratum[0].cs.frootc_store + stratum[0].cs.frootc_transfer)
-               );
-    }//print report
-    stratum->gDayCount=0;
-    stratum->nFactor=0.0; // tracking @ allocate_daily_growth  <<--------- need to check
-    stratum->wFactor=0.0; // tracking @ patch_daily_F          <<--------- need to check
-    stratum->lFactor=0.0; // tracking @ canopy_stratum_daily_F <<--------- need to check
-    stratum->gFactor=0.0; // tracking @ canopy_stratum_daily_F <<--------- actual gl vs potential gl (what's difference?)
-    stratum->gwPSN=0.0; // tracking @ canopy_stratum_daily_F
-    stratum->gwMResp=0.0; // tracking @ canopy_stratum_daily_F
-    stratum->gwAPAR=0.0; // tracking @ canopy_stratum_daily_F
-    stratum->gwLWP=0.0; // tracking @ canopy_stratum_daily_F
-    stratum->gwVPD=0.0; // tracking @ canopy_stratum_daily_F
-    // patch vegid day month year gday nfactor wfactor lfactor gfactor basement cover cpool gwPSN gwMresp gwAPAR gwLWP gwVPD wtz adjustWTZ adjustH2O leafc frootc
-    
-    
-    
- 
     /* for deciduous system, force leafc and frootc to exactly 0.0 on the last day */
     if (epc.phenology_type != EVERGREEN){
         if (ns->leafn < 1e-10)  {
@@ -145,176 +104,393 @@ int allocate_annual_growth(				int id,
         }
     }
     
-    totalLeafCarbon = cs->leafc + cs->leafc_store + cs->leafc_transfer;
-    totalFrootCarbon = cs->frootc + cs->frootc_store + cs->frootc_transfer;
+    
+    existingLeafCarbon = cs->leafc + cs->leafc_store + cs->leafc_transfer;
+    existingFrootCarbon = cs->frootc + cs->frootc_store + cs->frootc_transfer;
     if (epc.veg_type == TREE) {
-        totalLiveStemCarbon = cs->live_stemc + cs->livestemc_store + cs->livestemc_transfer;
-        totalLiveCrootCarbon = cs->live_crootc + cs->livecrootc_store + cs->livecrootc_transfer;
+        existingLiveStemCarbon = cs->live_stemc + cs->livestemc_store + cs->livestemc_transfer;
+        existingLiveCrootCarbon = cs->live_crootc + cs->livecrootc_store + cs->livecrootc_transfer;
     }else{
-        totalLiveStemCarbon = 0.0;
-        totalLiveCrootCarbon = 0.0;
+        existingLiveStemCarbon = 0.0;
+        existingLiveCrootCarbon = 0.0;
     }
-    total_livebiomass = totalLeafCarbon + totalFrootCarbon + totalLiveStemCarbon + totalLiveCrootCarbon;
+    existingLivebiomass = existingLeafCarbon + existingFrootCarbon + existingLiveStemCarbon + existingLiveCrootCarbon;
     
     double MAX_LAI = stratum->local_max_lai; //epc.max_lai;
     double allometric_leafRatio = fleaf/(fleaf+froot+fwood*flive);
     double allometric_frootRatio = froot/(fleaf+froot+fwood*flive);
-    double allometric_woodRatio = fwood*flive/(fleaf+froot+fwood*flive); // what is this for GRASS?
-    double minLeafCarbon = total_livebiomass * allometric_leafRatio;
-    double minFrootCarbon = total_livebiomass * allometric_frootRatio;
-    double minWoodCarbon = total_livebiomass * allometric_woodRatio;
-    double excess_carbon = totalLeafCarbon - max(MAX_LAI/epc.proj_sla, minLeafCarbon);//leafc
-    double miss_Leafcarbon = totalLeafCarbon - minLeafCarbon;
-    double miss_Frootcarbon = totalFrootCarbon - minFrootCarbon;
-    double miss_Woodcarbon = totalLiveStemCarbon + totalLiveCrootCarbon - minWoodCarbon;
+    double allometric_livewoodRatio = fwood*flive/(fleaf+froot+fwood*flive);
+    double minLeafCarbon = existingLivebiomass * allometric_leafRatio;
+    double minFrootCarbon = existingLivebiomass * allometric_frootRatio;
+    double minWoodCarbon = existingLivebiomass * allometric_livewoodRatio;
     
-    if( excess_carbon > 0){
-        //too much leaf carbon
-        rem_excess_carbon = excess_carbon;
-        if (epc.veg_type == TREE) {
-//            printf("allocate_annual_growth excess_lai tree[%d,%d: %d,%d,%d]: (%e:leaf[%e,%e,%e])\n",
-//                   patch[0].ID,stratum->defaults[0][0].ID, current_date.day, current_date.month, current_date.year,
-//                   rem_excess_carbon, cs->leafc,cs->leafc_store,cs->leafc_transfer);
-            /* remove excess carbon from storage, transfer and then leaf carbon until gone */
-            if (cs->leafc_store > excess_carbon) {
-                // reduce store
-                cs->leafc_store -= rem_excess_carbon;
-                ns->leafn_store -= rem_excess_carbon / cnl;
-                
-                cs->deadstemc_store += fdead*excess_carbon;
-                cs->livestemc_store += flive*excess_carbon;
-                ns->deadstemn_store += fdead*excess_carbon / cndw;
-                ns->livestemn_store += flive*excess_carbon / cnlw;
-                excess_nitrogen = excess_carbon/cnl - fdead*excess_carbon/cndw - flive*excess_carbon/cnlw;
-                ns->npool += excess_nitrogen;
-            } else {
-                // reduce transfer
-                rem_excess_carbon -= cs->leafc_store;
-                cs->leafc_store = 0.0;
-                ns->leafn_store = 0.0;
-                if (cs->leafc_transfer > rem_excess_carbon) {
-                    cs->leafc_transfer -= rem_excess_carbon;
-                    ns->leafn_transfer -= rem_excess_carbon / cnl;
-                    
-                    cs->deadstemc_store += fdead*excess_carbon;
-                    cs->livestemc_store += flive*excess_carbon;
-                    ns->deadstemn_store += fdead*excess_carbon / cndw;
-                    ns->livestemn_store += flive*excess_carbon / cnlw;
-                    excess_nitrogen = excess_carbon/cnl - fdead*excess_carbon/cndw - flive*excess_carbon/cnlw;
-                    ns->npool += excess_nitrogen;
-                } else {
-                    // make extra leaf fall
-                    rem_excess_carbon -= cs->leafc_transfer;
-                    cs->leafc_transfer = 0.0;
-                    ns->leafn_transfer = 0.0;
-                    cs->leafc -= rem_excess_carbon;
-                    ns->leafn -= rem_excess_carbon / cnl;
-                    
-                    //litter pool
-                    
-                }
-            }//if
-            //<<------------------------------------------------------- pollen
-            // pollen/seedling CN ratio is about 40
-            // (https://nph.onlinelibrary.wiley.com/doi/full/10.1111/j.1469-8137.2007.02176.x)
-            // (https://link.springer.com/article/10.1007/s11738-015-1965-x)
+    
+    //stratum[0].cdf.leaf_day_mr reset everyday
+    double totalResp = epc.veg_type == TREE? 0.002739726/(ns->live_stemn + ns->live_crootn + ns->frootn + ns->leafn) : 0.002739726/(ns->frootn + ns->leafn);
+    double potReduceLeafCarbon = evaluate>0? 0.0 : -evaluate*ns->leafn*totalResp;
+    double potReduceCrootCarbon = evaluate>0? 0.0 : -evaluate*ns->live_crootn*totalResp;
+    double potReduceStemCarbon = evaluate>0? 0.0 : -evaluate*ns->live_stemn*totalResp;
+    double potReduceFrootCarbon = evaluate>0? 0.0 : -evaluate*ns->frootn*totalResp;
+    potReduceLeafCarbon = max(existingLeafCarbon - max(MAX_LAI/epc.proj_sla, minLeafCarbon), potReduceLeafCarbon);
+    
+    double rem_excess_LeafCarbon;
+    double rem_excess_StemCarbon=0.0;
+    double exceedN=0.0;
+    double exceedC=0.0;
+    double tmpRatio, tmpMultilper;
+    
+    // --------- stem
+    if(epc.veg_type == TREE && potReduceStemCarbon>0){
+        if(cs->livestemc_transfer>0 && cs->livestemc_transfer > potReduceStemCarbon){
+            tmpRatio = potReduceStemCarbon/cs->livestemc_transfer;
+            exceedC += potReduceStemCarbon;
+            exceedN += ns->livestemn_transfer * tmpRatio;
+            tmpRatio = 1.0 - tmpRatio;
+            cs->livestemc_transfer *= tmpRatio;
+            ns->livestemn_transfer *= tmpRatio;
+            potReduceStemCarbon=0.0;
         }else{
-            // not tree below
-//            printf("allocate_annual_growth excess_lai non-tree[%d,%d: %d,%d,%d]: (%e)\n",
-//                   patch[0].ID,stratum->defaults[0][0].ID, current_date.day, current_date.month, current_date.year,
-//                   rem_excess_carbon);
+            exceedC += cs->livestemc_transfer;
+            exceedN += ns->livestemn_transfer;
+            potReduceStemCarbon -= cs->livestemc_transfer;
+            cs->livestemc_transfer = 0.0;
+            ns->livestemn_transfer = 0.0;
+        }// end of if
+    }//end of if
+    if(epc.veg_type == TREE && potReduceStemCarbon>0){
+        if(cs->livestemc_store >0 && cs->livestemc_store > potReduceStemCarbon){
+            tmpRatio = potReduceStemCarbon/cs->livestemc_store;
+            exceedC += potReduceStemCarbon;
+            exceedN += ns->livestemn_transfer * tmpRatio;
+            tmpRatio = 1.0 - tmpRatio;
+            cs->livestemc_store *= tmpRatio;
+            ns->livestemn_store *= tmpRatio;
+            potReduceStemCarbon=0.0;
+        }else{
+            exceedC += cs->livestemc_store;
+            exceedN += ns->livestemn_store;
+            potReduceStemCarbon -= cs->livestemc_store;
+            cs->livestemc_store = 0.0;
+            ns->livestemn_store = 0.0;
+        }// end of if
+    }// end of if
+    if(epc.veg_type == TREE && potReduceStemCarbon>0){
+        if(cs->live_stemc >0 && cs->live_stemc*0.2 > potReduceStemCarbon){
+            tmpRatio = potReduceStemCarbon/cs->live_stemc;
+            exceedN += ns->live_stemn * tmpRatio - potReduceStemCarbon/epc.deadwood_cn;
+            cs->dead_stemc += potReduceStemCarbon;
+            ns->dead_stemn += potReduceStemCarbon/epc.deadwood_cn;
+            tmpRatio = 1.0 - tmpRatio;
+            cs->live_stemc *= tmpRatio;
+            ns->live_stemn *= tmpRatio;
+            potReduceStemCarbon=0.0;
+        }else if(cs->live_stemc >0){
+            double tmpC = 0.2*cs->live_stemc;
+            tmpRatio = 0.2;
+            exceedN += ns->live_stemn * tmpRatio - tmpC/epc.deadwood_cn;
+            cs->dead_stemc += tmpC;
+            ns->dead_stemn += tmpC/epc.deadwood_cn;
+            tmpRatio = 1.0 - tmpRatio;
+            cs->live_stemc *= tmpRatio;
+            ns->live_stemn *= tmpRatio;
+            potReduceStemCarbon -= tmpC;
+        }// end of if
+    }// end of if
+    
+    // ---- croot
+    if(epc.veg_type == TREE && potReduceCrootCarbon>0){
+        if(cs->livecrootc_transfer>0 && cs->livecrootc_transfer > potReduceCrootCarbon){
+            tmpRatio = potReduceCrootCarbon/cs->livecrootc_transfer;
+            exceedC += potReduceCrootCarbon;
+            exceedN += ns->livecrootn_transfer * tmpRatio;
+            tmpRatio = 1.0 - tmpRatio;
+            cs->livecrootc_transfer *= tmpRatio;
+            ns->livecrootn_transfer *= tmpRatio;
+            potReduceCrootCarbon=0.0;
+        }else{
+            exceedC += cs->livecrootc_transfer;
+            exceedN += ns->livecrootn_transfer;
+            potReduceCrootCarbon -= cs->livecrootc_transfer;
+            cs->livecrootc_transfer = 0.0;
+            ns->livecrootn_transfer = 0.0;
+        }// end of if
+    }// end of if
+    if(epc.veg_type == TREE && potReduceCrootCarbon>0){
+        if(cs->livecrootc_store >0 && cs->livecrootc_store > potReduceCrootCarbon){
+            tmpRatio = potReduceCrootCarbon/cs->livecrootc_store;
+            exceedC += potReduceCrootCarbon;
+            exceedN += ns->livecrootn_store * tmpRatio;
+            tmpRatio = 1.0 - tmpRatio;
+            cs->livecrootc_store *= tmpRatio;
+            ns->livecrootn_store *= tmpRatio;
+            potReduceCrootCarbon=0.0;
+        }else{
+            exceedC += cs->livecrootc_store;
+            exceedN += ns->livecrootn_store;
+            potReduceCrootCarbon -= cs->livecrootc_store;
+            cs->livecrootc_store = 0.0;
+            ns->livecrootn_store = 0.0;
+        }// end of if
+    }// end of if
+    if(epc.veg_type == TREE && potReduceCrootCarbon>0){
+        if(cs->live_crootc >0 && cs->live_crootc*0.2 > potReduceCrootCarbon){
+            tmpRatio = potReduceCrootCarbon/cs->live_crootc;
+            exceedN += ns->live_crootn * tmpRatio - potReduceCrootCarbon/epc.deadwood_cn;
+            cs->dead_crootc += potReduceCrootCarbon;
+            ns->dead_crootn += potReduceCrootCarbon/epc.deadwood_cn;
+            tmpRatio = 1.0 - tmpRatio;
+            cs->live_crootc *= tmpRatio;
+            ns->live_crootn *= tmpRatio;
+            potReduceCrootCarbon=0.0;
+        }else if(cs->live_crootc >0){
+            double tmpC = 0.2 * cs->live_crootc;
+            tmpRatio = 0.2;
+            exceedN += ns->live_crootn * tmpRatio - tmpC/epc.deadwood_cn;
+            cs->dead_crootc += tmpC;
+            ns->dead_crootn += tmpC/epc.deadwood_cn;
+            tmpRatio = 1.0 - tmpRatio;
+            cs->live_crootc *= tmpRatio;
+            ns->live_crootn *= tmpRatio;
+            potReduceCrootCarbon -= tmpC;
+        }// end of if
+    }// end of if
+    
+    // ---- leafc
+    if(epc.veg_type != NON_VEG && potReduceLeafCarbon>0){
+        if(cs->leafc_transfer>0 && cs->leafc_transfer > potReduceLeafCarbon){
+            tmpRatio = potReduceCrootCarbon/cs->leafc_transfer;
+            exceedC += potReduceLeafCarbon;
+            exceedN += ns->leafn_transfer * tmpRatio;
+            tmpRatio = 1.0 - tmpRatio;
+            cs->leafc_transfer *= tmpRatio;
+            ns->leafn_transfer *= tmpRatio;
+            potReduceLeafCarbon=0.0;
+        }else{
+            exceedC += cs->leafc_transfer;
+            exceedN += ns->leafn_transfer;
+            potReduceCrootCarbon -= cs->leafc_transfer;
+            cs->leafc_transfer = 0.0;
+            ns->leafn_transfer = 0.0;
+        }// end of if
+    }// end of if
+    if(epc.veg_type != NON_VEG && potReduceLeafCarbon>0){
+        if(cs->leafc_store >0 && cs->leafc_store > potReduceLeafCarbon){
+            tmpRatio = potReduceCrootCarbon/cs->leafc_store;
+            exceedC += potReduceLeafCarbon;
+            exceedN += ns->leafn_store * tmpRatio;
+            tmpRatio = 1.0 - tmpRatio;
+            cs->leafc_store *= tmpRatio;
+            ns->leafn_store *= tmpRatio;
+            potReduceLeafCarbon=0.0;
+        }else{
+            exceedC += cs->leafc_store;
+            exceedN += ns->livecrootn_store;
+            potReduceCrootCarbon -= cs->leafc_store;
+            cs->leafc_store = 0.0;
+            ns->leafn_store = 0.0;
+        }// end of if
+    }// end of if
+    if(epc.veg_type != NON_VEG && potReduceLeafCarbon>0){
+        if(cs->leafc >0 && cs->leafc*0.2 > potReduceLeafCarbon){
+            tmpRatio = potReduceCrootCarbon/cs->leafc;
+            double N2liter = potReduceCrootCarbon/epc.leaflitr_cn;
+            exceedN += ns->leafn * tmpRatio - N2liter;
             
-            if (cs->leafc_store > excess_carbon) {
-                // reduce store
-                cs->leafc_store -= rem_excess_carbon;
-                ns->leafn_store -= rem_excess_carbon / cnl;
-                
-                cs->frootc_store += excess_carbon;
-                ns->frootn_store += excess_carbon / cnfr;
-                excess_nitrogen = excess_carbon/cnl - excess_carbon/cnfr;
-                ns->npool += excess_nitrogen;
-            }
-            else {
-                rem_excess_carbon -= cs->leafc_store;
-                cs->leafc_store = 0.0;
-                ns->leafn_store = 0.0;
-                if (cs->leafc_transfer > rem_excess_carbon) {
-                    // reduce transfer
-                    cs->leafc_transfer -= rem_excess_carbon;
-                    ns->leafn_transfer -= rem_excess_carbon / cnl;
-                    
-                    cs->frootc_store += excess_carbon;
-                    ns->frootn_store += excess_carbon / cnfr;
-                    excess_nitrogen = excess_carbon/cnl - excess_carbon/cnfr;
-                    ns->npool += excess_nitrogen;
-                } else {
-                    // make extra leaf fall
-                    rem_excess_carbon -= cs->leafc_transfer;
-                    cs->leafc_transfer = 0.0;
-                    ns->leafn_transfer = 0.0;
-                    cs->leafc -= rem_excess_carbon;
-                    ns->leafn -= rem_excess_carbon / cnl;
-                    
-                    // litter pool
-                }
-            }//if
-        }// tree
+            tmpMultilper = epc.leaflitr_flab * stratum[0].cover_fraction;
+            patch[0].litter_cs.litr1c += potReduceLeafCarbon * tmpMultilper;
+            patch[0].litter_ns.litr1n += N2liter * tmpMultilper;
+            tmpMultilper = epc.leaflitr_fucel * stratum[0].cover_fraction;
+            patch[0].litter_cs.litr2c += potReduceLeafCarbon * tmpMultilper;
+            patch[0].litter_ns.litr2n += N2liter * tmpMultilper;
+            tmpMultilper = epc.leaflitr_fscel * stratum[0].cover_fraction;
+            patch[0].litter_cs.litr3c += potReduceLeafCarbon * tmpMultilper;
+            patch[0].litter_ns.litr3n += N2liter * tmpMultilper;
+            tmpMultilper = epc.leaflitr_flig * stratum[0].cover_fraction;
+            patch[0].litter_cs.litr4c += potReduceLeafCarbon * tmpMultilper;
+            patch[0].litter_ns.litr4n += N2liter * tmpMultilper;
+            tmpRatio = 1.0 - tmpRatio;
+            cs->leafc *= tmpRatio;
+            ns->leafn *= tmpRatio;
+            potReduceLeafCarbon=0.0;
+        }else if(cs->leafc >0){
+            //printf();
+            double tmpC = 0.2 * cs->leafc;
+            tmpRatio = 0.2;
+            double N2liter = tmpC/epc.leaflitr_cn;
+            exceedN += ns->leafn * tmpRatio - N2liter;
+            
+            tmpMultilper = epc.leaflitr_flab * stratum[0].cover_fraction;
+            patch[0].litter_cs.litr1c += tmpC * tmpMultilper;
+            patch[0].litter_ns.litr1n += N2liter * tmpMultilper;
+            tmpMultilper = epc.leaflitr_fucel * stratum[0].cover_fraction;
+            patch[0].litter_cs.litr2c += tmpC * tmpMultilper;
+            patch[0].litter_ns.litr2n += N2liter * tmpMultilper;
+            tmpMultilper = epc.leaflitr_fscel * stratum[0].cover_fraction;
+            patch[0].litter_cs.litr3c += tmpC * tmpMultilper;
+            patch[0].litter_ns.litr3n += N2liter * tmpMultilper;
+            tmpMultilper = epc.leaflitr_flig * stratum[0].cover_fraction;
+            patch[0].litter_cs.litr4c += tmpC * tmpMultilper;
+            patch[0].litter_ns.litr4n += N2liter * tmpMultilper;
+            tmpRatio = 1.0 - tmpRatio;
+            cs->leafc *= tmpRatio;
+            ns->leafn *= tmpRatio;
+            potReduceLeafCarbon -= tmpC;
+        }// end of if
+    }// end of if
+    
+    // ---- froot
+    if(epc.veg_type != NON_VEG && potReduceFrootCarbon>0){
+        if(cs->frootc_transfer>0 && cs->frootc_transfer > potReduceFrootCarbon){
+            tmpRatio = potReduceFrootCarbon/cs->frootc_transfer;
+            exceedC += potReduceFrootCarbon;
+            exceedN += ns->frootn_transfer * tmpRatio;
+            tmpRatio = 1.0 - tmpRatio;
+            cs->frootc_transfer *= tmpRatio;
+            ns->frootn_transfer *= tmpRatio;
+            potReduceFrootCarbon=0.0;
+        }else{
+            exceedC += cs->frootc_transfer;
+            exceedN += ns->frootn_transfer;
+            potReduceFrootCarbon -= cs->frootc_transfer;
+            cs->frootc_transfer = 0.0;
+            ns->frootn_transfer = 0.0;
+        }// end of if
+    }// end of if
+    if(epc.veg_type != NON_VEG && potReduceFrootCarbon>0){
+        if(cs->frootc_store >0 && cs->frootc_store > potReduceFrootCarbon){
+            tmpRatio = potReduceFrootCarbon/cs->frootc_store;
+            exceedC += potReduceFrootCarbon;
+            exceedN += ns->frootn_store * tmpRatio;
+            tmpRatio = 1.0 - tmpRatio;
+            cs->frootc_store *= tmpRatio;
+            ns->frootn_store *= tmpRatio;
+            potReduceFrootCarbon=0.0;
+        }else{
+            exceedC += cs->frootc_store;
+            exceedN += ns->frootn_store;
+            potReduceFrootCarbon -= cs->frootc_store;
+            cs->frootc_store = 0.0;
+            ns->frootn_store = 0.0;
+        }// end of if
+    }
+    if(epc.veg_type != NON_VEG && potReduceFrootCarbon>0){
+        if(cs->frootc >0 && cs->frootc*0.2 > potReduceFrootCarbon){
+            tmpRatio = potReduceFrootCarbon/cs->frootc;
+            double N2liter = potReduceFrootCarbon/epc.froot_cn;
+            
+            tmpMultilper = epc.frootlitr_flab * stratum[0].cover_fraction;
+            patch[0].litter_cs.litr1c += potReduceFrootCarbon * tmpMultilper;
+            patch[0].litter_ns.litr1n += N2liter * tmpMultilper;
+            tmpMultilper = epc.frootlitr_fucel * stratum[0].cover_fraction;
+            patch[0].litter_cs.litr2c += potReduceFrootCarbon * tmpMultilper;
+            patch[0].litter_ns.litr2n += N2liter * tmpMultilper;
+            tmpMultilper = epc.frootlitr_fscel * stratum[0].cover_fraction;
+            patch[0].litter_cs.litr3c += potReduceFrootCarbon * tmpMultilper;
+            patch[0].litter_ns.litr3n += N2liter * tmpMultilper;
+            tmpMultilper = epc.frootlitr_flig * stratum[0].cover_fraction;
+            patch[0].litter_cs.litr4c += potReduceFrootCarbon * tmpMultilper;
+            patch[0].litter_ns.litr4n += N2liter * tmpMultilper;
+            tmpRatio = 1.0 - tmpRatio;
+            cs->frootc *= tmpRatio;
+            ns->frootn *= tmpRatio;
+            potReduceFrootCarbon=0.0;
+        }else if(cs->frootc >0){
+            double tmpC = 0.2 * cs->frootc;
+            tmpRatio = 0.2;
+            double N2liter = tmpC/epc.froot_cn;
+            
+            tmpMultilper = epc.frootlitr_flab * stratum[0].cover_fraction;
+            patch[0].litter_cs.litr1c += tmpC * tmpMultilper;
+            patch[0].litter_ns.litr1n += N2liter * tmpMultilper;
+            tmpMultilper = epc.frootlitr_fucel * stratum[0].cover_fraction;
+            patch[0].litter_cs.litr2c += tmpC * tmpMultilper;
+            patch[0].litter_ns.litr2n += N2liter * tmpMultilper;
+            tmpMultilper = epc.frootlitr_fscel * stratum[0].cover_fraction;
+            patch[0].litter_cs.litr3c += tmpC * tmpMultilper;
+            patch[0].litter_ns.litr3n += N2liter * tmpMultilper;
+            tmpMultilper = epc.frootlitr_flig * stratum[0].cover_fraction;
+            patch[0].litter_cs.litr4c += tmpC * tmpMultilper;
+            patch[0].litter_ns.litr4n += N2liter * tmpMultilper;
+            tmpRatio = 1.0 - tmpRatio;
+            cs->frootc *= tmpRatio;
+            ns->frootn *= tmpRatio;
+            potReduceFrootCarbon -= tmpC;
+        }
+    }// end of if
+    
+    
+    /*--------------------------------------------------------------*/
+    /*  maintain allocation ratios  */
+    /*--------------------------------------------------------------*/
+    existingLeafCarbon = cs->leafc + cs->leafc_store + cs->leafc_transfer;
+    existingFrootCarbon = cs->frootc + cs->frootc_store + cs->frootc_transfer;
+    if (epc.veg_type == TREE) {
+        existingLiveStemCarbon = cs->live_stemc + cs->livestemc_store + cs->livestemc_transfer;
+        existingLiveCrootCarbon = cs->live_crootc + cs->livecrootc_store + cs->livecrootc_transfer;
     }else{
-        // not enough for some parts
-        if(miss_Leafcarbon<0 && miss_Leafcarbon < miss_Frootcarbon && miss_Leafcarbon < miss_Woodcarbon){
-            // need to fix leafc
-            if(miss_Frootcarbon>0){
-                double withdraw = min(miss_Frootcarbon, cs->frootc_store);
-                if(withdraw){
-                    npoolwithdraw = min(-miss_Leafcarbon/cnl - withdraw/cnfr, ns->npool);
-                    fillN = withdraw/cnfr + npoolwithdraw;
-                    fillC = fillN*cnl;
-                    
-                    miss_Leafcarbon += fillC;
-                    cs->leafc_store += fillC;
-                    ns->leafn_store += fillN;
-                    ns->npool -= npoolwithdraw; if(ns->npool<0) ns->npool=0.0;
-                    
-                    cs->frootc_store -= fillC;
-                    ns->frootn_store -= fillC / cnfr;
-                    if(cs->frootc_store<0){ cs->frootc_store=0.0; ns->frootn_store=0.0;}
-                    //cs->frootc_transfer;
-                    //ns->frootn_transfer;
-                }
-            }//froot
-            if(miss_Woodcarbon>0){
-                double withdraw = min(miss_Woodcarbon, cs->livecrootc_store+cs->livestemc_store);
-                if(withdraw>0){
-                    npoolwithdraw = min(-miss_Leafcarbon/cnl - withdraw/cnlw, ns->npool);
-                    fillN = withdraw/cnlw + npoolwithdraw;
-                    fillC = fillN*cnl;
-                    
-                    miss_Leafcarbon += fillC;
-                    cs->leafc_store += fillC;
-                    ns->leafn_store += fillN;
-                    ns->npool -= npoolwithdraw; if(ns->npool<0) ns->npool=0.0;
-                    
-                    double hold = cs->livecrootc_store/(cs->livecrootc_store+cs->livestemc_store);
-                    cs->livecrootc_store -= fillC*hold;
-                    ns->livecrootn_store -= fillC*hold/cnlw;
-                    if(cs->livecrootc_store<0){ cs->livecrootc_store=0.0; ns->livecrootn_store=0.0;}
-                    
-                    cs->livestemc_store -= fillC*(1.0-hold);
-                    ns->livestemn_store -= fillC*(1.0-hold)/cnlw;
-                    if(cs->livestemc_store<0){ cs->livestemc_store=0.0; ns->livestemn_store=0.0;}
-                }
-            }
-        }//miss_Frootcarbon
-//        }else if( miss_Frootcarbon<0 && miss_Frootcarbon < miss_Leafcarbon && miss_Frootcarbon < miss_Woodcarbon){
-//            // need to fix froot
-//        }else if(miss_Woodcarbon<0 && miss_Woodcarbon < miss_Leafcarbon && miss_Woodcarbon < miss_Frootcarbon){
-//            // need to fix wood
-//        }//if
+        existingLiveStemCarbon = 0.0;
+        existingLiveCrootCarbon = 0.0;
+    }
+    existingLivebiomass = existingLeafCarbon + existingFrootCarbon + existingLiveStemCarbon + existingLiveCrootCarbon;
+    
+    minLeafCarbon = existingLivebiomass * allometric_leafRatio;
+    minFrootCarbon = existingLivebiomass * allometric_frootRatio;
+    minWoodCarbon = existingLivebiomass * allometric_livewoodRatio;
+
+    double miss_Leafcarbon = minLeafCarbon - existingLeafCarbon;
+    double miss_Frootcarbon = minFrootCarbon - existingFrootCarbon;
+    double miss_Woodcarbon = minWoodCarbon - existingLiveStemCarbon - existingLiveCrootCarbon;
+    
+    if(miss_Leafcarbon>0 && exceedC>0 && exceedN>0){
+        double withdrawC = min(min(exceedC, miss_Leafcarbon), (ns->npool+exceedN)*epc.leaf_cn); // constrained by carbon and nitrogen
+        double withdrawN = min(ns->npool+exceedN,withdrawC/epc.leaf_cn);
+        double withdrawNfromExceedN = min(exceedN, withdrawN);
         
-    }//if
+        cs->leafc_store += withdrawC;
+        ns->leafn_store += withdrawN;
+        ns->npool -= withdrawN - withdrawNfromExceedN;
+        exceedN -= withdrawNfromExceedN;
+        exceedC -= withdrawC;
+    }//end of if
+    
+    if(miss_Frootcarbon>0 && exceedC>0 && exceedN>0){
+        double withdrawC = min(min(exceedC, miss_Frootcarbon), (ns->npool+exceedN)*epc.froot_cn); // constrained by carbon and nitrogen
+        double withdrawN = min(ns->npool+exceedN,withdrawC/epc.froot_cn);
+        double withdrawNfromExceedN = min(exceedN, withdrawN);
+        
+        cs->frootc_store += withdrawC;
+        ns->frootn_store += withdrawN;
+        ns->npool -= withdrawN - withdrawNfromExceedN;
+        exceedN -= withdrawNfromExceedN;
+        exceedC -= withdrawC;
+    }//end of if
+    
+    if(epc.veg_type == TREE && miss_Woodcarbon>0 && exceedC>0 && exceedN>0){
+        double withdrawC = min(min(exceedC, miss_Woodcarbon), (ns->npool+exceedN)*epc.livewood_cn); // constrained by carbon and nitrogen
+        double withdrawN = min(ns->npool+exceedN,withdrawC/epc.livewood_cn);
+        double withdrawNfromExceedN = min(exceedN, withdrawN);
+        double stemRatio = existingLiveStemCarbon/(existingLiveStemCarbon+existingLiveCrootCarbon);
+        
+        cs->livestemc_store += withdrawC * stemRatio;
+        ns->livestemn_store += withdrawN * stemRatio;
+        stemRatio = max(0.0,min(1.0,1.0 - stemRatio));
+        cs->livecrootc_store += withdrawC * stemRatio;
+        ns->livecrootn_store += withdrawN * stemRatio;
+    
+        ns->npool -= withdrawN - withdrawNfromExceedN;
+        exceedN -= withdrawNfromExceedN;
+        exceedC -= withdrawC;
+    }//end of if
+    
+    if(exceedC>0 && exceedN>0){
+        patch[0].soil_cs.DOC += exceedC;
+        patch[0].soil_ns.DON += exceedN;
+    }// end of if
     
     
-    
+    /*--------------------------------------------------------------*/
+    /*  push store to transfer  */
+    /*--------------------------------------------------------------*/
     epv->prev_leafcalloc = cs->leafc + cs->leafc_transfer;
     cdf->leafc_store_to_leafc_transfer = cs->leafc_store * epc.storage_transfer_prop; // first time
     ndf->leafn_store_to_leafn_transfer = ns->leafn_store * epc.storage_transfer_prop;
@@ -366,35 +542,77 @@ int allocate_annual_growth(				int id,
             cs->deadcrootc_store = 0.0;
             ns->deadcrootn_store = 0.0;
     }
-    totalLeafCarbon = cs->leafc + cs->leafc_store + cs->leafc_transfer;
+    existingLeafCarbon = cs->leafc + cs->leafc_store + cs->leafc_transfer;
     
 
-    //    cs->gresp_transfer    += cdf->gresp_store_to_gresp_transfer;//<<-------------------- gresp from store; but does not make sense anyway
-    //    if(cs->gresp_transfer <= 0){
-    //        //printf("allocate_annual_growth [%d,%d],%e\n",id,default_ID,cs->gresp_transfer);
-    //        //cs->gresp_transfer = 0.0;
-    //    }//debug
     
 	/*--------------------------------------------------------------*/
-	/* finally if there is really nothing restart with small amount of growth   */
+	/* finally if there is really nothing, restart with small amount of growth   */
 	/*	we allow only a certain amount of resprouting based on 	*/
 	/*	a stratum default file parameterization 		*/
 	/*--------------------------------------------------------------*/
-//  if((epc.veg_type == TREE && evaluate < -0.09) || (epc.veg_type == GRASS && evaluate < -0.04)) --- same conditions for "report"
-    if ((epc.veg_type == TREE && evaluate < -0.09) || (epc.veg_type == GRASS && evaluate < -0.04)){  //totalLeafCarbon < epc.min_leaf_carbon //epc.min_leaf_carbon; 0.1*minLeafCarbon
-        if (cs->num_resprout < (epc.veg_type == GRASS? 100 : epc.max_years_resprout) ) {
+    // annual carbon budget evaluate = cpool + (GPP-respG-repsM) = cpool + PSN - repM --> PSN >= repM + cpool --> need to adjust "repM"
+    
+    if( (epc.veg_type == TREE && (potReduceLeafCarbon>1e-8 || potReduceCrootCarbon>1e-8 || potReduceStemCarbon>1e-8 || potReduceFrootCarbon>1e-8)) ||
+        (epc.veg_type == GRASS &&(potReduceLeafCarbon>1e-8 || potReduceFrootCarbon>1e-8))){
+        
+        //------- print out report
+        printf("report,%d,%d,%d,%d,%d,%d,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%d,%e,%e,%e,%e,%e,%e,%e,%e\n",
+               patch[0].ID, stratum->defaults[0][0].ID, current_date.day, current_date.month, current_date.year,
+               stratum->gDayCount,
+               stratum->nFactor *what, // 1 is good
+               stratum->wFactor *what, // 1 is good
+               stratum->lFactor *what, // large is good
+               stratum->gFactor *what, // 1 is good; actual/potential
+               patch[0].constraintWaterTableTopDepth,
+               stratum[0].cover_fraction,
+               stratum[0].cs.cpool,
+               stratum->gwPSN *what,   // flux
+               stratum->gwMResp *what, // flux
+               stratum->gwAPAR *what, // 1 is good. stratum[0].gwAPAR += stratum[0].mult_conductance.APAR;
+               stratum->gwLWP *what, // 1 is good. stratum[0].gwLWP += stratum[0].mult_conductance.LWP;
+               stratum->gwVPD *what, // 1 is good. stratum[0].gwVPD += stratum[0].mult_conductance.vpd;
+               patch[0].sat_deficit_z,          //<<---------------- instant
+               patch[0].basementSideAdjustWTZ,  //<<---------------- instant
+               patch[0].basementSideAdjustH2O,  //<<---------------- instant
+               patch[0].Ksat_vertical, //
+               cs->num_resprout,
+               potReduceLeafCarbon, potReduceCrootCarbon, potReduceStemCarbon, potReduceFrootCarbon,
+               (stratum[0].cs.leafc + stratum[0].cs.leafc_store + stratum[0].cs.leafc_transfer),
+               (stratum[0].cs.live_crootc + stratum[0].cs.livecrootc_store + stratum[0].cs.livecrootc_transfer),
+               (stratum[0].cs.live_stemc + stratum[0].cs.livestemc_store + stratum[0].cs.livestemc_transfer),
+               (stratum[0].cs.frootc + stratum[0].cs.frootc_store + stratum[0].cs.frootc_transfer)
+               );
+        
+        stratum->gDayCount=0;
+        stratum->nFactor=0.0; // tracking @ allocate_daily_growth  <<--------- need to check
+        stratum->wFactor=0.0; // tracking @ patch_daily_F          <<--------- need to check
+        stratum->lFactor=0.0; // tracking @ canopy_stratum_daily_F <<--------- need to check
+        stratum->gFactor=0.0; // tracking @ canopy_stratum_daily_F <<--------- actual gl vs potential gl (what's difference?)
+        stratum->gwPSN=0.0; // tracking @ canopy_stratum_daily_F
+        stratum->gwMResp=0.0; // tracking @ canopy_stratum_daily_F
+        stratum->gwAPAR=0.0; // tracking @ canopy_stratum_daily_F
+        stratum->gwLWP=0.0; // tracking @ canopy_stratum_daily_F
+        stratum->gwVPD=0.0; // tracking @ canopy_stratum_daily_F
+        // patch vegid day month year gday nfactor wfactor lfactor gfactor basement cover cpool gwPSN gwMresp gwAPAR gwLWP gwVPD wtz adjustWTZ adjustH2O leafc frootc num_resprout
+        cs->num_resprout += 1;
+        
+        if (cs->num_resprout > 5 ) {
             // SLB whole basin grass 0.307539*1.5=0.4613085 LAI; tree 0.406821*4.5=1.830694 LAI
             // SLB subbain grass 0.257967*1.5=0.3869505 basin LAI; tree 0.368434*4.5=1.657953 basin LAI
 //            printf("Resprouting stratum [%d,%d: %d,%d,%d]{%e,%e} (%e,%e[%e,%e,%e]:%e:%e:%e)->(%e,%e,%e);[%e,%e,%e,%e][%e,%e,%e,%e]\n",
 //                   patch[0].ID,stratum->defaults[0][0].ID, current_date.day, current_date.month, current_date.year,
 //                   patch[0].Ksat_vertical,stratum[0].cover_fraction,
-//                   0.1*minLeafCarbon, totalLeafCarbon, cs->leafc, cs->leafc_store, cs->leafc_transfer,
-//                   totalFrootCarbon, totalLiveStemCarbon, totalLiveCrootCarbon,
+//                   0.1*minLeafCarbon, existingLeafCarbon, cs->leafc, cs->leafc_store, cs->leafc_transfer,
+//                   existingFrootCarbon, existingLiveStemCarbon, existingLiveCrootCarbon,
 //                   miss_Leafcarbon, miss_Frootcarbon, miss_Woodcarbon,
 //                   patch[0].sat_deficit_z, patch[0].rootzone.S, patch[0].soil_ns.nitrate, patch[0].soil_ns.sminn,
 //                   patch[0].soil_cs.soil1c,patch[0].soil_cs.soil2c,patch[0].soil_cs.soil3c,patch[0].soil_cs.soil4c
 //                   //stratum->mult_conductance.APAR, stratum->mult_conductance.LWP, stratum->mult_conductance.vpd
 //                   );
+            
+            // no litter or OM for decay!
+            
             cs->num_resprout += 1;
             cs->age = 0;
             cs->cpool = 0.0;

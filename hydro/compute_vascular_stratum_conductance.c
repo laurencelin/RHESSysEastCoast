@@ -66,10 +66,10 @@ double	compute_vascular_stratum_conductance(
 											 double	vpd_closed,
 											 double	APAR, //<<--- ppfd_sunlit
 											 double	LAI, // <<--- epv.proj_lai_sunlit
-											 double	LWP_predawn, //<<--- 2
+											 double	LWP_predawn, //<<--- 2 //<<-----------(potential) 9999.0 --> m_LWP = 1
 											 double	Tair_min,
-											 double	Tair_mean_day,
-											 double	vpd,
+											 double	Tair_mean_day, //<<-------- (potential) epc.tcoef --> m_tavg = 1
+											 double	vpd, //<<--------------- (potential) become negative?  = vpd_open-1 < vpd_open --> m_vpd = 1
 											 double CO2,
 											 double coef_CO2,
 											 int ID,

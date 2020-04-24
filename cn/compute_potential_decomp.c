@@ -252,7 +252,7 @@ int compute_potential_decomp(double tsoil,
 	/* 7. mineralization of recalcitrant SOM */
 	if ((ns_soil->soil4n > 0.0) && (cs_soil->soil4c > 0.0)) {
 		psoil4c_loss = ks4 * cs_soil->soil4c;
-		pmnf_s4 = -psoil4c_loss/cn_s4;
+		pmnf_s4 = -psoil4c_loss/cn_ss4;
 	}
     //printf("%f,%f,%f,%f,%f,%f,%f,%f\n", pmnf_l1s1,pmnf_l2s2, pmnf_l3l2,pmnf_l4s3,  pmnf_s1s2,pmnf_s2s3,  pmnf_s3s4,pmnf_s4);
     

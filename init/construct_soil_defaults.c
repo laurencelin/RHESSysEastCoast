@@ -131,7 +131,7 @@ struct soil_default *construct_soil_defaults(
 		//	exit(EXIT_FAILURE);
 		//} /*end if*/
 
-		printf("Reading %s\n", default_files[i]);
+		//printf("Reading %s\n", default_files[i]);
                 paramCnt = 0;
                 if (paramPtr != NULL)
                     free(paramPtr);
@@ -149,7 +149,7 @@ struct soil_default *construct_soil_defaults(
         default_object_list[i].m_z =             getDoubleParam(&paramCnt, &paramPtr, "m_z", "%lf", 0.4, 1); // "meter" for vertical ksat
         
 		default_object_list[i].porosity_0 = 		getDoubleParam(&paramCnt, &paramPtr, "porosity_0", "%lf", 0.435, 1);
-		default_object_list[i].porosity_decay = 	getDoubleParam(&paramCnt, &paramPtr, "porosity_decay", "%lf", 4000.0, 1); // m-1, that seems very large!!
+		default_object_list[i].porosity_decay = 	getDoubleParam(&paramCnt, &paramPtr, "porosity_decay", "%lf", 4000.0, 1); // "meter"
 		default_object_list[i].p3 = 			getDoubleParam(&paramCnt, &paramPtr, "P3", "%lf", 0.0, 1); // param name upper case in param file
 		default_object_list[i].pore_size_index = 	getDoubleParam(&paramCnt, &paramPtr, "pore_size_index", "%lf", 0.204, 1);
 		default_object_list[i].psi_air_entry = 		getDoubleParam(&paramCnt, &paramPtr, "psi_air_entry", "%lf", 0.218, 1);
@@ -221,9 +221,9 @@ struct soil_default *construct_soil_defaults(
 		/*-----------------------------------------------------------------------------
 		 *  Fill and Spill parameters
 		 *-----------------------------------------------------------------------------*/
-		default_object_list[i].fs_spill =	getDoubleParam(&paramCnt, &paramPtr, "fs_spill", "%lf", 1, 1);
-		default_object_list[i].fs_percolation =	getDoubleParam(&paramCnt, &paramPtr, "fs_percolation", "%lf", 1, 1);
-		default_object_list[i].fs_threshold = 	getDoubleParam(&paramCnt, &paramPtr, "fs_threshold", "%lf", 0.2, 1);
+		default_object_list[i].fs_spill =	getDoubleParam(&paramCnt, &paramPtr, "fs_spill", "%lf", 1, 1);// spill to here?
+		default_object_list[i].fs_percolation =	getDoubleParam(&paramCnt, &paramPtr, "fs_percolation", "%lf", 1, 1);// loss to unknown
+		default_object_list[i].fs_threshold = 	getDoubleParam(&paramCnt, &paramPtr, "fs_threshold", "%lf", 0.2, 1);// percent of sat tra
 		
 		/*--------------------------------------------------------------*/
 		/*	vertical soil m and K are initized using soil default	*/
@@ -369,8 +369,8 @@ struct soil_default *construct_soil_defaults(
         
         if (paramPtr != NULL){ free(paramPtr); paramPtr=NULL; }
         
-        // we are in a big for loop the whole time.
-       printf("soil default file: %s lookup table\n", default_files[i] );
+       // we are in a big for loop of all soil.def the whole time.
+       // printf("soil default file: %s lookup table\n", default_files[i] );
        //-------------------------------- lookup table --------------------------------//
         len = (int)(soildepth*1000) + 2;
         if(len>maxSoilDepthIndex){ len = maxSoilDepthIndex; printf("soil(%d) has soil depth %f m. (too deep)",default_object_list[i].ID, soildepth); }
@@ -421,8 +421,8 @@ struct soil_default *construct_soil_defaults(
         vksat_decay_1 = -1.0/default_object_list[i].mz_v;
 
         hksat0 = default_object_list[i].Ksat_0;
-        hksat_decay = default_object_list[i].m;
-        hksat_decay_1 = -1.0/default_object_list[i].m;
+        hksat_decay = default_object_list[i].m; // meter
+        hksat_decay_1 = -1.0/default_object_list[i].m; // -1/meter
 
         PAE = default_object_list[i].psi_air_entry;
         PAE_1 = -1.0/PAE;
@@ -870,7 +870,7 @@ struct soil_default *construct_soil_defaults(
         
         default_object_list[i].transmissivity_maxdailyflux[1001] = default_object_list[i].transmissivity_maxdailyflux[1000];
         default_object_list[i].transmissivity_dailyflux[1001] = default_object_list[i].transmissivity_dailyflux[1000];
-        printf("soil(%d) lookup table process done [%f]\n",default_object_list[i].ID, soildepth);
+        printf("soil,%d,%f,%f,%f\n",default_object_list[i].ID, soildepth, default_object_list[i].vksat_z[1000], p0*exp(p_decay_1* soildepth) );
         
         
         
