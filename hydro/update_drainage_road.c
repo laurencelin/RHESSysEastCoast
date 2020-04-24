@@ -179,7 +179,6 @@ void  update_drainage_road(
 	/*--------------------------------------------------------------*/
     d=0; total_gamma = recompute_gamma(patch, patch[0].innundation_list[d].gamma);
     
-    patch[0].satzZ_balance = 0.0; // mm
 	available_sat_water = max(
     patch[0].area*(patch[0].soil_defaults[0][0].soil_water_cap- max(patch[0].sat_deficit, 0.0)),
     0.0);

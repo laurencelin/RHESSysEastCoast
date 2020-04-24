@@ -586,6 +586,9 @@ struct hillslope_default
         double  gw_loss_coeff;                                  /* percent/day */
         double  gw_loss_fast_coeff;                                     /* percent/day */
         double  gw_loss_fast_threshold;                                 /* m */
+            double gw_loss_coeff_decay; /* 1/m */
+            double gw_soluteConc_decay; /* 1/m */
+            double gw_soluteLOSSCoef; /* holding value */
         };
 
 /*----------------------------------------------------------*/
@@ -1388,6 +1391,7 @@ struct accumulate_patch_object
 {
     double subQnet;
     double surfQnet;
+    double subQvnet;//unsat zone only
     double precip;
     double recharge;
     double PET;
@@ -1401,6 +1405,7 @@ struct accumulate_patch_object
     double mineralization;
     double uptake;
     double subNO3net;
+    double subNO3vnet;
     double subDOCnet;
 };
 /*----------------------------------------------------------*/
@@ -1739,9 +1744,7 @@ struct patch_object
             double fromRIPARIAN_surfsubNH4;
             double fromRIPARIAN_surfsubDON;
             double fromRIPARIAN_surfsubDOC;
-            
-            //double potential_sat;// no use
-            double satzZ_balance;
+        
 /*----------------------------------------------------------*/
 /*      Forest floor stuff                                  */
 /*----------------------------------------------------------*/

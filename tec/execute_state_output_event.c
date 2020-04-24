@@ -87,7 +87,7 @@ void	execute_state_output_event(
     char patch_line [3000];
     char stratum_line [4000];
     
-    fprintf(outfile, "world_ID,basin_ID,x,y,z,basin_parm_ID,latitude,hillslope_ID,x,y,z,hill_parm_ID,gw.storage,gw.NO3,gw.NH4,gw.DOC,gw.DON,zone_ID,x,y,z,zone_parm_ID,area,slope,aspect,precip_lapse_rate,e_horizon,w_horizon,base_station_ID,patch_ID,x,y,z,soil_parm_ID,landuse_parm_ID,area,slope,lna,Ksat_vertical,detention_store,surface_DOC,surface_DON,surface_NO3,surface_NH4,rz_storage,unsat_storage,sat_deficit,satzZ_balance,snowpack.water_equivalent_depth,snowpack.water_depth,snowpack.T,snowpack.surface_age,snowpack.energy_deficit,litter.cover_fraction,litter.rain_stored,litter.NO3_stored,litter_cs.litr1c,litter_cs.litr2c,litter_cs.litr3c,litter_cs.litr4c,litter_ns.litr1n,litter_ns.litr2n,litter_ns.litr3n,litter_ns.litr4n,soil_cs.soil1c,soil_cs.soil2c,soil_cs.soil3c,soil_cs.soil4c,soil_ns.soil1n,soil_ns.soil2n,soil_ns.soil3n,soil_ns.soil4n,patch_SOIL1_CN,patch_SOIL2_CN,patch_SOIL3_CN,patch_SOIL4_CN,soil_ns.sminn,soil_ns.nitrate,soil_cs.DOC,soil_ns.DON,sat_DOC,sat_DON,sat_NO3,sat_NH4,stored_fertilizer_NO3,stored_fertilizer_NH4,fertilizerDaysCount,canopy_strata_ID,veg_parm_ID,cover_fraction,gap_fraction,rootzone.depth,cs.age,snow_stored,rain_stored,NO3_stored,cs.cpool,cs.leafc,cs.dead_leafc,cs.leafc_store,cs.leafc_transfer,cs.live_stemc,cs.livestemc_store,cs.livestemc_transfer,cs.dead_stemc,cs.deadstemc_store,cs.deadstemc_transfer,cs.live_crootc,cs.livecrootc_store,cs.livecrootc_transfer,cs.dead_crootc,cs.deadcrootc_store,cs.deadcrootc_transfer,cs.frootc,cs.frootc_store,cs.frootc_transfer,cs.cwdc,epv.prev_leafcalloc,ns.npool,ns.leafn,ns.dead_leafn,ns.leafn_store,ns.leafn_transfer,ns.live_stemn,ns.livestemn_store,ns.livestemn_transfer,ns.dead_stemn,ns.deadstemn_store,ns.deadstemn_transfer,ns.live_crootn,ns.livecrootn_store,ns.livecrootn_transfer,ns.dead_crootn,ns.deadcrootn_store,ns.deadcrootn_transfer,ns.frootn,ns.frootn_store,ns.frootn_transfer,ns.cwdn,ns.retransn,ns.cwdN_stored,epv.wstress_days,epv.max_fparabs,epv.min_vwc\n");
+    fprintf(outfile, "world_ID,basin_ID,x,y,z,basin_parm_ID,latitude,hillslope_ID,x,y,z,hill_parm_ID,gw.storage,gw.NO3,gw.NH4,gw.DOC,gw.DON,zone_ID,x,y,z,zone_parm_ID,area,slope,aspect,precip_lapse_rate,e_horizon,w_horizon,base_station_ID,patch_ID,x,y,z,soil_parm_ID,landuse_parm_ID,area,slope,lna,Ksat_vertical,detention_store,surface_DOC,surface_DON,surface_NO3,surface_NH4,rz_storage,unsat_storage,sat_deficit,snowpack.water_equivalent_depth,snowpack.water_depth,snowpack.T,snowpack.surface_age,snowpack.energy_deficit,litter.cover_fraction,litter.rain_stored,litter.NO3_stored,litter_cs.litr1c,litter_cs.litr2c,litter_cs.litr3c,litter_cs.litr4c,litter_ns.litr1n,litter_ns.litr2n,litter_ns.litr3n,litter_ns.litr4n,soil_cs.soil1c,soil_cs.soil2c,soil_cs.soil3c,soil_cs.soil4c,soil_ns.soil1n,soil_ns.soil2n,soil_ns.soil3n,soil_ns.soil4n,patch_SOIL1_CN,patch_SOIL2_CN,patch_SOIL3_CN,patch_SOIL4_CN,soil_ns.sminn,soil_ns.nitrate,soil_cs.DOC,soil_ns.DON,sat_DOC,sat_DON,sat_NO3,sat_NH4,stored_fertilizer_NO3,stored_fertilizer_NH4,fertilizerDaysCount,canopy_strata_ID,veg_parm_ID,cover_fraction,gap_fraction,rootzone.depth,cs.age,snow_stored,rain_stored,NO3_stored,cs.cpool,cs.leafc,cs.dead_leafc,cs.leafc_store,cs.leafc_transfer,cs.live_stemc,cs.livestemc_store,cs.livestemc_transfer,cs.dead_stemc,cs.deadstemc_store,cs.deadstemc_transfer,cs.live_crootc,cs.livecrootc_store,cs.livecrootc_transfer,cs.dead_crootc,cs.deadcrootc_store,cs.deadcrootc_transfer,cs.frootc,cs.frootc_store,cs.frootc_transfer,cs.cwdc,epv.prev_leafcalloc,ns.npool,ns.leafn,ns.dead_leafn,ns.leafn_store,ns.leafn_transfer,ns.live_stemn,ns.livestemn_store,ns.livestemn_transfer,ns.dead_stemn,ns.deadstemn_store,ns.deadstemn_transfer,ns.live_crootn,ns.livecrootn_store,ns.livecrootn_transfer,ns.dead_crootn,ns.deadcrootn_store,ns.deadcrootn_transfer,ns.frootn,ns.frootn_store,ns.frootn_transfer,ns.cwdn,ns.retransn,ns.cwdN_stored,epv.wstress_days,epv.max_fparabs,epv.min_vwc\n");
     
 
     sprintf(world_line, "%d",world[0].ID);
@@ -130,15 +130,15 @@ void	execute_state_output_event(
                          zone[0].z,
                          zone[0].defaults[0][0].ID,
                          zone[0].area,
-                         zone[0].slope,
-                         zone[0].aspect,
+                         zone[0].slope/DtoR,
+                         zone[0].aspect/DtoR,
                          zone[0].precip_lapse_rate,
                          zone[0].e_horizon,
                          zone[0].w_horizon,
                          zone[0].base_stations[0][0].ID); // one station per zone
                  for (int p=0; p < zone[0].num_patches; ++ p ) {
                      patch = zone[0].patches[p];
-                     sprintf(patch_line,"%d,%e,%e,%e,%d,%d,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%d",
+                     sprintf(patch_line,"%d,%e,%e,%e,%d,%d,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%d",
                              patch[0].ID,
                              patch[0].x,
                              patch[0].y,
@@ -146,7 +146,7 @@ void	execute_state_output_event(
                              patch[0].soil_defaults[0][0].ID,
                              patch[0].landuse_defaults[0][0].ID,
                              patch[0].area,//1
-                             patch[0].slope,//2
+                             patch[0].slope/DtoR,//2
                              patch[0].lna,//3
                              patch[0].Ksat_vertical,//4
                              patch[0].detention_store,//41
@@ -157,7 +157,6 @@ void	execute_state_output_event(
                              patch[0].rz_storage,//5
                              patch[0].unsat_storage,//6
                              patch[0].sat_deficit,//7
-                             patch[0].satzZ_balance,//48
                              patch[0].snowpack.water_equivalent_depth,//8
                              patch[0].snowpack.water_depth,//9
                              patch[0].snowpack.T,//10

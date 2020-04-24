@@ -311,8 +311,7 @@ void compute_subsurface_routing_hourly(
 			/*-------------------------------------------------------------------------*/
 			/*	Recompute current actual depth to water table				*/
 			/*-------------------------------------------------------------------------*/
-            patch[0].satzZ_balance = min(0.0, patch[0].available_soil_water - (patch[0].Qout - patch[0].Qin)); // [negative-0] only
-			patch[0].sat_deficit += (patch[0].Qout - patch[0].Qin)+patch[0].satzZ_balance; // this part need to put into some where else
+			patch[0].sat_deficit += (patch[0].Qout - patch[0].Qin); // this part need to put into some where else
             if(patch[0].sat_deficit>patch[0].soil_defaults[0][0].soil_water_cap){
                 patch[0].sat_deficit=patch[0].soil_defaults[0][0].soil_water_cap;
             }//if

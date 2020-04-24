@@ -321,8 +321,7 @@ void  update_drainage_stream(
     
 	if (route_to_patch < 0.0) route_to_patch = 0.0;
     if (route_to_patch > 0.0 && route_to_patch > available_sat_water) route_to_patch=available_sat_water;
-    patch[0].satzZ_balance = 0.0; // mm
-    
+
     //Sept 18
     extrawater = patch[0].rz_storage+patch[0].unsat_storage - patch[0].sat_deficit - route_to_patch/patch[0].area;
     if(extrawater>0){
@@ -333,9 +332,7 @@ void  update_drainage_stream(
         return_flow = max( (imp_unsat_storage-imp_sat_def),0.0); // no counting litter storage
         
         route_to_patch += (extrawater>return_flow? (extrawater-return_flow)*patch[0].area : 0.0);
-        //patch[0].satzZ_balance -= (extrawater>return_flow? (extrawater-return_flow) : 0.0); // mm
-        // route_to_patch should be bounded by impervious too. but this work is going to be later.
-        
+   
         //counting litter storage
         return_flow = compute_varbased_returnflow(
             patch[0].std * command_line[0].std_scale,

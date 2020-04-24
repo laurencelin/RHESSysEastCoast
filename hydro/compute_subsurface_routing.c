@@ -385,8 +385,7 @@ void compute_subsurface_routing(struct command_line_object *command_line,
             // 1. route_to_patch = time_int * compute_varbased_flow()
             // 2. route_to_patch += (extrawater>return_flow? (extrawater-return_flow)*patch[0].area : 0.0);
             // the extra water is supposed to be surface water
-            //patch[0].satzZ_balance = min(0.0, patch[0].available_soil_water - (patch[0].Qout - patch[0].Qin)); // [negative-0] only
-            patch[0].sat_deficit += patch[0].Qout - patch[0].Qin + patch[0].satzZ_balance; // hourly; subsurface only
+            patch[0].sat_deficit += patch[0].Qout - patch[0].Qin; // hourly; subsurface only
                 // got patch[0].sat_deficit = NaN problem
             if(patch[0].sat_deficit>patch[0].soil_defaults[0][0].soil_water_cap){
                 if(patch[0].sat_deficit>patch[0].soil_defaults[0][0].soil_water_cap+ZERO)
@@ -394,17 +393,12 @@ void compute_subsurface_routing(struct command_line_object *command_line,
                            patch[0].ID, k,
                            patch[0].soil_defaults[0][0].soil_water_cap,
                            patch[0].sat_deficit,
-                           patch[0].Qout, patch[0].Qin, patch[0].satzZ_balance,
+                           patch[0].Qout, patch[0].Qin, 0.0,
                            patch[0].available_soil_water,
                            patch[0].constraintWaterTableTopDepth_def
                            );
                 patch[0].sat_deficit=patch[0].soil_defaults[0][0].soil_water_cap;
             }//if
-            // how to fix this?
-            // (soil_defaults[0][0].soil_water_cap-patch[0].sat_deficit);
-            // potential solution: satzZ_balance; [negative-0];
-            // patch[0].Qout+satzZ_balance = pot. Qout
-            //
             
             // need to be careful here: patch[0].sat_deficit could be negative.
             if(patch[0].sat_deficit >= 0){
