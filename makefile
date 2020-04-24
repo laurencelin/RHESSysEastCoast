@@ -1,7 +1,6 @@
 PGM  = rhessys5.20.0.develop
 VERSION = 5.20.0.EC
 CC = gcc 
-#CFLAGS = -O -std=c99
 CFLAGS =-Wall -g -std=c99
 RHESSYS_BIN = /usr/local/bin
 OBJ = objects
