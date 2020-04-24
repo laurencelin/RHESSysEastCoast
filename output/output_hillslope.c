@@ -98,7 +98,7 @@ void	output_hillslope(int basinID,
     struct hillslope_object *hillslope;
     for (hh=0; hh < basin[0].num_hillslopes; hh++){
         hillslope = basin[0].hillslopes[hh];
-        if(hillslope[0].ID == hID || hillslope[0].ID == hID-1){
+        if(hID%2==0 && (hillslope[0].ID == hID || hillslope[0].ID == hID-1)){
          
             for (z=0; z<hillslope[0].num_zones; z++){
                     zone = hillslope[0].zones[z];
@@ -148,58 +148,59 @@ void	output_hillslope(int basinID,
         }// end of if
     }//end of for loop
     
-    
-	// after aggregate all hillslopes
-    aarea = 1.0/aarea;
-	asat_deficit_z *= aarea ;
-	asat_deficit *= aarea ;
-	aunsat_drainage *= aarea ;
-	acap_rise *= aarea ;
-	areturn_flow *= aarea ;
-    astormdrain *= aarea ;
-	aevaporation *= aarea ;
-	abase_flow *= aarea;
-	atranspiration *= aarea  ;
-	apsn *= aarea ;
-	alaitree *= aarea ;
-	alaigrass *= aarea ;
-    arz_storage *= aarea ;
-    asnowmelt *= aarea ;
-    adetention_store *= aarea ;
-    asat_area *= aarea ;
-    alawnirrigation *= aarea ;
-    arecharge *= aarea;
-    apcp /= zone_area;
-	abase_flow += hillslope[0].base_flow;
+    if(hID%2==0){
+        // after aggregate all hillslopes
+        aarea = 1.0/aarea;
+        asat_deficit_z *= aarea ;
+        asat_deficit *= aarea ;
+        aunsat_drainage *= aarea ;
+        acap_rise *= aarea ;
+        areturn_flow *= aarea ;
+        astormdrain *= aarea ;
+        aevaporation *= aarea ;
+        abase_flow *= aarea;
+        atranspiration *= aarea  ;
+        apsn *= aarea ;
+        alaitree *= aarea ;
+        alaigrass *= aarea ;
+        arz_storage *= aarea ;
+        asnowmelt *= aarea ;
+        adetention_store *= aarea ;
+        asat_area *= aarea ;
+        alawnirrigation *= aarea ;
+        arecharge *= aarea;
+        apcp /= zone_area;
+        abase_flow += hillslope[0].base_flow;
 
 
-	fprintf(outfile,"%d %d %d %d %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf\n",
-		date.day, //1
-		date.month, //2
-		date.year, //3
-		hID, //5
-        hillslope[0].area, //6
-		asat_deficit_z * 1000.0, //7 mm
-		asat_deficit * 1000.0, //8 mm
-        adetention_store * 1000.0, //9 mm
-        asat_area * 100.0, // 10 % <<----------- problem, alwaya 100
-		arz_storage * 1000.0,// 11
-        acap_rise * 1000.0, //12 mm
-		aunsat_drainage * 1000.0, //13 mm
-        abase_flow * 1000.0, // 14 mm
-        areturn_flow * 1000.0, // 15 mm
-        (areturn_flow + abase_flow + astormdrain)* 1000.0, // 16 mm
-        hillslope[0].gw.Qout *1000.0, // 17 mm
-        hillslope[0].gw.storage *1000.0, //18 mm
-        asnowmelt * 1000.0, // 19 mm
-        apsn, //20 kgC/m2/d
-		aevaporation * 1000.0, // 21 mm
-		atranspiration * 1000.0, //22 mm
-		alaitree, // 23
-		alaigrass, //24
-		alawnirrigation*1000.0, // 25 mm
-        apcp*1000.0, //26 mm
-        arecharge*1000.0 // 27 mm
-		);
+        fprintf(outfile,"%d %d %d %d %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf\n",
+            date.day, //1
+            date.month, //2
+            date.year, //3
+            hID, //5
+            hillslope[0].area, //6
+            asat_deficit_z * 1000.0, //7 mm
+            asat_deficit * 1000.0, //8 mm
+            adetention_store * 1000.0, //9 mm
+            asat_area * 100.0, // 10 % <<----------- problem, alwaya 100
+            arz_storage * 1000.0,// 11
+            acap_rise * 1000.0, //12 mm
+            aunsat_drainage * 1000.0, //13 mm
+            abase_flow * 1000.0, // 14 mm
+            areturn_flow * 1000.0, // 15 mm
+            (areturn_flow + abase_flow + astormdrain)* 1000.0, // 16 mm
+            hillslope[0].gw.Qout *1000.0, // 17 mm
+            hillslope[0].gw.storage *1000.0, //18 mm
+            asnowmelt * 1000.0, // 19 mm
+            apsn, //20 kgC/m2/d
+            aevaporation * 1000.0, // 21 mm
+            atranspiration * 1000.0, //22 mm
+            alaitree, // 23
+            alaigrass, //24
+            alawnirrigation*1000.0, // 25 mm
+            apcp*1000.0, //26 mm
+            arecharge*1000.0 // 27 mm
+            );
+    }
 	return;
 } /*end output_hillslope*/

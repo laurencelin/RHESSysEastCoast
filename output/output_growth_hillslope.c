@@ -115,7 +115,7 @@ void	output_growth_hillslope(              int  basinID,
     struct hillslope_object *hillslope;
     for (hh=0; hh < basin[0].num_hillslopes; hh++){
         hillslope = basin[0].hillslopes[hh];
-        if(hillslope[0].ID == hID || hillslope[0].ID == hID-1){
+        if(hID%2==0 && (hillslope[0].ID == hID || hillslope[0].ID == hID-1)){
             for (z=0; z< hillslope[0].num_zones; z++){
                 zone = hillslope[0].zones[z];
                 for (p=0; p< zone[0].num_patches; p++){
@@ -211,74 +211,75 @@ void	output_growth_hillslope(              int  basinID,
         }//end of if
     }//end of for loop
     
-	
-// after aggregating all hillslopes
-	agpsn /= aarea ;
-	aresp /= aarea ;
-	anitrate /= aarea;
-	asurfaceN /= aarea;
-	aleafc /= aarea ;
-	aleafn /= aarea ;
-	afrootc /= aarea;
-	afrootn /= aarea;
-	awoodc /= aarea;
-	awoodn /= aarea;
-	alitrc /= aarea;
-	asoilc /= aarea;
-	asoilhr /= aarea;	
-	alitrn /= aarea;
-	asoiln /= aarea;
-	asminn /= aarea;
-	astreamflow_NH4 /= aarea;
-	astreamflow_NO3 /= aarea;
-	astreamflow_DON /= aarea;
-	astreamflow_DOC /= aarea;
-	adenitrif /= aarea;
-	anitrif /= aarea;
-	aDON /= aarea;
-	aDOC /= aarea;
-	arootdepth /= aarea;
-	anfix /= aarea;
-	//acloss /= aarea;
-	anuptake /= aarea;
+    if(hID%2==0){
+    // after aggregating all hillslopes
+        agpsn /= aarea ;
+        aresp /= aarea ;
+        anitrate /= aarea;
+        asurfaceN /= aarea;
+        aleafc /= aarea ;
+        aleafn /= aarea ;
+        afrootc /= aarea;
+        afrootn /= aarea;
+        awoodc /= aarea;
+        awoodn /= aarea;
+        alitrc /= aarea;
+        asoilc /= aarea;
+        asoilhr /= aarea;
+        alitrn /= aarea;
+        asoiln /= aarea;
+        asminn /= aarea;
+        astreamflow_NH4 /= aarea;
+        astreamflow_NO3 /= aarea;
+        astreamflow_DON /= aarea;
+        astreamflow_DOC /= aarea;
+        adenitrif /= aarea;
+        anitrif /= aarea;
+        aDON /= aarea;
+        aDOC /= aarea;
+        arootdepth /= aarea;
+        anfix /= aarea;
+        //acloss /= aarea;
+        anuptake /= aarea;
 
 
-	fprintf(outfile,"%ld %ld %ld %d %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf\n",
-		current_date.day, //1
-		current_date.month, //2
-		current_date.year, //3
-		hID, //4
-		agpsn * 1000, //5
-		aresp * 1000, //6
-		asoilhr * 1000, //7
-		anitrate * 1000, //8
-		asminn * 1000,   //9
-		asurfaceN * 1000,//10
-		(aleafc + awoodc + afrootc), //11
-		(aleafn + awoodn + afrootn), //12
-		alitrc, //13
-		alitrn, //14
-		asoilc, //15
-		asoiln, //16
-		hgwNO3, //17
-		hgwNH4, //18
-		hgwDON, //19
-		hgwDOC, //20
-		astreamflow_NO3*1000.0, //21
-		astreamflow_NH4*1000.0, //22
-		astreamflow_DON*1000.0, //23
-		astreamflow_DOC*1000.0, //24
-		hgwNO3out*1000.0, //25
-		hgwNH4out*1000.0, //26
-		hgwDONout*1000.0, //27
-		hgwDOCout*1000.0, //28
-		adenitrif*1000.0, //29
-		anitrif*1000.0, //30
-		aDOC, //31
-		aDON, //32
-		arootdepth*1000.0, //33
-		anfix * 1000.0, //34
-		anuptake * 1000.0 //35
-		);
+        fprintf(outfile,"%ld %ld %ld %d %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf\n",
+            current_date.day, //1
+            current_date.month, //2
+            current_date.year, //3
+            hID, //4
+            agpsn * 1000, //5
+            aresp * 1000, //6
+            asoilhr * 1000, //7
+            anitrate * 1000, //8
+            asminn * 1000,   //9
+            asurfaceN * 1000,//10
+            (aleafc + awoodc + afrootc), //11
+            (aleafn + awoodn + afrootn), //12
+            alitrc, //13
+            alitrn, //14
+            asoilc, //15
+            asoiln, //16
+            hgwNO3, //17
+            hgwNH4, //18
+            hgwDON, //19
+            hgwDOC, //20
+            astreamflow_NO3*1000.0, //21
+            astreamflow_NH4*1000.0, //22
+            astreamflow_DON*1000.0, //23
+            astreamflow_DOC*1000.0, //24
+            hgwNO3out*1000.0, //25
+            hgwNH4out*1000.0, //26
+            hgwDONout*1000.0, //27
+            hgwDOCout*1000.0, //28
+            adenitrif*1000.0, //29
+            anitrif*1000.0, //30
+            aDOC, //31
+            aDON, //32
+            arootdepth*1000.0, //33
+            anfix * 1000.0, //34
+            anuptake * 1000.0 //35
+            );
+    }
 	return;
 } /*end output_daily_growth_hillslope*/

@@ -61,7 +61,7 @@ void	output_yearly_hillslope(	int basinID,
     
     for (hh=0; hh < basin[0].num_hillslopes; hh++){
         hillslope = basin[0].hillslopes[hh];
-        if(hillslope[0].ID == hID || hillslope[0].ID == hID-1){
+        if(hID%2==0 && (hillslope[0].ID == hID || hillslope[0].ID == hID-1)){
             for (z=0; z<hillslope[0].num_zones; z++){
                 zone = hillslope[0].zones[z];
                 for (p=0; p< zone[0].num_patches; p++){
@@ -89,50 +89,50 @@ void	output_yearly_hillslope(	int basinID,
             }//end of zone loop
         }// end of if
     }//end of for
-    
-    aarea = 1.0/aarea;
-    subQnet *= aarea;
-    surfQnet *= aarea;
-    subQvnet *= aarea;
-    precip *= aarea;
-    recharge *= aarea;
-    PET *= aarea;
-    ET *= aarea;
-    sat_deficit_z *= aarea;
-    peakLAI *= aarea;
-    meanLAI *= aarea;
-    psn *= aarea;
-    denitrif *= aarea;
-    mineralization *= aarea;
-    uptake *= aarea;
-    subNO3net *= aarea;
-    subNO3vnet *= aarea;
-    subDOCnet *= aarea;
-    
-    
-    fprintf(outfile,"%d %d %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf\n",
-    
-    current_date.year,
-    hID,
-    subQnet*1000.0,
-    surfQnet*1000.0,
-    subQvnet*1000.0,
-    precip*1000.0,
-    recharge*1000.0,
-    PET*1000.0,
-    ET*1000.0,
-    sat_deficit_z*1000.0,
-    peakLAI,
-    meanLAI,
-    psn*1000.0,
-    denitrif*1000.0,
-    mineralization*1000.0,
-    uptake*1000.0,
-    subNO3net*1000.0,
-    subNO3vnet*1000.0,
-    subDOCnet*1000.0
-    );
-    
+    if(hID%2==0){
+        aarea = 1.0/aarea;
+        subQnet *= aarea;
+        surfQnet *= aarea;
+        subQvnet *= aarea;
+        precip *= aarea;
+        recharge *= aarea;
+        PET *= aarea;
+        ET *= aarea;
+        sat_deficit_z *= aarea;
+        peakLAI *= aarea;
+        meanLAI *= aarea;
+        psn *= aarea;
+        denitrif *= aarea;
+        mineralization *= aarea;
+        uptake *= aarea;
+        subNO3net *= aarea;
+        subNO3vnet *= aarea;
+        subDOCnet *= aarea;
+        
+        
+        fprintf(outfile,"%d %d %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf\n",
+        
+        current_date.year,
+        hID,
+        subQnet*1000.0,
+        surfQnet*1000.0,
+        subQvnet*1000.0,
+        precip*1000.0,
+        recharge*1000.0,
+        PET*1000.0,
+        ET*1000.0,
+        sat_deficit_z*1000.0,
+        peakLAI,
+        meanLAI,
+        psn*1000.0,
+        denitrif*1000.0,
+        mineralization*1000.0,
+        uptake*1000.0,
+        subNO3net*1000.0,
+        subNO3vnet*1000.0,
+        subDOCnet*1000.0
+        );
+    }
     
 	return;
 } /*end output_yearly_hillslope*/
