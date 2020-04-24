@@ -202,7 +202,7 @@ struct patch_object *construct_patch(
     patch[0].rz_storage = getDoubleWorldfile(&paramCnt,&paramPtr,"rz_storage","%lf",0.0,1); //15
     patch[0].unsat_storage = getDoubleWorldfile(&paramCnt,&paramPtr,"unsat_storage","%lf",0.0,1); //16
     patch[0].sat_deficit = getDoubleWorldfile(&paramCnt,&paramPtr,"sat_deficit","%lf",0.0,1); //17
-    patch[0].satzZ_balance = getDoubleWorldfile(&paramCnt,&paramPtr,"satzZ_balance","%lf",0.0,1); //61
+    
     
     patch[0].snowpack.water_equivalent_depth = getDoubleWorldfile(&paramCnt,&paramPtr,"snowpack.water_equivalent_depth","%lf",0.28,1); //18
     patch[0].snowpack.water_depth = getDoubleWorldfile(&paramCnt,&paramPtr,"snowpack.water_depth","%lf",0.0,1); //19
@@ -314,6 +314,7 @@ struct patch_object *construct_patch(
     patch[0].fertilizerDaysCount = getIntWorldfile(&paramCnt,&paramPtr,"fertilizerDaysCount","%d",0,1);//60
     
     double legacySoilCNScaler = getDoubleWorldfile(&paramCnt,&paramPtr,"legacySoilCNScaler","%lf",1.0,1); //53
+    
 //	fscanf(world_file,"%lf",&(patch[0].soil_cs.soil1c));
 //	read_record(world_file, record);
 //	fscanf(world_file,"%lf",&(patch[0].soil_ns.sminn)); if(patch[0].soil_ns.sminn<=0) patch[0].soil_ns.sminn=0.001;
@@ -771,7 +772,6 @@ struct patch_object *construct_patch(
     patch[0].sat_def_pct_index = (int)(patch[0].sat_def_pct*1000);
     patch[0].sat_def_pct_indexM = 1000*(patch[0].sat_def_pct - patch[0].sat_def_pct_index*0.001);
     
-//    patch[0].satzZ_balance = 0.0;
     patch[0].sat_deficit_z = patch[0].soil_defaults[0][0].sat_def_z[patch[0].sat_def_pct_index];
     patch[0].preday_sat_deficit_z = patch[0].sat_deficit_z;
     patch[0].unsat_zone_volume = patch[0].sat_deficit + patch[0].unsat_storage; // read from worldfile
@@ -960,6 +960,7 @@ struct patch_object *construct_patch(
     //patch[0].acc_month = (struct accumulate_patch_object *) alloc( 1 * sizeof( struct accumulate_patch_object ),"accumulate_patch_object", "construct_patch" );
     patch[0].acc_month.subQnet = 0.0;
     patch[0].acc_month.surfQnet = 0.0;
+    patch[0].acc_month.subQvnet = 0.0;
     patch[0].acc_month.precip = 0.0;
     patch[0].acc_month.recharge = 0.0;
     patch[0].acc_month.PET = 0.0;
@@ -972,6 +973,7 @@ struct patch_object *construct_patch(
     patch[0].acc_month.mineralization = 0.0;
     patch[0].acc_month.uptake = 0.0;
     patch[0].acc_month.subNO3net = 0.0;
+    patch[0].acc_month.subNO3vnet = 0.0;
     patch[0].acc_month.subDOCnet = 0.0;
     
     
@@ -979,6 +981,7 @@ struct patch_object *construct_patch(
     //patch[0].acc_year = (struct accumulate_patch_object *) alloc( 1 * sizeof( struct accumulate_patch_object ),"accumulate_patch_object", "construct_patch" );
     patch[0].acc_year.subQnet = 0.0;
     patch[0].acc_year.surfQnet = 0.0;
+    patch[0].acc_year.subQvnet = 0.0;
     patch[0].acc_year.precip = 0.0;
     patch[0].acc_year.recharge = 0.0;
     patch[0].acc_year.PET = 0.0;
@@ -991,6 +994,7 @@ struct patch_object *construct_patch(
     patch[0].acc_year.mineralization = 0.0;
     patch[0].acc_year.uptake = 0.0;
     patch[0].acc_year.subNO3net = 0.0;
+    patch[0].acc_year.subNO3vnet = 0.0;
     patch[0].acc_year.subDOCnet = 0.0;
 
 	return(patch);
