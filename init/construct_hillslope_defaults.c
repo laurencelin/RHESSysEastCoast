@@ -86,18 +86,28 @@ struct hillslope_default *construct_hillslope_defaults(
 		/*--------------------------------------------------------------*/
 		/* 	read in optional paramters				*/
 		/*--------------------------------------------------------------*/
-		default_object_list[i].gw_loss_coeff = 		getDoubleParam(&paramCnt, &paramPtr, "gw_loss_coeff", "%lf", 1.0, 1);
+		default_object_list[i].gw_loss_coeff = 	getDoubleParam(&paramCnt, &paramPtr, "gw_loss_coeff", "%lf", 1.0, 1) * 0.02652238; // convert to hourly
+        default_object_list[i].gw_loss_coeff_decay = getDoubleParam(&paramCnt, &paramPtr, "gw_loss_coeff_decay", "%lf", 0.0, 1);
+        default_object_list[i].gw_soluteConc_decay = getDoubleParam(&paramCnt, &paramPtr, "gw_soluteConc_decay", "%lf", 0.0, 1);
+        
 		default_object_list[i].n_routing_timesteps = 	getIntParam(&paramCnt, &paramPtr, "n_routing_timesteps", "%d", 24, 1);
+        if (default_object_list[i].n_routing_timesteps < 1) default_object_list[i].n_routing_timesteps = 1;
+        
 		default_object_list[i].gw_loss_fast_threshold = 	getDoubleParam(&paramCnt, &paramPtr, "gw_loss_fast_threshold", "%lf", -1.0, 1);
-		default_object_list[i].gw_loss_fast_coeff = 	getDoubleParam(&paramCnt, &paramPtr, "gw_loss_fast_coeff", "%lf", 3.0*default_object_list[i].gw_loss_coeff, 1);
+		default_object_list[i].gw_loss_fast_coeff = getDoubleParam(&paramCnt, &paramPtr, "gw_loss_fast_coeff", "%lf", 3.0, 1) * default_object_list[i].gw_loss_coeff;
 
-		if (default_object_list[i].n_routing_timesteps < 1)
-			default_object_list[i].n_routing_timesteps = 1;
 		
+		
+        /************************** gw scalars ***********************/
 		if (command_line[0].gw_flag > 0) {
 			default_object_list[i].gw_loss_coeff *= command_line[0].gw_loss_coeff_mult;
 			default_object_list[i].gw_loss_fast_coeff *= command_line[0].gw_loss_coeff_mult;
-			}
+        }
+        default_object_list[i].gw_soluteLOSSCoef = (default_object_list[i].gw_loss_coeff_decay + default_object_list[i].gw_soluteConc_decay);
+        if(default_object_list[i].gw_soluteLOSSCoef>0) default_object_list[i].gw_soluteLOSSCoef = default_object_list[i].gw_loss_coeff/(default_object_list[i].gw_loss_coeff_decay + default_object_list[i].gw_soluteConc_decay);
+        
+         
+        
 
                 memset(strbuf, '\0', strbufLen);
                 strcpy(strbuf, default_files[i]);
