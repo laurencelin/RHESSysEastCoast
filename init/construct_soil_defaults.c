@@ -191,7 +191,11 @@ struct soil_default *construct_soil_defaults(
 		default_object_list[i].min_heat_capacity = 	getDoubleParam(&paramCnt, &paramPtr, "min_heat_capacity", "%lf", 0.0, 1);
 		default_object_list[i].albedo = 		getDoubleParam(&paramCnt, &paramPtr, "albedo", "%lf", 0.28, 1);
 		default_object_list[i].NO3_adsorption_rate =	getDoubleParam(&paramCnt, &paramPtr, "NO3_adsorption_rate", "%lf", 0.0, 1); 
-		default_object_list[i].NO3decayRate = 		getDoubleParam(&paramCnt, &paramPtr, "N_decay", "%lf", 0.12, 1);
+		
+        default_object_list[i].NO3decayRate = 		getDoubleParam(&paramCnt, &paramPtr, "N_decay", "%lf", 0.12, 1); //<<----------------
+        default_object_list[i].NH4decayRate = default_object_list[i].NO3decayRate;
+        default_object_list[i].DOMdecayRate =     getDoubleParam(&paramCnt, &paramPtr, "DOM_decay_rate", "%lf", 0.05, 1);//<<-------------------
+        
 		/*
 		if (command_line[0].tmp_value > ZERO)
 			default_object_list[i].N_decay_rate *= command_line[0].tmp_value;
@@ -214,9 +218,11 @@ struct soil_default *construct_soil_defaults(
             }
 		} /*end if*/
 		if (command_line[0].gw_flag > 0) {
-			default_object_list[i].sat_to_gw_coeff = getDoubleParam(&paramCnt, &paramPtr, "sat_to_gw_coeff", "%lf", 1.0, 1);
+			default_object_list[i].sat_to_gw_coeff = getDoubleParam(&paramCnt, &paramPtr, "sat_to_gw_coeff", "%lf", 1.0, 1) / 24.0; // conver to hourly
 			default_object_list[i].sat_to_gw_coeff *= command_line[0].sat_to_gw_coeff_mult;
-			}
+            default_object_list[i].surf_to_gw_coeff = getDoubleParam(&paramCnt, &paramPtr, "surf_to_gw_coeff", "%lf", 1.0, 1);
+            default_object_list[i].surf_to_gw_coeff *= command_line[0].surf_to_gw_coeff_mult;
+        }
 
 		/*-----------------------------------------------------------------------------
 		 *  Fill and Spill parameters
@@ -298,7 +304,7 @@ struct soil_default *construct_soil_defaults(
         
         
         if( default_object_list[i].porosity_0>=1.0 ){
-            printf("soil construct (%d) porosity_0 problem (reset to 0.8).\n");
+            //printf("soil construct (%d) porosity_0 problem (reset to 0.8).\n");
             default_object_list[i].porosity_0 = 0.8;
         }//if
         
@@ -334,7 +340,6 @@ struct soil_default *construct_soil_defaults(
 		default_object_list[i].gsurf_slope = 		getDoubleParam(&paramCnt, &paramPtr, "gsurf_slope", "%lf", 0.01, 1);
 		default_object_list[i].gsurf_intercept = 	getDoubleParam(&paramCnt, &paramPtr, "gsurf_intercept", "%lf", 0.001, 1);
 		default_object_list[i].p4 = 			getDoubleParam(&paramCnt, &paramPtr, "p4", "%lf", -1.5, 1);
-		default_object_list[i].DOMdecayRate = 	getDoubleParam(&paramCnt, &paramPtr, "DOM_decay_rate", "%lf", 0.05, 1);
 		default_object_list[i].NH4_adsorption_rate =    getDoubleParam(&paramCnt, &paramPtr, "NH4_adsorption_rate", "%lf", 0.000005, 1);
 		default_object_list[i].DON_production_rate = 	getDoubleParam(&paramCnt, &paramPtr, "DON_production_rate", "%lf", 0.03, 1);
 		default_object_list[i].DOC_adsorption_rate = 	getDoubleParam(&paramCnt, &paramPtr, "DOC_adsorption_rate", "%lf", 0.000023, 1);
@@ -436,19 +441,19 @@ struct soil_default *construct_soil_defaults(
         default_object_list[i].exfiltration_wilting_point = exp(-PSI*log(2.5/PAE));
         default_object_list[i].exfiltration_S_pow = (1/(2*PSI))+2;
         // need to give a second thought on this (below).
-        default_object_list[i].NO3decayRate = -default_object_list[i].active_zone_z/log(1.0-0.99); //m
+        //default_object_list[i].NO3decayRate = -default_object_list[i].maxrootdepth/log(1.0-0.95); //m
         default_object_list[i].NO3decayRate_1 = -1.0/default_object_list[i].NO3decayRate;
-        default_object_list[i].NH4decayRate = -default_object_list[i].active_zone_z/log(1.0-0.99); //m
+        //default_object_list[i].NH4decayRate = -default_object_list[i].maxrootdepth/log(1.0-0.95); //m
         default_object_list[i].NH4decayRate_1 = -1.0/default_object_list[i].NH4decayRate;
-        default_object_list[i].DOMdecayRate = -default_object_list[i].active_zone_z/log(1.0-0.99); //m
+        //default_object_list[i].DOMdecayRate = -default_object_list[i].maxrootdepth/log(1.0-0.95); //m
         default_object_list[i].DOMdecayRate_1 = -1.0/default_object_list[i].DOMdecayRate;
+        
         default_object_list[i].soil_water_cap = p0* p_decay*(1.0-exp(p_decay_1*soildepth));
+        default_object_list[i].maxrootdepth_index = (int)(round(default_object_list[i].maxrootdepth*1000));
         default_object_list[i].active_zone_index = (int)(round(default_object_list[i].active_zone_z*1000));
         default_object_list[i].active_zone_sat_0z = p0* p_decay*(1.0-exp(p_decay_1*default_object_list[i].active_zone_z));
         default_object_list[i].active_zone_sat_0z_1 = 1.0/default_object_list[i].active_zone_sat_0z;
-//        default_object_list[i].active_zone_soilNO3 = 1.0 / (1.0 - exp(-default_object_list[i].NO3decayRate_1 * default_object_list[i].active_zone_z));
-//        default_object_list[i].active_zone_soilNH4 = 1.0 / (1.0 - exp(-default_object_list[i].NH4decayRate_1 * default_object_list[i].active_zone_z));
-//        default_object_list[i].active_zone_soilDOM = 1.0 / (1.0 - exp(-default_object_list[i].DOMdecayRate_1 * default_object_list[i].active_zone_z));
+        default_object_list[i].active_zone_omProp = (1.0-exp(-default_object_list[i].active_zone_z/default_object_list[i].DOMdecayRate))/(1.0-exp(-default_object_list[i].maxrootdepth/default_object_list[i].DOMdecayRate));
         
         double check, check2;
         for( ii=0; ii<1001; ii++){
@@ -824,18 +829,50 @@ struct soil_default *construct_soil_defaults(
         default_object_list[i].rtz2NO3prop = (double*)calloc(rt_len, sizeof(double));
         default_object_list[i].rtz2NH4prop = (double*)calloc(rt_len, sizeof(double));
         default_object_list[i].rtz2DOMprop = (double*)calloc(rt_len, sizeof(double));
-        double total_NO3 = 1.0/(default_object_list[i].NO3decayRate*(1.0-exp(default_object_list[i].NO3decayRate_1*soildepth)));
-        double total_NH4 = 1.0/(default_object_list[i].NH4decayRate*(1.0-exp(default_object_list[i].NH4decayRate_1*soildepth)));
-        double total_DOM = 1.0/(default_object_list[i].DOMdecayRate*(1.0-exp(default_object_list[i].DOMdecayRate_1*soildepth)));
+        //double NO3_0 = 1.0/(default_object_list[i].NO3decayRate*(1.0-exp(default_object_list[i].NO3decayRate_1*soildepth)));
+        //double NH4_0 = 1.0/(default_object_list[i].NH4decayRate*(1.0-exp(default_object_list[i].NH4decayRate_1*soildepth)));
+        //double DOM_0 = 1.0/(default_object_list[i].DOMdecayRate*(1.0-exp(default_object_list[i].DOMdecayRate_1*soildepth)));
+        
+        // this part is not generalized!! as assume that default_object_list[i].DOMdecayRate is soilc decayRate
+        double no3_decay_1 = -1.0/default_object_list[i].NO3decayRate + 1.0/default_object_list[i].mz_v;
+        if(fabs(no3_decay_1)>0){}else{ no3_decay_1 = -0.00025; }
+        double nh4_decay_1 = -1.0/default_object_list[i].NH4decayRate + 1.0/default_object_list[i].mz_v;
+        if(fabs(nh4_decay_1)>0){}else{ nh4_decay_1 = -0.00025; }
+        double dom_decay_1 = -1.0/default_object_list[i].DOMdecayRate + 1.0/default_object_list[i].mz_v;
+        if(fabs(dom_decay_1)>0){}else{ dom_decay_1 = -0.00025; }
+        
+        double NO3_0 = 1.0/(1.0-exp(no3_decay_1*default_object_list[i].maxrootdepth));//rootdepth
+        double NH4_0 = 1.0/(1.0-exp(nh4_decay_1*default_object_list[i].maxrootdepth));
+        double DOM_0 = 1.0/(1.0-exp(dom_decay_1*default_object_list[i].maxrootdepth));
+        double rtz_soil_vdeay = 1.0/default_object_list[i].mz_v;
+        double rtz_soil_coef = exp(rtz_soil_vdeay*default_object_list[i].maxrootdepth);
+        double rtz_soil_om;// = 0.05; // assumed 5% un-measured //default_object_list[i].soilc is top to horizon c
+        rtz_soil_om = 0.1*(exp(-default_object_list[i].active_zone_z/default_object_list[i].DOMdecayRate) -
+                           exp(-default_object_list[i].maxrootdepth/default_object_list[i].DOMdecayRate)) / (1.0 - exp(-default_object_list[i].maxrootdepth/default_object_list[i].DOMdecayRate));
+        
+        double solute_0_rtz_soil = rtz_soil_om/(rtz_soil_coef-exp(rtz_soil_vdeay*soildepth));// negative when rtz_soil_vdeay>0
+        
         for( ii=0; ii<rt_len; ii++){
             zzz = ii*0.001;
             default_object_list[i].rtz2sat_def_0z[ii] = p0*p_decay*(1.0-exp(p_decay_1*zzz));
             default_object_list[i].rtz2sat_def_pct_index[ii] = (int)(default_object_list[i].rtz2sat_def_0z[ii]*default_object_list[i].max_sat_def_1*1000);
             //default_object_list[i].rtz2sat_def_pct_indexM[ii] = 1000*(default_object_list[i].rtz2sat_def_0z[ii] - default_object_list[i].rtz2sat_def_pct_index[ii]*0.001);
             
-            default_object_list[i].rtz2NO3prop[ii] = default_object_list[i].NO3decayRate*(1.0-exp(default_object_list[i].NO3decayRate_1*zzz)) * total_NO3;
-            default_object_list[i].rtz2NH4prop[ii] = default_object_list[i].NH4decayRate*(1.0-exp(default_object_list[i].NH4decayRate_1*zzz)) * total_NH4;
-            default_object_list[i].rtz2DOMprop[ii] = default_object_list[i].DOMdecayRate*(1.0-exp(default_object_list[i].DOMdecayRate_1*zzz)) * total_DOM;
+            //default_object_list[i].rtz2NO3prop[ii] = default_object_list[i].NO3decayRate*(1.0-exp(default_object_list[i].NO3decayRate_1*zzz)) * NO3_0;
+            //default_object_list[i].rtz2NH4prop[ii] = default_object_list[i].NH4decayRate*(1.0-exp(default_object_list[i].NH4decayRate_1*zzz)) * NH4_0;
+            //default_object_list[i].rtz2DOMprop[ii] = default_object_list[i].DOMdecayRate*(1.0-exp(default_object_list[i].DOMdecayRate_1*zzz)) * DOM_0;
+            
+            if( zzz > default_object_list[i].maxrootdepth){
+                default_object_list[i].rtz2NO3prop[ii] = (1-rtz_soil_om)+(rtz_soil_coef-exp(rtz_soil_vdeay*zzz)) * solute_0_rtz_soil;
+                default_object_list[i].rtz2NH4prop[ii] = (1-rtz_soil_om)+(rtz_soil_coef-exp(rtz_soil_vdeay*zzz)) * solute_0_rtz_soil;
+                default_object_list[i].rtz2DOMprop[ii] = (1-rtz_soil_om)+(rtz_soil_coef-exp(rtz_soil_vdeay*zzz)) * solute_0_rtz_soil;
+            }else{
+                default_object_list[i].rtz2NO3prop[ii] = (1.0-exp(no3_decay_1*zzz)) * NO3_0 * (1-rtz_soil_om);
+                default_object_list[i].rtz2NH4prop[ii] = (1.0-exp(nh4_decay_1*zzz)) * NH4_0 * (1-rtz_soil_om);
+                default_object_list[i].rtz2DOMprop[ii] = (1.0-exp(dom_decay_1*zzz)) * DOM_0 * (1-rtz_soil_om);
+            }
+            
+            
         }// for loop ii
         default_object_list[i].rtz2sat_def_0z[0] = 0.0;
         

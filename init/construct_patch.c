@@ -249,7 +249,7 @@ struct patch_object *construct_patch(
 	patch[0].streamflow_NO3 = 0.0;
 	patch[0].snowpack.height = patch[0].snowpack.water_equivalent_depth *10.0;
 //	patch[0].detention_store = 0.0;
-	patch[0].tmp = 0.0;  // <<-------- really?
+//	patch[0].tmp = 0.0;  // <<-------- really?
 	
 	if (command_line[0].firespread_flag == 1) {
 		patch[0].fire.et = 0.0;
@@ -313,7 +313,7 @@ struct patch_object *construct_patch(
     patch[0].stored_fertilizer_NH4 = getDoubleWorldfile(&paramCnt,&paramPtr,"stored_fertilizer_NH4","%lf",0.0,1); //53
     patch[0].fertilizerDaysCount = getIntWorldfile(&paramCnt,&paramPtr,"fertilizerDaysCount","%d",0,1);//60
     
-    double legacySoilCNScaler = getDoubleWorldfile(&paramCnt,&paramPtr,"legacySoilCNScaler","%lf",1.0,1); //53
+    patch[0].sat_def_head = getDoubleWorldfile(&paramCnt,&paramPtr,"sat_def_head","%lf",0.0,1); //53
     
 //	fscanf(world_file,"%lf",&(patch[0].soil_cs.soil1c));
 //	read_record(world_file, record);
@@ -729,8 +729,8 @@ struct patch_object *construct_patch(
         
 	} /*end for*/
     //patch[0].non_veg_cover_fraction = max(1.0 - cover_fractionTotal,0.0);
-    patch[0].basementSideAdjustWTZ = 0.0;//for biochemical mode accounting for basement; not a long term solution
-    patch[0].basementSideAdjustH2O = 0.0;//for biochemical mode accounting for basement; not a long term solution
+    //patch[0].basementSideAdjustWTZ = 0.0;//for biochemical mode accounting for basement; not a long term solution
+    //patch[0].basementSideAdjustH2O = 0.0;//for biochemical mode accounting for basement; not a long term solution
     patch[0].daily_fire_litter_turnover /= cover_fractionTotal;
     patch[0].litter.gl_c /= cover_fractionTotal;
     patch[0].litter.gsurf_slope /= cover_fractionTotal;
@@ -867,25 +867,25 @@ struct patch_object *construct_patch(
         patch[0].soil_cs.soil4c = patch[0].soil_defaults[0][0].soilc * 0.59;//0.918; // assume 90% of sampled soilc is soil4c
 
         if(command_line[0].soilCNadaptation_flag==0 ){
-            patch[0].soil_ns.soil1n = patch[0].soil_cs.soil1c / (SOIL1_CN*legacySoilCNScaler);
-            patch[0].soil_ns.soil2n = patch[0].soil_cs.soil2c / (SOIL2_CN*legacySoilCNScaler);
-            patch[0].soil_ns.soil3n = patch[0].soil_cs.soil3c / (SOIL3_CN*legacySoilCNScaler);
-            patch[0].soil_ns.soil4n = patch[0].soil_cs.soil4c / (SOIL4_CN*legacySoilCNScaler);
+            patch[0].soil_ns.soil1n = patch[0].soil_cs.soil1c / (SOIL1_CN);
+            patch[0].soil_ns.soil2n = patch[0].soil_cs.soil2c / (SOIL2_CN);
+            patch[0].soil_ns.soil3n = patch[0].soil_cs.soil3c / (SOIL3_CN);
+            patch[0].soil_ns.soil4n = patch[0].soil_cs.soil4c / (SOIL4_CN);
         }else{
-            patch[0].soil_ns.soil1n = patch[0].soil_cs.soil1c / (patch[0].patch_SOIL1_CN*legacySoilCNScaler);
-            patch[0].soil_ns.soil2n = patch[0].soil_cs.soil2c / (patch[0].patch_SOIL2_CN*legacySoilCNScaler);
-            patch[0].soil_ns.soil3n = patch[0].soil_cs.soil3c / (patch[0].patch_SOIL3_CN*legacySoilCNScaler);
-            patch[0].soil_ns.soil4n = patch[0].soil_cs.soil4c / (patch[0].patch_SOIL4_CN*legacySoilCNScaler);
+            patch[0].soil_ns.soil1n = patch[0].soil_cs.soil1c / (patch[0].patch_SOIL1_CN);
+            patch[0].soil_ns.soil2n = patch[0].soil_cs.soil2c / (patch[0].patch_SOIL2_CN);
+            patch[0].soil_ns.soil3n = patch[0].soil_cs.soil3c / (patch[0].patch_SOIL3_CN);
+            patch[0].soil_ns.soil4n = patch[0].soil_cs.soil4c / (patch[0].patch_SOIL4_CN);
         }//if
     }else{
         patch[0].soil_cs.soil1c = 0.1;
         patch[0].soil_cs.soil2c = 1.0;
         patch[0].soil_cs.soil3c = 2.0;
         patch[0].soil_cs.soil4c = 6.0;
-        patch[0].soil_ns.soil1n = 0.1/(SOIL1_CN*legacySoilCNScaler);
-        patch[0].soil_ns.soil2n = 1.0/(SOIL2_CN*legacySoilCNScaler);
-        patch[0].soil_ns.soil3n = 2.0/(SOIL3_CN*legacySoilCNScaler);
-        patch[0].soil_ns.soil4n = 6.0/(SOIL4_CN*legacySoilCNScaler);
+        patch[0].soil_ns.soil1n = 0.1/(SOIL1_CN);
+        patch[0].soil_ns.soil2n = 1.0/(SOIL2_CN);
+        patch[0].soil_ns.soil3n = 2.0/(SOIL3_CN);
+        patch[0].soil_ns.soil4n = 6.0/(SOIL4_CN);
     }//if
     
     
