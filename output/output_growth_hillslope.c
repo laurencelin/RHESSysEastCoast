@@ -115,6 +115,7 @@ void	output_growth_hillslope(              int  basinID,
     struct hillslope_object *hillslope;
     for (hh=0; hh < basin[0].num_hillslopes; hh++){
         hillslope = basin[0].hillslopes[hh];
+        
         if(hID%2==0 && (hillslope[0].ID == hID || hillslope[0].ID == hID-1)){
             for (z=0; z< hillslope[0].num_zones; z++){
                 zone = hillslope[0].zones[z];
@@ -135,10 +136,10 @@ void	output_growth_hillslope(              int  basinID,
                     asminn += (patch[0].soil_ns.sminn + patch[0].sat_NH4) * patch[0].area;
                     anitrate += (patch[0].soil_ns.nitrate + patch[0].sat_NO3) * patch[0].area;
                     asurfaceN += (patch[0].surface_NO3+patch[0].surface_NH4) * patch[0].area;
-                    astreamflow_NH4 += patch[0].streamflow_NH4 * patch[0].area;
-                    astreamflow_NO3 += patch[0].streamflow_NO3 * patch[0].area;
-                    astreamflow_DON += patch[0].streamflow_DON * patch[0].area;
-                    astreamflow_DOC += patch[0].streamflow_DOC * patch[0].area;
+                    astreamflow_NH4 += (patch[0].streamflow_NH4 + hillslope[0].streamflow_NH4)* patch[0].area;
+                    astreamflow_NO3 += (patch[0].streamflow_NO3 + hillslope[0].streamflow_NO3)* patch[0].area;
+                    astreamflow_DON += (patch[0].streamflow_DON + hillslope[0].streamflow_DON)* patch[0].area;
+                    astreamflow_DOC += (patch[0].streamflow_DOC + hillslope[0].streamflow_DOC)* patch[0].area;
                     adenitrif += (patch[0].ndf.denitrif) * patch[0].area;
                     anitrif += (patch[0].ndf.sminn_to_nitrate) * patch[0].area;
                     aDON += (patch[0].soil_ns.DON) * patch[0].area;
@@ -154,7 +155,15 @@ void	output_growth_hillslope(              int  basinID,
                         patch[0].cdf.soil2c_hr +
                         patch[0].cdf.soil3c_hr +
                         patch[0].cdf.soil4c_hr) * patch[0].area;
-
+                    hgwNO3out += patch[0].area * hillslope[0].gw.NO3out;
+                    hgwNH4out += patch[0].area * hillslope[0].gw.NH4out;
+                    hgwDONout += patch[0].area * hillslope[0].gw.DONout;
+                    hgwDOCout += patch[0].area * hillslope[0].gw.DOCout;
+                    hgwNO3 += patch[0].area  * hillslope[0].gw.NO3;
+                    hgwNH4 += patch[0].area * hillslope[0].gw.NH4;
+                    hgwDON += patch[0].area * hillslope[0].gw.DOC;
+                    hgwDOC += patch[0].area * hillslope[0].gw.DON;
+                    
                     for ( layer=0 ; layer<patch[0].num_layers; layer++ ){
                         for ( c=0 ; c<patch[0].layers[layer].count; c++ ){
                             strata = patch[0].canopy_strata[(patch[0].layers[layer].strata[c])];
@@ -209,6 +218,8 @@ void	output_growth_hillslope(              int  basinID,
                 }//end of for loop p
             }//end of for loop z
         }//end of if
+        
+        
     }//end of for loop
     
     if(hID%2==0){
@@ -241,9 +252,17 @@ void	output_growth_hillslope(              int  basinID,
         anfix /= aarea;
         //acloss /= aarea;
         anuptake /= aarea;
+        
+       hgwNO3out /= aarea;
+       hgwNH4out /= aarea;
+       hgwDONout /= aarea;
+       hgwDOCout /= aarea;
+       hgwNO3 /= aarea;
+       hgwNH4 /= aarea;
+       hgwDON /= aarea;
+       hgwDOC /= aarea;
 
-
-        fprintf(outfile,"%ld %ld %ld %d %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf\n",
+        fprintf(outfile,"%ld %ld %ld %ld %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf\n",
             current_date.day, //1
             current_date.month, //2
             current_date.year, //3
@@ -254,16 +273,16 @@ void	output_growth_hillslope(              int  basinID,
             anitrate * 1000, //8
             asminn * 1000,   //9
             asurfaceN * 1000,//10
-            (aleafc + awoodc + afrootc), //11
-            (aleafn + awoodn + afrootn), //12
-            alitrc, //13
-            alitrn, //14
-            asoilc, //15
-            asoiln, //16
-            hgwNO3, //17
-            hgwNH4, //18
-            hgwDON, //19
-            hgwDOC, //20
+            (aleafc + awoodc + afrootc)*1000.0, //11
+            (aleafn + awoodn + afrootn)*1000.0, //12
+            alitrc*1000.0, //13
+            alitrn*1000.0, //14
+            asoilc*1000.0, //15
+            asoiln*1000.0, //16
+            hgwNO3*1000.0, //17
+            hgwNH4*1000.0, //18
+            hgwDON*1000.0, //19
+            hgwDOC*1000.0, //20
             astreamflow_NO3*1000.0, //21
             astreamflow_NH4*1000.0, //22
             astreamflow_DON*1000.0, //23

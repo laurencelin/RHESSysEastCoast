@@ -186,7 +186,7 @@ void add_growth_headers(struct world_output_file_object *world_output_files,
 		"day", //1
 		"month", //2
 		"year", //3
-		"basinID", //4
+		"hillID", //4
 		"gpsn", //5
 		"plant_resp", //6
 		"soil_resp", //7

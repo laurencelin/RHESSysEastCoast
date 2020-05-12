@@ -217,6 +217,8 @@ void	execute_yearly_output_event(
                     world[0].basins[b]->hillslopes[h]->zones[z]->patches[p]->acc_year.subNO3net = 0.0;
                     world[0].basins[b]->hillslopes[h]->zones[z]->patches[p]->acc_year.subNO3vnet = 0.0;
                     world[0].basins[b]->hillslopes[h]->zones[z]->patches[p]->acc_year.subDOCnet = 0.0;
+                    world[0].basins[b]->hillslopes[h]->zones[z]->patches[p]->acc_year.no3drain2gw = 0.0;
+                    world[0].basins[b]->hillslopes[h]->zones[z]->patches[p]->acc_year.no3diffuse2gw = 0.0;
                             } /* end patch (p) for loop */
                     } /* end zone (z) for  loop*/
                 } /* end hillslope (h) for loop */

@@ -68,7 +68,8 @@ void	output_hillslope(int basinID,
     double apcp;
 	struct	patch_object  *patch;
 	struct	zone_object	*zone;
-
+    double agwstorage;
+    double agwOut;
 	/*--------------------------------------------------------------*/
 	/*	Initialize Accumlating variables.								*/
 	/*--------------------------------------------------------------*/
@@ -94,6 +95,8 @@ void	output_hillslope(int basinID,
     arecharge = 0.0;
     zone_area = 0.0;
     apcp = 0.0;
+    agwstorage = 0.0;
+    agwOut = 0.0;
     
     struct hillslope_object *hillslope;
     for (hh=0; hh < basin[0].num_hillslopes; hh++){
@@ -116,7 +119,7 @@ void	output_hillslope(int basinID,
                         
                         aunsat_drainage += patch[0].unsat_drainage * patch[0].area;
                         acap_rise += patch[0].cap_rise * patch[0].area;
-                        abase_flow += patch[0].base_flow * patch[0].area;
+                        abase_flow += (patch[0].base_flow + hillslope[0].base_flow)* patch[0].area;
                         areturn_flow += patch[0].return_flow * patch[0].area;
                         astormdrain += patch[0].stormdrained * patch[0].area;
                         aevaporation += patch[0].evaporation * patch[0].area;
@@ -126,6 +129,9 @@ void	output_hillslope(int basinID,
                         alawnirrigation += patch[0].grassIrrigation_m * patch[0].area;
                         atranspiration += (patch[0].transpiration_sat_zone
                             + patch[0].transpiration_unsat_zone)  *  patch[0].area;
+                        
+                        agwstorage += hillslope[0].gw.storage * patch[0].area;
+                        agwOut += hillslope[0].gw.Qout * patch[0].area;
                         
                         for ( layer=0 ; layer<patch[0].num_layers; layer++ ){
                             for ( c=0 ; c<patch[0].layers[layer].count; c++ ){
@@ -169,37 +175,38 @@ void	output_hillslope(int basinID,
         asat_area *= aarea ;
         alawnirrigation *= aarea ;
         arecharge *= aarea;
+        agwstorage *= aarea;
+        agwOut *= aarea;
         apcp /= zone_area;
-        abase_flow += hillslope[0].base_flow;
-
-
+        //abase_flow += hillslope[0].base_flow;
+        
         fprintf(outfile,"%d %d %d %d %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf\n",
             date.day, //1
             date.month, //2
             date.year, //3
-            hID, //5
-            hillslope[0].area, //6
-            asat_deficit_z * 1000.0, //7 mm
-            asat_deficit * 1000.0, //8 mm
-            adetention_store * 1000.0, //9 mm
-            asat_area * 100.0, // 10 % <<----------- problem, alwaya 100
-            arz_storage * 1000.0,// 11
-            acap_rise * 1000.0, //12 mm
-            aunsat_drainage * 1000.0, //13 mm
-            abase_flow * 1000.0, // 14 mm
-            areturn_flow * 1000.0, // 15 mm
-            (areturn_flow + abase_flow + astormdrain)* 1000.0, // 16 mm
-            hillslope[0].gw.Qout *1000.0, // 17 mm
-            hillslope[0].gw.storage *1000.0, //18 mm
-            asnowmelt * 1000.0, // 19 mm
-            apsn, //20 kgC/m2/d
-            aevaporation * 1000.0, // 21 mm
-            atranspiration * 1000.0, //22 mm
-            alaitree, // 23
-            alaigrass, //24
-            alawnirrigation*1000.0, // 25 mm
-            apcp*1000.0, //26 mm
-            arecharge*1000.0 // 27 mm
+            hID, //4
+            (1.0/aarea), //5
+            asat_deficit_z * 1000.0, // 6 mm
+            asat_deficit * 1000.0, //7 mm
+            adetention_store * 1000.0, //8 mm
+            asat_area * 100.0, // 9 %
+            arz_storage * 1000.0,// 10
+            acap_rise * 1000.0, //11 mm
+            aunsat_drainage * 1000.0, //12 mm
+            abase_flow * 1000.0, // 13 mm
+            areturn_flow * 1000.0, // 14 mm
+            (areturn_flow + abase_flow + astormdrain)* 1000.0, // 15 mm
+            agwOut *1000.0, // 16 mm
+            agwstorage *1000.0, //17 mm <---- this is not correct
+            asnowmelt * 1000.0, // 18 mm
+            apsn, //19 kgC/m2/d
+            aevaporation * 1000.0, // 20 mm
+            atranspiration * 1000.0, //21 mm
+            alaitree, // 22
+            alaigrass, //23
+            alawnirrigation*1000.0, // 24 mm
+            apcp*1000.0, //25 mm
+            arecharge*1000.0 // 26 mm
             );
     }
 	return;
