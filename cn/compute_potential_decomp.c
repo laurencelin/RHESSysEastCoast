@@ -184,13 +184,13 @@ int compute_potential_decomp(double tsoil,
 	ks4_base = 0.0001 * adjust_rate * soilDecayScalar;   /* recalcitrant SOM (humus) pool */
 	
     //(vegtype>0? (patch[0].Ksat_vertical+(1.0-patch[0].Ksat_vertical)*0.5) : 0.0);
-    kl1 = kl1_base * rate_scalar * (vegtype>0? 1.0 : 0.01);
-	kl2 = kl2_base * rate_scalar * (vegtype>0? 1.0 : 0.01);
-	kl4 = kl4_base * rate_scalar * (vegtype>0? 1.0 : 0.01);
-	ks1 = ks1_base * rate_scalar * (vegtype>0? 1.0 : 0.01);
-	ks2 = ks2_base * rate_scalar * (vegtype>0? 1.0 : 0.01);
-	ks3 = ks3_base * rate_scalar * (vegtype>0? 1.0 : 0.01);
-	ks4 = ks4_base * rate_scalar * (vegtype>0? 1.0 : 0.01);
+    kl1 = kl1_base * rate_scalar * patch[0].Ksat_vertical; //(vegtype>0? 1.0 : 0.01);
+	kl2 = kl2_base * rate_scalar * patch[0].Ksat_vertical; //(vegtype>0? 1.0 : 0.01);
+	kl4 = kl4_base * rate_scalar * patch[0].Ksat_vertical; //(vegtype>0? 1.0 : 0.01);
+	ks1 = ks1_base * rate_scalar * patch[0].Ksat_vertical; //(vegtype>0? 1.0 : 0.01);
+	ks2 = ks2_base * rate_scalar * patch[0].Ksat_vertical; //(vegtype>0? 1.0 : 0.01);
+	ks3 = ks3_base * rate_scalar * patch[0].Ksat_vertical; //(vegtype>0? 1.0 : 0.01);
+	ks4 = ks4_base * rate_scalar * patch[0].Ksat_vertical; //(vegtype>0? 1.0 : 0.01);
 	
     //printf("%f,%f,%f\n",cn_l1,cn_l2,cn_l4);
 //    printf("potential decomp: %lf, (%lf,%lf,%lf,%lf, %lf,%lf,%lf,%lf), (%lf,%lf,%lf,%lf, %lf,%lf,%lf,%lf)\n", rate_scalar,

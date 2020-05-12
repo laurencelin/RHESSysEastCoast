@@ -71,7 +71,7 @@ double	compute_N_leached(
         
 
         z1 = (patch[0].sat_deficit_z>0? patch[0].sat_deficit_z : 0.0);
-        z1 = z1>patch[0].constraintWaterTableTopDepth? z1 : patch[0].constraintWaterTableTopDepth; // do this correction for basement
+        //z1 = z1>patch[0].constraintWaterTableTopDepth? z1 : patch[0].constraintWaterTableTopDepth; // do this correction for basement
         if((patch[0].drainage_type == ROAD) && signal<0){
             z1 = patch[0].road_cut_depth<tmp? patch[0].road_cut_depth : (tmp*0.9); // tmp must be > road_cut_depth
         }

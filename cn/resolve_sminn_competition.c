@@ -47,7 +47,7 @@ int resolve_sminn_competition(
 	/*------------------------------------------------------*/
 	double sum_ndemand, sum_avail, litterndemand, totalDecompDemand;
 	double actual_immob, actual_uptake, perc_inroot;
-    double active_zone_z, decay_rate;
+    //double active_zone_z, decay_rate;
     double p_decayRate = 1.0 / patch[0].soil_defaults[0][0].porosity_decay;
     double z1 = patch[0].sat_deficit_z>0? patch[0].sat_deficit_z : 0.0; //<<--- count for negative
     
@@ -69,7 +69,7 @@ int resolve_sminn_competition(
 	/*--------------------------------------------------------------*/
     //active_zone_z = (command_line[0].NH4root2active>0.0? patch[0].rootzone.depth * command_line[0].NH4root2active : (command_line[0].rootNdecayRate > 0? patch[0].soil_defaults[0][0].soil_depth : (command_line[0].root2active>0.0? patch[0].rootzone.depth * command_line[0].root2active : patch[0].soil_defaults[0][0].active_zone_z)));
     //decay_rate = (command_line[0].NH4root2active>0.0? patch[0].soil_defaults[0][0].N_decay_rate : (command_line[0].rootNdecayRate > 0? patch[0].rootzone.NH4decayRate : patch[0].soil_defaults[0][0].N_decay_rate));
-    patch[0].rtzNH4 = max(0.0, ns_soil->sminn*patch[0].soil_defaults[0][0].rtz2NH4prop[patch[0].soil_defaults[0][0].active_zone_index]);
+    patch[0].rtzNH4 = max(0.0, ns_soil->sminn*patch[0].soil_defaults[0][0].rtz2NH4prop[patch[0].soil_defaults[0][0].maxrootdepth_index]);
     patch[0].rtzSatNH4 = 0.0;
     if(patch[0].available_soil_water>0){
         patch[0].rtzSatNH4 = patch[0].sat_NH4 * max(patch[0].rootzone.potential_sat-patch[0].sat_deficit,0.0)/patch[0].available_soil_water;
@@ -79,7 +79,7 @@ int resolve_sminn_competition(
     
     //active_zone_z = (command_line[0].rootNdecayRate > 0? patch[0].soil_defaults[0][0].soil_depth : (command_line[0].root2active > 0.0? patch[0].rootzone.depth * command_line[0].root2active : patch[0].soil_defaults[0][0].active_zone_z));
     //decay_rate = (command_line[0].rootNdecayRate > 0? patch[0].rootzone.NO3decayRate : patch[0].soil_defaults[0][0].N_decay_rate);
-    patch[0].rtzNO3 = max(0.0, ns_soil->nitrate*patch[0].soil_defaults[0][0].rtz2NO3prop[patch[0].soil_defaults[0][0].active_zone_index]);
+    patch[0].rtzNO3 = max(0.0, ns_soil->nitrate*patch[0].soil_defaults[0][0].rtz2NO3prop[patch[0].soil_defaults[0][0].maxrootdepth_index]);
     patch[0].rtzSatNO3 = 0.0;
     if(patch[0].available_soil_water>0){
         patch[0].rtzSatNO3 = patch[0].sat_NO3 * max(patch[0].rootzone.potential_sat-patch[0].sat_deficit,0.0)/patch[0].available_soil_water;
