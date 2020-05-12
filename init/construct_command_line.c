@@ -156,7 +156,9 @@ struct	command_line_object	*construct_command_line(
     command_line[0].sewer_flag=0;
     command_line[0].septicProcess_flag=0;
 
-    command_line[0].readinWFdoc_flag=0;// no use?
+    command_line[0].sat_to_gw_coeff_mult = 0.0;
+    command_line[0].gw_loss_coeff_mult = 0.0;
+    command_line[0].surf_to_gw_coeff_mult = 0.0;
 	/*-------------------------------------------------*/
 	/* Loop through each arguement in the command line.*/
 	/*-------------------------------------------------*/
@@ -346,31 +348,6 @@ struct	command_line_object	*construct_command_line(
                 command_line[0].septicProcess_flag = 1;
                 i++;
             }
-            /*------------------------------------------*/
-            /*Check if the readinWFdoc_flag flag is next.           */
-            /*------------------------------------------*/
-            else if ( strcmp(main_argv[i],"-readinWFdoc_flag") == 0 ){
-                printf("active readinWFdoc_flag\n");
-                command_line[0].readinWFdoc_flag = 1;
-                i++;
-            }
-            /*-------------------------------------------------*/
-            /*	new cap rise option */
-            /*-------------------------------------------------*/
-//            else if ( strcmp(main_argv[i],"-newcaprise") == 0 ){
-//                printf("\n Running with newcaprise turned on\n");
-//                command_line[0].newcaprise_flag = 1;
-//                i++;
-//            }/* end if */
-            
-            /*-------------------------------------------------*/
-            /*    rootNdecayRate option */
-            /*-------------------------------------------------*/
-//            else if ( strcmp(main_argv[i],"-rootNdecayRate") == 0 ){
-//                printf("\n Running with rootNdecayRate turned on\n");
-//                command_line[0].rootNdecayRate = 1;
-//                i++;
-//            }/* end if */
            
             /*-------------------------------------------------*/
             /*    BGC_flag option */
@@ -390,14 +367,6 @@ struct	command_line_object	*construct_command_line(
                 i++;
             }/* end if */
             
-            /*-------------------------------------------------*/
-            /*    new unsat drain option */
-            /*-------------------------------------------------*/
-//            else if ( strcmp(main_argv[i],"-slowDrain") == 0 ){
-//                printf("\n Running with slowdrain turned on\n");
-//                command_line[0].slowDrain_flag = 1;
-//                i++;
-//            }/* end if */
             
             /*-------------------------------------------------*/
             /*    iniBioRZ option */
@@ -421,7 +390,7 @@ struct	command_line_object	*construct_command_line(
 				/*--------------------------------------------------------------*/
 				strncpy(command_line[0].vegspinup_filename, main_argv[i], FILEPATH_LEN);
 				i++;
-      }
+            }
 
 			/*-------------------------------------------------*/
 			/*	routing gw to riparian option */
@@ -431,23 +400,6 @@ struct	command_line_object	*construct_command_line(
 				printf("\n Running with hillslope gw routed to riparian areas\n ");
 				command_line[0].gwtoriparian_flag = 1;
 			}/* end if */
-            /*-------------------------------------------------*/
-            /*    routing gw to riparian IDs */
-            /*-------------------------------------------------*/
-//            else if ( strcmp(main_argv[i],"-gwtoriparian_ID") == 0 ){
-//                i++;
-//                command_line[0].gwtoriparian_flag = 1;
-//                if ( (i == main_argc) || (valid_option(main_argv[i])==1)){
-//                    fprintf(stderr,"FATAL ERROR: Values for gwtoriparian_ID\n");
-//                    exit(EXIT_FAILURE);
-//                } /*end if*/
-//
-//                /*-------------------------------*/
-//                /*Read in the gwtoriparian_ID values        */
-//                /*-------------------------------*/
-//                command_line[0].gwtoriparian_ID = (int)atoi(main_argv[i]);
-//                i++;
-//            }/* end if */
 			/*-------------------------------------------------*/
 			/*	groundwater flag and coeffcients	  */
 			/*-------------------------------------------------*/
@@ -461,7 +413,7 @@ struct	command_line_object	*construct_command_line(
 				/*-------------------------------*/
 				/*Read in the loss to gw rate multiplier values		*/
 				/*-------------------------------*/
-				command_line[0].sat_to_gw_coeff_mult = (double)atof(main_argv[i]);
+				command_line[0].surf_to_gw_coeff_mult = (double)atof(main_argv[i]);
 				i++;
 				command_line[0].gw_loss_coeff_mult = (double)atof(main_argv[i]);
 				i++;
@@ -469,18 +421,15 @@ struct	command_line_object	*construct_command_line(
                 /*    check to see if there is a 3rd sensitivity parameter     */
                 /*    if not set to 1.0                    */
                 /*--------------------------------------------------------------*/
-//                if (  (i != main_argc) && (valid_option(main_argv[i]) == 0) ){
-//                    command_line[0].gw_loss_coeff_mult = (double)atof(main_argv[i]);
-//                    i++;
-//                }  /*end if*/
-                /*--------------------------------------------------------------*/
-                /*    check to see if there is a 3rd sensitivity parameter     */
-                /*    if not set to 1.0                    */
-                /*--------------------------------------------------------------*/
-//                if (  (i != main_argc) && (valid_option(main_argv[i]) == 0) ){
-//                    command_line[0].gw_loss_coeff_mult = (double)atof(main_argv[i]);
-//                    i++;
-//                }  /*end if*/
+                if (  (i != main_argc) && (valid_option(main_argv[i]) == 0) ){
+                    command_line[0].sat_to_gw_coeff_mult = (double)atof(main_argv[i]);
+                    i++;
+                }  /*end if*/
+                printf("gw scalers %f %f %f\n",
+                       command_line[0].sat_to_gw_coeff_mult,
+                       command_line[0].gw_loss_coeff_mult,
+                       command_line[0].surf_to_gw_coeff_mult);
+                
 			}/* end if */
             /*-------------------------------------------------*/
             /*    scaler to adjust fracDirectNdep      */
@@ -536,97 +485,7 @@ struct	command_line_object	*construct_command_line(
                 i++;
                 
             }/* end if */
-            /*-------------------------------------------------*/
-            /*    scaler to adjust stormDrainFrac      */
-            /*-------------------------------------------------*/
-//            else if ( strcmp(main_argv[i],"-stormDrainFrac") == 0 ){
-//
-//                i++;
-//                if ((i == main_argc) || (valid_option(main_argv[i])==1)){
-//                    fprintf(stderr,"FATAL ERROR: Values for stormDrainFrac\n");
-//                    exit(EXIT_FAILURE);
-//                    printf("Here\n");
-//                } /*end if*/
-//                /*-------------------------------*/
-//                /*Read in the reduction multiplier values        */
-//                /*-------------------------------*/
-//                command_line[0].stormDrainFrac = (double)atof(main_argv[i]);
-//                i++;
-//
-//            }/* end if */
-            /*-------------------------------------------------*/
-            /*    scaler to adjust leafDarkRespScalar      */
-            /*-------------------------------------------------*/
-//            else if ( strcmp(main_argv[i],"-leafDarkRespScalar") == 0 ){
-//
-//                i++;
-//                if ((i == main_argc) || (valid_option(main_argv[i])==1)){
-//                    fprintf(stderr,"FATAL ERROR: Values for leafDarkRespScalar\n");
-//                    exit(EXIT_FAILURE);
-//                    printf("Here\n");
-//                } /*end if*/
-//                /*-------------------------------*/
-//                /*Read in the reduction multiplier values        */
-//                /*-------------------------------*/
-//                command_line[0].leafDarkRespScalar = (double)atof(main_argv[i]);
-//                i++;
-//
-//            }/* end if */
-            /*-------------------------------------------------*/
-            /*    scaler to adjust frootRespScalar      */
-            /*-------------------------------------------------*/
-//            else if ( strcmp(main_argv[i],"-frootRespScalar") == 0 ){
-//
-//                i++;
-//                if ((i == main_argc) || (valid_option(main_argv[i])==1)){
-//                    fprintf(stderr,"FATAL ERROR: Values for frootRespScalar\n");
-//                    exit(EXIT_FAILURE);
-//                    printf("Here\n");
-//                } /*end if*/
-//                /*-------------------------------*/
-//                /*Read in the reduction multiplier values        */
-//                /*-------------------------------*/
-//                command_line[0].frootRespScalar = (double)atof(main_argv[i]);
-//                i++;
-//
-//            }/* end if */
-            /*-------------------------------------------------*/
-            /*    scaler to adjust frootRespScalar      */
-            /*-------------------------------------------------*/
-//            else if ( strcmp(main_argv[i],"-StemWoodRespScalar") == 0 ){
-//
-//                i++;
-//                if ((i == main_argc) || (valid_option(main_argv[i])==1)){
-//                    fprintf(stderr,"FATAL ERROR: Values for StemWoodRespScalar\n");
-//                    exit(EXIT_FAILURE);
-//                    printf("Here\n");
-//                } /*end if*/
-//                /*-------------------------------*/
-//                /*Read in the reduction multiplier values        */
-//                /*-------------------------------*/
-//                command_line[0].StemWoodRespScalar = (double)atof(main_argv[i]);
-//                i++;
-//
-//            }/* end if */
-            /*-------------------------------------------------*/
-            /*    scaler to adjust NH4root2active      */
-            /*-------------------------------------------------*/
-//            else if ( strcmp(main_argv[i],"-NH4root2active") == 0 ){
-//
-//                i++;
-//                if ((i == main_argc) || (valid_option(main_argv[i])==1)){
-//                    fprintf(stderr,"FATAL ERROR: Values for NH4root2active\n");
-//                    exit(EXIT_FAILURE);
-//                    printf("Here\n");
-//                } /*end if*/
-//                /*-------------------------------*/
-//                /*Read in the reduction multiplier values        */
-//                /*-------------------------------*/
-//                command_line[0].NH4root2active = (double)atof(main_argv[i]);
-//                i++;
-//                if(command_line[0].NH4root2active>0.0) printf("NH4root2active is triggered. \n");
-//
-//            }/* end if */
+ 
             /*-------------------------------------------------*/
             /*    scaler to adjust soluteLoss2GW      */
             /*-------------------------------------------------*/
@@ -646,24 +505,7 @@ struct	command_line_object	*construct_command_line(
                 if(command_line[0].soluteLoss2GW>0.0) printf("soluteLoss2GW is triggered. \n");
                 
             }/* end if */
-            /*-------------------------------------------------*/
-            /*    scaler to adjust root2active      */
-            /*-------------------------------------------------*/
-//            else if ( strcmp(main_argv[i],"-root2active") == 0 ){
-//                
-//                i++;
-//                if ((i == main_argc) || (valid_option(main_argv[i])==1)){
-//                    fprintf(stderr,"FATAL ERROR: Values for root2active\n");
-//                    exit(EXIT_FAILURE);
-//                    printf("Here\n");
-//                } /*end if*/
-//                /*-------------------------------*/
-//                /*Read in the reduction multiplier values        */
-//                /*-------------------------------*/
-//                command_line[0].root2active = (double)atof(main_argv[i]);
-//                i++;
-//                
-//            }/* end if */
+
             /*-------------------------------------------------*/
             /*    scaler to adjust soilDecayScalar      */
             /*-------------------------------------------------*/
@@ -755,60 +597,7 @@ struct	command_line_object	*construct_command_line(
                 i++;
                 
             }/* end if */
-            /*-------------------------------------------------*/
-            /*	cap rise reduction flag and coeffcients	  */
-            /*-------------------------------------------------*/
-//            else if ( strcmp(main_argv[i],"-capr") == 0 ){
-//
-//                i++;
-//                if ((i == main_argc) || (valid_option(main_argv[i])==1)){
-//                    fprintf(stderr,"FATAL ERROR: Values for cap rise reduction coefficients not specified\n");
-//                    exit(EXIT_FAILURE);
-//                    printf("Here\n");
-//                } /*end if*/
-//                /*-------------------------------*/
-//                /*Read in the reduction multiplier values		*/
-//                /*-------------------------------*/
-//                command_line[0].capreduction = (double)atof(main_argv[i]);
-//                i++;
-//
-//            }/* end if */
-//            /*-------------------------------------------------*/
-//            /*	cap rise split flag and coeffcients	  */
-//            /*-------------------------------------------------*/
-//            else if ( strcmp(main_argv[i],"-caprsplit") == 0 ){
-//
-//                i++;
-//                if ((i == main_argc) || (valid_option(main_argv[i])==1)){
-//                    fprintf(stderr,"FATAL ERROR: Values for cap rise split not specified\n");
-//                    exit(EXIT_FAILURE);
-//                    printf("Here\n");
-//                } /*end if*/
-//                /*-------------------------------*/
-//                /*Read in the reduction multiplier values		*/
-//                /*-------------------------------*/
-//                command_line[0].caprsplit = (double)atof(main_argv[i]);
-//                i++;
-//
-//            }/* end if */
-            /*-------------------------------------------------*/
-            /*	set capMax	  */
-            /*-------------------------------------------------*/
-//            else if ( strcmp(main_argv[i],"-capMax") == 0 ){
-//
-//                i++;
-//                if ((i == main_argc) || (valid_option(main_argv[i])==1)){
-//                    fprintf(stderr,"FATAL ERROR: Values for capMax not specified\n");
-//                    exit(EXIT_FAILURE);
-//                    printf("Here\n");
-//                } /*end if*/
-//                /*-------------------------------*/
-//                /*Read in the reduction multiplier values		*/
-//                /*-------------------------------*/
-//                command_line[0].capMax = (double)atof(main_argv[i]);
-//                i++;
-//
-//            }/* end if */
+ 
             /*-------------------------------------------------*/
             /*	root depth	  */
             /*-------------------------------------------------*/
@@ -1101,6 +890,12 @@ struct	command_line_object	*construct_command_line(
 				/*--------------------------------------------------------------*/
 				command_line[0].start_date.hour = (int)atoi(main_argv[i]);
 				i++;
+                
+                printf("starting: %d %d %d %d\n",
+                      command_line[0].start_date.year,
+                      command_line[0].start_date.month,
+                      command_line[0].start_date.day,
+                      command_line[0].start_date.hour);
 			}/*end if*/
 			/*--------------------------------------------------------------*/
 			/* check for start and end dates				*/
