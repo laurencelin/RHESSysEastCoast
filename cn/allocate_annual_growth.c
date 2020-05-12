@@ -557,14 +557,14 @@ int allocate_annual_growth(				int id,
         (epc.veg_type == GRASS &&(potReduceLeafCarbon>1e-8 || potReduceFrootCarbon>1e-8))){
         
         //------- print out report
-        printf("report,%d,%d,%d,%d,%d,%d,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%d,%e,%e,%e,%e,%e,%e,%e,%e\n",
+        printf("report,%d,%d,%d,%d,%d,%d,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%d,%e,%e,%e,%e,%e,%e,%e,%e\n",
                patch[0].ID, stratum->defaults[0][0].ID, current_date.day, current_date.month, current_date.year,
                stratum->gDayCount,
                stratum->nFactor *what, // 1 is good
                stratum->wFactor *what, // 1 is good
                stratum->lFactor *what, // large is good
                stratum->gFactor *what, // 1 is good; actual/potential
-               patch[0].constraintWaterTableTopDepth,
+               patch[0].sat_def_head,
                stratum[0].cover_fraction,
                stratum[0].cs.cpool,
                stratum->gwPSN *what,   // flux
@@ -573,8 +573,6 @@ int allocate_annual_growth(				int id,
                stratum->gwLWP *what, // 1 is good. stratum[0].gwLWP += stratum[0].mult_conductance.LWP;
                stratum->gwVPD *what, // 1 is good. stratum[0].gwVPD += stratum[0].mult_conductance.vpd;
                patch[0].sat_deficit_z,          //<<---------------- instant
-               patch[0].basementSideAdjustWTZ,  //<<---------------- instant
-               patch[0].basementSideAdjustH2O,  //<<---------------- instant
                patch[0].Ksat_vertical, //
                cs->num_resprout,
                potReduceLeafCarbon, potReduceCrootCarbon, potReduceStemCarbon, potReduceFrootCarbon,
