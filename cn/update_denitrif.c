@@ -66,8 +66,8 @@ int update_denitrif(
     
     
     if(patch[0].rootzone.potential_sat>ZERO){
-        if (patch[0].sat_deficit > patch[0].rootzone.potential_sat) theta = min(patch[0].rz_storage/patch[0].rootzone.potential_sat/(1.0-patch[0].basementFrac), 1.0);
-        else theta = min((patch[0].rz_storage + patch[0].rootzone.potential_sat - patch[0].sat_deficit)/patch[0].rootzone.potential_sat/(1.0-patch[0].basementFrac),1.0);
+        if (patch[0].sat_deficit > patch[0].rootzone.potential_sat) theta = min(patch[0].rz_storage/patch[0].rootzone.potential_sat, 1.0);//(1.0-patch[0].basementFrac)
+        else theta = min((patch[0].rz_storage + patch[0].rootzone.potential_sat - patch[0].sat_deficit)/patch[0].rootzone.potential_sat,1.0);//(1.0-patch[0].basementFrac)
     }else{ theta = 0.0; }
     
 	/*------------------------------------------------------*/
@@ -95,7 +95,9 @@ int update_denitrif(
         /*    maximum denitrfication (kg/ha) based on available    */
         /*    carbon substrate - estimated from heter. respiration    */
         /*--------------------------------------------------------------*/
-        hr = (cdf->soil1c_hr + cdf->soil2c_hr + cdf->soil3c_hr + cdf->soil4c_hr);
+        hr = (cdf->soil1c_hr + cdf->soil2c_hr+cdf->soil3c_hr); // need to be at this 0.0001 scale to be sense; take out respiration from soil3 and soil4 because these are very slow respiration, which cnanot be capture by the lab incubation.
+        hr *= patch[0].soil_defaults[0][0].active_zone_omProp;
+        // if(hr > 0.0004670731) printf("patch[%d] hr %e [%e %e %e %e]\n",patch[0].ID, hr, cdf->soil1c_hr , cdf->soil2c_hr , cdf->soil3c_hr , cdf->soil4c_hr);
         // hr is kgC/ha/day <---- 10000 kgC/m2/day
         // 1 ha = 10000 m2
         // hr domain [0-40] kgC / ha / day
@@ -158,8 +160,19 @@ int update_denitrif(
         
         
         //----------- final
-        denitrify = min(resource_soilNO3+resource_satNO3, (atan(PI*0.002*( total_nitrate_ratio - 180)) * 0.004 / PI + 0.0011)*water_scalar) * patch[0].Ksat_vertical; // gN/ha/day --> 1e-07 kgN/m2/day
-        denitrify_soil = min(resource_soilNO3, (atan(PI*0.002*( soil_nitrate_ratio - 180)) * 0.004 / PI + 0.0011)*water_scalar) * patch[0].Ksat_vertical; // gN/ha/day --> 1e-07 kgN/m2/day
+        // (patch[0].drainage_type == STREAM?, 0.0 : 1.0);
+        double MaxDenitrify =
+            max(0.0,patch[0].Ksat_vertical-patch[0].aeratedSoilFrac) * 5e-05 + //4e-06 kgN/m2/day Vermes and Myrold et al., 1991 for forest soil in Oregon (max of 1.150685e-05 kgN/m2/day from many forest denitrification studies); //max 5e-05 kgN/m2/day Groffman and Tiedje 1989a forest soil in MI; max 1.150685e-05 kgN/m2/day Groffman and Tiedje 1989b
+            patch[0].aeratedSoilFrac * (theta*patch[0].soil_defaults[0][0].sat_def_0zm[patch[0].soil_defaults[0][0].active_zone_index] >0.35? 6.134247e-05 : 8.082192e-07);// 6.134247e-05 kgN/m2/day  Raciti et al., 2011
+        
+        // Parton equation is based on lab incubation at optimized condition. serves max denitrification rate
+        denitrify = min(MaxDenitrify,min(resource_soilNO3+resource_satNO3, (atan(PI*0.002*( total_nitrate_ratio - 180)) * 0.004 / PI + 0.0011)*water_scalar)) * patch[0].Ksat_vertical; // gN/ha/day --> 1e-07 kgN/m2/day
+        denitrify_soil = min(MaxDenitrify,min(resource_soilNO3, (atan(PI*0.002*( soil_nitrate_ratio - 180)) * 0.004 / PI + 0.0011)*water_scalar)) * patch[0].Ksat_vertical; // gN/ha/day --> 1e-07 kgN/m2/day
+        
+        
+        
+        // * (1.0 - 0.67*patch[0].aeratedSoilFrac)
+        
         denitrify_sat = min(resource_satNO3, max(0.0, denitrify-denitrify_soil));
         if(denitrify_sat+denitrify_soil<denitrify){
             denitrify_soil = max(0.0,min(resource_soilNO3, denitrify-denitrify_sat));
@@ -169,8 +182,8 @@ int update_denitrif(
         }//debug
         
         denitrify = denitrify_soil+denitrify_sat;
-        ndf->Pot_denitrif_CO2 = fCO2 * water_scalar;
-        ndf->Pot_denitrif_SS = denitrify;
+        ndf->Pot_denitrif_CO2 = fCO2 * water_scalar; // respiration
+        ndf->Pot_denitrif_SS = denitrify; // resource
 
         if(denitrify > 0.0 && ndf->Pot_denitrif_CO2>0.0 && ndf->Pot_denitrif_CO2 < ndf->Pot_denitrif_SS){
             
