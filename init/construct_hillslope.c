@@ -180,6 +180,10 @@ struct hillslope_object *construct_hillslope(
 		}
 	} /* end-while */
 	hillslope[0].defaults[0] = &defaults[0].hillslope[i];
+    if(hillslope[0].gw.storage<=0){
+        hillslope[0].gw.storage = 0.95 * hillslope[0].defaults[0][0].gw_storage_capacity;
+    }
+        
 	/*--------------------------------------------------------------*/
 	/*	Allocate a list of base stations for this hillslope.		*/
 	/*--------------------------------------------------------------*/

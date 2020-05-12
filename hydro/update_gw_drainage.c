@@ -45,18 +45,6 @@ int update_gw_drainage(
 				  struct  command_line_object *command_line,
 				  struct	date	current_date)
 {
-	/*------------------------------------------------------*/
-	/*	Local Function Declarations.			*/
-	/*------------------------------------------------------*/
-	
-	double  compute_z_final(
-		int,
-		double,
-		double,
-		double,
-		double,
-		double); // not in use
-
 
 	/*------------------------------------------------------*/
 	/*	Local Variable Definition. 			*/
@@ -74,14 +62,12 @@ int update_gw_drainage(
 	/*		assume percent of incoming precip	*/
 	/*------------------------------------------------------*/
 	// Note: Mult by Ksat_vertical so that precip onto impervious surfaces does not contribute to GW
-	if (zone[0].hourly_rain_flag==1){
-	  sat_to_gw_coeff = patch[0].soil_defaults[0][0].sat_to_gw_coeff / 24.0;
-	}
-	else sat_to_gw_coeff = patch[0].soil_defaults[0][0].sat_to_gw_coeff; 
+	if (zone[0].hourly_rain_flag==1) sat_to_gw_coeff = patch[0].soil_defaults[0][0].surf_to_gw_coeff / 24.0;
+	else sat_to_gw_coeff = patch[0].soil_defaults[0][0].surf_to_gw_coeff;
 
     drainage = sat_to_gw_coeff * patch[0].detention_store * patch[0].Ksat_vertical; // correcting with % imprevious surface
 	patch[0].detention_store -= drainage;
-	patch[0].gw_drainage = drainage;
+	patch[0].gw_drainage += drainage; // use for water balance check in the patch_daily_F()
 	hillslope[0].gw.storage += (drainage * patch[0].area / hillslope[0].area);
 
 	/*------------------------------------------------------*/
@@ -113,44 +99,6 @@ int update_gw_drainage(
         patch[0].surface_NO3 -= N_loss;
     }
     
-    ///// ------ newly added (try this for NO3)
-    
-    
-//    active_zone_z = (command_line[0].rootNdecayRate > 0? patch[0].soil_defaults[0][0].soil_depth : (command_line[0].root2active > 0.0? patch[0].rootzone.depth * command_line[0].root2active : patch[0].soil_defaults[0][0].active_zone_z));
-//    decay_rate = (command_line[0].rootNdecayRate > 0? patch[0].rootzone.NO3decayRate : patch[0].soil_defaults[0][0].N_decay_rate);
-//    perc_inroot = max(1 - (1.0-exp(-decay_rate * patch[0].sat_deficit_z)) / (1.0 - exp(-decay_rate * active_zone_z)),0.0);
-    
-   // ---- is it the problem?
-//    perc_inroot = command_line[0].soluteLoss2GW;
-//    if (patch[0].soil_ns.DON > ZERO) {
-//        N_loss = sat_to_gw_coeff * patch[0].soil_ns.DON*perc_inroot * command_line[0].Rsolute2gw;
-//        hillslope[0].gw.DON += (N_loss * patch[0].area / hillslope[0].area); // does this area correction necessary?
-//        patch[0].ndf.DON_to_gw += N_loss;
-//        patch[0].soil_ns.DON -= N_loss;
-//    }
-//    if (patch[0].soil_cs.DOC > ZERO) {
-//        N_loss = sat_to_gw_coeff * patch[0].soil_cs.DOC*perc_inroot * command_line[0].Rsolute2gw;
-//        hillslope[0].gw.DOC += (N_loss * patch[0].area / hillslope[0].area);
-//        patch[0].cdf.DOC_to_gw += N_loss;
-//        patch[0].soil_cs.DOC -= N_loss;
-//    }
-//    if (patch[0].soil_ns.nitrate > ZERO) {
-//        N_loss = sat_to_gw_coeff * patch[0].soil_ns.nitrate*perc_inroot * command_line[0].Rsolute2gw;
-//        hillslope[0].gw.NO3 += (N_loss * patch[0].area / hillslope[0].area);
-//        patch[0].ndf.N_to_gw += N_loss;
-//        patch[0].soil_ns.nitrate -= N_loss;
-//    }
-    
-    
-//    active_zone_z = (command_line[0].NH4root2active>0.0? patch[0].rootzone.depth * command_line[0].NH4root2active : (command_line[0].rootNdecayRate > 0? patch[0].soil_defaults[0][0].soil_depth : (command_line[0].root2active>0.0? patch[0].rootzone.depth * command_line[0].root2active : patch[0].soil_defaults[0][0].active_zone_z)));
-//    decay_rate = (command_line[0].NH4root2active>0.0? patch[0].soil_defaults[0][0].N_decay_rate : (command_line[0].rootNdecayRate > 0? patch[0].rootzone.NH4decayRate : patch[0].soil_defaults[0][0].N_decay_rate));
-    
-//    perc_inroot = (1.0-exp(-decay_rate * patch[0].rootzone.depth)) / (1.0 - exp(-decay_rate * active_zone_z));
-//    perc_inroot = max(0.1,min(perc_inroot,1.0));
-//    sum_avail += max(0.0,perc_inroot * ns_soil->sminn); //sum_avail = perc_inroot * sum_avail;
-	
-	
-	
 
 	return (!ok);
 } /* end update_gw_drainage.c */

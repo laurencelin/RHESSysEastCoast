@@ -86,9 +86,11 @@ struct hillslope_default *construct_hillslope_defaults(
 		/*--------------------------------------------------------------*/
 		/* 	read in optional paramters				*/
 		/*--------------------------------------------------------------*/
-		default_object_list[i].gw_loss_coeff = 	getDoubleParam(&paramCnt, &paramPtr, "gw_loss_coeff", "%lf", 1.0, 1) * 0.02652238; // convert to hourly
+		default_object_list[i].gw_loss_coeff = 	getDoubleParam(&paramCnt, &paramPtr, "gw_loss_coeff", "%lf", 1.0, 1) * 0.02652238; // convert to hourly (gw2)
         default_object_list[i].gw_loss_coeff_decay = getDoubleParam(&paramCnt, &paramPtr, "gw_loss_coeff_decay", "%lf", 0.0, 1);
         default_object_list[i].gw_soluteConc_decay = getDoubleParam(&paramCnt, &paramPtr, "gw_soluteConc_decay", "%lf", 0.0, 1);
+        default_object_list[i].gw_storage_capacity = getDoubleParam(&paramCnt, &paramPtr, "gw_storage_capacity", "%lf", 5.0, 1); // meter
+        
         
 		default_object_list[i].n_routing_timesteps = 	getIntParam(&paramCnt, &paramPtr, "n_routing_timesteps", "%d", 24, 1);
         if (default_object_list[i].n_routing_timesteps < 1) default_object_list[i].n_routing_timesteps = 1;
@@ -100,11 +102,13 @@ struct hillslope_default *construct_hillslope_defaults(
 		
         /************************** gw scalars ***********************/
 		if (command_line[0].gw_flag > 0) {
-			default_object_list[i].gw_loss_coeff *= command_line[0].gw_loss_coeff_mult;
+			default_object_list[i].gw_loss_coeff *= command_line[0].gw_loss_coeff_mult; // hourly
 			default_object_list[i].gw_loss_fast_coeff *= command_line[0].gw_loss_coeff_mult;
         }
-        default_object_list[i].gw_soluteLOSSCoef = (default_object_list[i].gw_loss_coeff_decay + default_object_list[i].gw_soluteConc_decay);
-        if(default_object_list[i].gw_soluteLOSSCoef>0) default_object_list[i].gw_soluteLOSSCoef = default_object_list[i].gw_loss_coeff/(default_object_list[i].gw_loss_coeff_decay + default_object_list[i].gw_soluteConc_decay);
+        
+        default_object_list[i].gw_soluteLOSSCoef = 0.0;
+        if(fabs(default_object_list[i].gw_loss_coeff_decay)>0 && fabs(default_object_list[i].gw_soluteConc_decay)>0) default_object_list[i].gw_soluteLOSSCoef = (1.0/default_object_list[i].gw_loss_coeff_decay + 1.0/default_object_list[i].gw_soluteConc_decay);
+        //if(default_object_list[i].gw_soluteLOSSCoef>0) default_object_list[i].gw_soluteLOSSCoef *= default_object_list[i].gw_loss_coeff;
         
          
         

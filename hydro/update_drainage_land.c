@@ -211,6 +211,7 @@ void  update_drainage_land(
     int z1_sat_def_pct_index_z2;
     double z1_sat_def_pct_indexM_z2;
     double z1_soildepth_z2;
+    double sat_to_gw_coeff = patch[0].soil_defaults[0][0].sat_to_gw_coeff;
     
     z1 = patch[0].z;
     if(patch[0].sat_deficit_z > 0){
@@ -288,7 +289,7 @@ void  update_drainage_land(
                         patch[0].innundation_list[d].neighbours[i].transmissivity_flux2neighbour -= time_int * compute_varbased_flow(
                             patch[0].num_soil_intervals,
                             patch[0].std * std_scale,
-                            z1_sat_def_pct_index_z2,//<---- problem; the function is reading "patch[0].sat_def_pct_index"
+                            z1_sat_def_pct_index_z2,//<---- the function is reading "patch[0].sat_def_pct_index"
                             z1_sat_def_pct_indexM_z2,
                             patch[0].innundation_list[d].neighbours[i].gamma*patch[0].area/totaledge,
                             patch);
@@ -353,7 +354,6 @@ void  update_drainage_land(
     if (route_to_patch < 0.0) route_to_patch = 0.0;
     if (route_to_patch > 0.0 && route_to_patch > available_sat_water) route_to_patch=available_sat_water; //volumn
     
-    
     /*--------------------------------------------------------------*/
     /*  calculate drain-in fluxes (i.e., drain into current patch from remote patches through "irrigration")
     /*  this is different from pipe / sewer drainage that any "left-over" water will be drain from the current patch, */
@@ -384,10 +384,7 @@ void  update_drainage_land(
         double imp_unsat_storage = (patch[0].rz_storage+patch[0].unsat_storage)*patch[0].Ksat_vertical;
         double imp_sat_def = (patch[0].sat_deficit+route_to_patch/patch[0].area)*patch[0].Ksat_vertical;
         return_flow = max( (imp_unsat_storage-imp_sat_def),0.0); // no counting litter storage
-        
-        //route_to_patch = max(route_to_patch,extrawater*patch[0].area*(1.0-patch[0].Ksat_vertical)); // volumn
         route_to_patch += (extrawater>return_flow? (extrawater-return_flow)*patch[0].area : 0.0);  // volumn
-        //patch[0].satzZ_balance -= (extrawater>return_flow? (extrawater-return_flow) : 0.0); // mm (no use)
         
         // counting litter storage for returnflow
         return_flow = compute_varbased_returnflow(
@@ -510,7 +507,7 @@ void  update_drainage_land(
 			Nout = compute_N_leached(
 				verbose_flag,
                 /// problem re-project!! && "soil_ns -= going2sat_NO3"
-				patch[0].sat_NO3 - patch[0].soil_ns.NO3_Qout, //patch[0].soil_ns.nitrate - (NO3_leached_to_patch/patch[0].area),
+				patch[0].sat_NO3 - patch[0].soil_ns.NO3_Qout,
 				return_flow,
 				patch[0].soil_defaults[0][0].NO3decayRate,
 				patch[0].soil_defaults[0][0].active_zone_z,
@@ -522,7 +519,7 @@ void  update_drainage_land(
 
 			Nout = compute_N_leached(
 				verbose_flag,
-				patch[0].sat_NH4 - patch[0].soil_ns.NH4_Qout, //patch[0].soil_ns.sminn - (NH4_leached_to_patch/patch[0].area),
+				patch[0].sat_NH4 - patch[0].soil_ns.NH4_Qout,
 				return_flow,
 				patch[0].soil_defaults[0][0].NH4decayRate,
                 patch[0].soil_defaults[0][0].active_zone_z,
@@ -534,7 +531,7 @@ void  update_drainage_land(
 
 			Nout = compute_N_leached(
 				verbose_flag,
-				patch[0].sat_DON - patch[0].soil_ns.DON_Qout, //patch[0].soil_ns.DON - (DON_leached_to_patch/patch[0].area),
+				patch[0].sat_DON - patch[0].soil_ns.DON_Qout,
 				return_flow,
 				patch[0].soil_defaults[0][0].DOMdecayRate,
 				patch[0].soil_defaults[0][0].active_zone_z,
@@ -546,7 +543,7 @@ void  update_drainage_land(
             
 			Nout = compute_N_leached(
 				verbose_flag,
-				patch[0].sat_DOC - patch[0].soil_cs.DOC_Qout, //patch[0].soil_cs.DOC - (DOC_leached_to_patch/patch[0].area),
+				patch[0].sat_DOC - patch[0].soil_cs.DOC_Qout,
 				return_flow,
 				patch[0].soil_defaults[0][0].DOMdecayRate,
 				patch[0].soil_defaults[0][0].active_zone_z,
@@ -616,6 +613,12 @@ void  update_drainage_land(
             /*--------------------------------------------------------------*/
             /* first transfer subsurface water and nitrogen */  // --------- subsurface
             /*--------------------------------------------------------------*/
+            /* some "transmissivity_flux2neighbour" is loss to GW_storage  */
+            if(command_line[0].gw_flag > 0 && (patch[0].drainage_type>0 && patch[0].drainage_type % actionGWDRAIN==0)){
+                //how do we know how fill is the GW?
+                patch[0].gw_drainage += route_to_patch * sat_to_gw_coeff;// has multiplied patch[0].area // reset to zero every patch_daily_I()
+                route_to_patch *= 1.0 - sat_to_gw_coeff;
+            }//end of if
             Qin = (patch[0].innundation_list[d].neighbours[j].gamma * route_to_patch) / neigh[0].area;
             if(patch[0].aggregate_ID != neigh[0].aggregate_ID && patch[0].aggregate_ID>0 && patch[0].aggregate_ID % 11 ==0){neigh[0].fromLAND_Q+=Qin; }//reset @subsurface_routing
             if(patch[0].aggregate_ID != neigh[0].aggregate_ID && patch[0].aggregate_ID>0 && patch[0].aggregate_ID % 7 ==0){neigh[0].fromRIPARIAN_Q+=Qin; }
@@ -625,29 +628,39 @@ void  update_drainage_land(
             if (Qin < 0) printf("warning negative routing from patch %d with gamma %lf\n", patch[0].ID, total_gamma);
             if (command_line[0].grow_flag > 0) {
                 
+                double coef;
+                if(command_line[0].gw_flag > 0 && (patch[0].drainage_type>0 && patch[0].drainage_type % actionGWDRAIN==0)){
+                    coef = 1.0 - sat_to_gw_coeff;
+                    coef /= neigh[0].area;
+                    patch[0].gw_drainage_DON += DON_leached_to_patch * sat_to_gw_coeff;// has multiplied patch[0].area
+                    patch[0].gw_drainage_DOC += DOC_leached_to_patch * sat_to_gw_coeff;// has multiplied patch[0].area
+                    patch[0].gw_drainage_NO3 += NO3_leached_to_patch * sat_to_gw_coeff;// has multiplied patch[0].area
+                    patch[0].gw_drainage_NH4 += NH4_leached_to_patch * sat_to_gw_coeff;// has multiplied patch[0].area
+                }else{
+                    coef = 1.0/neigh[0].area;
+                }
+
                 //Note that: "xxx_leached_to_patch" is flux, i.e., not areal
                 //Note that: "Nin" is an areal adjustment to the neigh due to influx
-                Nin = (patch[0].innundation_list[d].neighbours[j].gamma * DON_leached_to_patch) / neigh[0].area;
+                Nin = (patch[0].innundation_list[d].neighbours[j].gamma * DON_leached_to_patch) * coef;
                 neigh[0].soil_ns.DON_Qin += Nin;
                 if(patch[0].aggregate_ID != neigh[0].aggregate_ID && patch[0].aggregate_ID>0 && patch[0].aggregate_ID % 11 ==0){neigh[0].fromLAND_DON+=Nin; }//reset @subsurface_routing
                 if(patch[0].aggregate_ID != neigh[0].aggregate_ID && patch[0].aggregate_ID>0 && patch[0].aggregate_ID % 7 ==0){neigh[0].fromRIPARIAN_DON+=Nin; }
                 if(patch[0].aggregate_ID != neigh[0].aggregate_ID && patch[0].aggregate_ID>0 && patch[0].aggregate_ID % 5 ==0){neigh[0].fromSTREAM_DON+=Nin; }
                 
-    
-                Nin = (patch[0].innundation_list[d].neighbours[j].gamma * DOC_leached_to_patch) / neigh[0].area;
+                Nin = (patch[0].innundation_list[d].neighbours[j].gamma * DOC_leached_to_patch) * coef;
                 neigh[0].soil_cs.DOC_Qin += Nin;
                 if(patch[0].aggregate_ID != neigh[0].aggregate_ID && patch[0].aggregate_ID>0 && patch[0].aggregate_ID % 11 ==0){neigh[0].fromLAND_DOC+=Nin; }//reset @subsurface_routing
                 if(patch[0].aggregate_ID != neigh[0].aggregate_ID && patch[0].aggregate_ID>0 && patch[0].aggregate_ID % 7 ==0){neigh[0].fromRIPARIAN_DOC+=Nin; }
                 if(patch[0].aggregate_ID != neigh[0].aggregate_ID && patch[0].aggregate_ID>0 && patch[0].aggregate_ID % 5 ==0){neigh[0].fromSTREAM_DOC+=Nin; }
                 
-                Nin = (patch[0].innundation_list[d].neighbours[j].gamma * NO3_leached_to_patch) / neigh[0].area;
+                Nin = (patch[0].innundation_list[d].neighbours[j].gamma * NO3_leached_to_patch) * coef;
                 neigh[0].soil_ns.NO3_Qin += Nin;
                 if(patch[0].aggregate_ID != neigh[0].aggregate_ID && patch[0].aggregate_ID>0 && patch[0].aggregate_ID % 11 ==0){neigh[0].fromLAND_NO3+=Nin; }//reset @subsurface_routing
                 if(patch[0].aggregate_ID != neigh[0].aggregate_ID && patch[0].aggregate_ID>0 && patch[0].aggregate_ID % 7 ==0){neigh[0].fromRIPARIAN_NO3+=Nin; }
                 if(patch[0].aggregate_ID != neigh[0].aggregate_ID && patch[0].aggregate_ID>0 && patch[0].aggregate_ID % 5 ==0){neigh[0].fromSTREAM_NO3+=Nin; }
                 
-                
-                Nin = (patch[0].innundation_list[d].neighbours[j].gamma * NH4_leached_to_patch) / neigh[0].area;
+                Nin = (patch[0].innundation_list[d].neighbours[j].gamma * NH4_leached_to_patch) * coef;
                 neigh[0].soil_ns.NH4_Qin += Nin;
                 if(patch[0].aggregate_ID != neigh[0].aggregate_ID && patch[0].aggregate_ID>0 && patch[0].aggregate_ID % 11 ==0){neigh[0].fromLAND_NH4+=Nin; }//reset @subsurface_routing
                 if(patch[0].aggregate_ID != neigh[0].aggregate_ID && patch[0].aggregate_ID>0 && patch[0].aggregate_ID % 7 ==0){neigh[0].fromRIPARIAN_NH4+=Nin; }

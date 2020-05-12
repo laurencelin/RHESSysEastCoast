@@ -326,8 +326,8 @@ void		patch_daily_I(
 //				patch[0].soil_defaults[0][0].theta_mean_std_p1*theta);
     
     if(patch[0].rootzone.potential_sat>ZERO){
-        if (patch[0].sat_deficit > patch[0].rootzone.potential_sat) theta = min(patch[0].rz_storage/patch[0].rootzone.potential_sat/(1.0-patch[0].basementFrac), 1.0);
-        else theta = min((patch[0].rz_storage + patch[0].rootzone.potential_sat - patch[0].sat_deficit)/patch[0].rootzone.potential_sat/(1.0-patch[0].basementFrac),1.0);
+        if (patch[0].sat_deficit > patch[0].rootzone.potential_sat) theta = min(patch[0].rz_storage/patch[0].rootzone.potential_sat, 1.0); //(1.0-patch[0].basementFrac)
+        else theta = min((patch[0].rz_storage + patch[0].rootzone.potential_sat - patch[0].sat_deficit)/patch[0].rootzone.potential_sat,1.0);//(1.0-patch[0].basementFrac)
     }else{ theta = 0.0; }
     //theta *= patch[0].soil_defaults[0][0].porosity_0; // really?
     patch[0].theta_std = (patch[0].soil_defaults[0][0].theta_mean_std_p2*theta*theta +
@@ -344,7 +344,7 @@ void		patch_daily_I(
 	/*--------------------------------------------------------------*/
     
     double totalfc = patch[0].sat_def_pct_indexM * patch[0].soil_defaults[0][0].fc1_0z[patch[0].sat_def_pct_index+1] + (1.0-patch[0].sat_def_pct_indexM) * patch[0].soil_defaults[0][0].fc1_0z[patch[0].sat_def_pct_index];
-    totalfc *= (1.0-patch[0].basementFrac); // <---- second thought on this, Oct 8, 2019; basement is 3m at most
+    //totalfc *= (1.0-patch[0].basementFrac); // <---- second thought on this, Oct 8, 2019; basement is 3m at most
     
 	if (patch[0].sat_deficit < ZERO) {
         //patch[0].aboveWT_SatPct = 1.0;
@@ -533,7 +533,7 @@ void		patch_daily_I(
 	/*------------------------------------------------------------------------*/
 	sort_patch_layers(patch);
 
-
+    //if (command_line[0].surface_energy_flag == 0) patch[0].Tsoil = zone[0].metv.tsoil +1-patch[0].Ksat_vertical;
 	/*------------------------------------------------------------------------*/
 	/*	compute current soil moisture potential					*/
 	/*	do this before nitrogen updake occurs later in the day			*/

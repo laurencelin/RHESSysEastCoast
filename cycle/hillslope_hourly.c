@@ -122,6 +122,8 @@ void		hillslope_hourly(
 	hillslope[0].hourly_streamflow_DON = 0.0;
 
 	if ((command_line[0].gw_flag > 0) && (hillslope[0].gw.storage > ZERO) && (command_line[0].gwtoriparian_flag==0)) {
+        
+        // this section is not yet updated
 	    if (hillslope[0].defaults[0][0].gw_loss_fast_threshold < ZERO) {	
 		      hillslope[0].gw.hourly_Qout = hillslope[0].gw.storage * hillslope[0].slope * hillslope[0].defaults[0][0].gw_loss_coeff;
 	    }else{
@@ -162,26 +164,46 @@ void		hillslope_hourly(
 	
 	if ((command_line[0].gw_flag > 0) && (hillslope[0].gw.storage > ZERO) && (command_line[0].gwtoriparian_flag == 1)) {
 		
-        if (hillslope[0].defaults[0][0].gw_loss_fast_threshold < ZERO) {
-            // default and repeated
-			hillslope[0].gw.hourly_Qout = hillslope[0].gw.storage * hillslope[0].slope * hillslope[0].defaults[0][0].gw_loss_coeff;
-		} else {
-            // seperate GW into two pools
-			slow_store = min(hillslope[0].defaults[0][0].gw_loss_fast_threshold, hillslope[0].gw.storage);
-			hillslope[0].gw.hourly_Qout = slow_store * hillslope[0].slope * hillslope[0].defaults[0][0].gw_loss_coeff;
-			fast_store = max(0.0,hillslope[0].gw.storage - hillslope[0].defaults[0][0].gw_loss_fast_threshold);
-			hillslope[0].gw.hourly_Qout += fast_store * hillslope[0].slope * hillslope[0].defaults[0][0].gw_loss_fast_coeff;
-            // use "gw_loss_fast_threshold" to set "fast" pool
-        }// end of if
+//        if (hillslope[0].defaults[0][0].gw_loss_fast_threshold < ZERO) {
+//            // default and repeated
+//			hillslope[0].gw.hourly_Qout = hillslope[0].gw.storage * hillslope[0].slope * hillslope[0].defaults[0][0].gw_loss_coeff;
+//		} else {
+//            // seperate GW into two pools
+//			slow_store = min(hillslope[0].defaults[0][0].gw_loss_fast_threshold, hillslope[0].gw.storage);
+//			hillslope[0].gw.hourly_Qout = slow_store * hillslope[0].slope * hillslope[0].defaults[0][0].gw_loss_coeff;
+//			fast_store = max(0.0,hillslope[0].gw.storage - hillslope[0].defaults[0][0].gw_loss_fast_threshold);
+//			hillslope[0].gw.hourly_Qout += fast_store * hillslope[0].slope * hillslope[0].defaults[0][0].gw_loss_fast_coeff;
+//            // use "gw_loss_fast_threshold" to set "fast" pool
+//        }// end of if
         
-        
-        hillslope[0].gw.hourly_Qout = hillslope[0].slope * hillslope[0].defaults[0][0].gw_loss_coeff;
-        if(hillslope[0].defaults[0][0].gw_loss_coeff_decay>0){
-            hillslope[0].gw.hourly_Qout *= 1.0 - exp(-hillslope[0].defaults[0][0].gw_loss_coeff_decay * hillslope[0].gw.storage);
-            hillslope[0].gw.hourly_Qout /= hillslope[0].defaults[0][0].gw_loss_coeff_decay;
+        double gw_loss_coeff_ksat0;
+        if(hillslope[0].defaults[0][0].gw_storage_capacity>0 && hillslope[0].gw.storage > hillslope[0].defaults[0][0].gw_storage_capacity){
+            // pumping water out when exceed capacity
+//            printf("pumping GW%d out %f %f\n",hillslope[0].ID,
+//                   hillslope[0].defaults[0][0].gw_storage_capacity,
+//                   hillslope[0].gw.storage);
+            hillslope[0].gw.hourly_Qout = hillslope[0].gw.storage - hillslope[0].defaults[0][0].gw_storage_capacity;
+            gw_loss_coeff_ksat0 = hillslope[0].gw.hourly_Qout / hillslope[0].defaults[0][0].gw_loss_coeff_decay;
+            gw_loss_coeff_ksat0 /= 1.0 - exp(-hillslope[0].gw.storage/hillslope[0].defaults[0][0].gw_loss_coeff_decay);
         }else{
-            hillslope[0].gw.hourly_Qout *= hillslope[0].gw.storage;
-        }
+            
+            gw_loss_coeff_ksat0 = hillslope[0].slope * hillslope[0].defaults[0][0].gw_loss_coeff;
+            hillslope[0].gw.hourly_Qout = gw_loss_coeff_ksat0;
+            if(fabs(hillslope[0].defaults[0][0].gw_loss_coeff_decay)>0){
+                hillslope[0].gw.hourly_Qout *= 1.0 - exp(-hillslope[0].gw.storage/hillslope[0].defaults[0][0].gw_loss_coeff_decay);
+                hillslope[0].gw.hourly_Qout *= hillslope[0].defaults[0][0].gw_loss_coeff_decay;
+//                printf("GW %d checking %f = %f * %f * (1-exp(-%f/%f))\n",
+//                       hillslope[0].ID,
+//                       hillslope[0].gw.hourly_Qout,
+//                       hillslope[0].slope * hillslope[0].defaults[0][0].gw_loss_coeff,
+//                       hillslope[0].defaults[0][0].gw_loss_coeff_decay,
+//                       hillslope[0].gw.storage,
+//                       hillslope[0].defaults[0][0].gw_loss_coeff_decay);
+            }else{
+                hillslope[0].gw.hourly_Qout *= hillslope[0].gw.storage;
+                //printf("gw_loss_coeff_decay %f <0\n",hillslope[0].defaults[0][0].gw_loss_coeff_decay);
+            }// end of if else
+        }// end of if else
         
         if(hillslope[0].gw.hourly_Qout >= hillslope[0].gw.storage){
             // all out
@@ -190,12 +212,16 @@ void		hillslope_hourly(
             hillslope[0].gw.hourly_NO3out = hillslope[0].gw.NO3;
             hillslope[0].gw.hourly_DONout = hillslope[0].gw.DON;
             hillslope[0].gw.hourly_DOCout = hillslope[0].gw.DOC;
-        }else if(hillslope[0].defaults[0][0].gw_soluteLOSSCoef>0){
+        }else if(fabs(hillslope[0].defaults[0][0].gw_soluteLOSSCoef)>0){
 
-            double tmp = hillslope[0].defaults[0][0].gw_soluteLOSSCoef;
-            tmp *= 1.0 - exp(-(hillslope[0].defaults[0][0].gw_loss_coeff_decay+hillslope[0].defaults[0][0].gw_soluteConc_decay) * hillslope[0].gw.storage);
-            tmp /= 1.0 - exp(-hillslope[0].defaults[0][0].gw_soluteConc_decay * hillslope[0].gw.storage);
-            tmp /= hillslope[0].gw.storage;
+            hillslope[0].gw.soluteConc0coef = 1.0;
+            hillslope[0].gw.soluteConc0coef /= hillslope[0].defaults[0][0].gw_soluteConc_decay * (1.0 - exp(-hillslope[0].gw.storage / hillslope[0].defaults[0][0].gw_soluteConc_decay)) * hillslope[0].gw.storage;
+            //[N0] is a concentration, where gwN = gwQ * [N0] *decay* (1-exp(-gwQ/decay)
+            
+            double tmp = gw_loss_coeff_ksat0 / hillslope[0].defaults[0][0].gw_soluteLOSSCoef;
+            tmp *= 1.0 - exp(-hillslope[0].gw.storage * hillslope[0].defaults[0][0].gw_soluteLOSSCoef );
+            tmp *= hillslope[0].gw.soluteConc0coef;
+            if(tmp > 1.0) tmp = 1.0; // just in case;
             
             hillslope[0].gw.hourly_NH4out = tmp * hillslope[0].gw.NH4;
             hillslope[0].gw.hourly_NO3out = tmp * hillslope[0].gw.NO3;

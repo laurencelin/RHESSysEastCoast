@@ -67,26 +67,20 @@ double	compute_varbased_flow(
 
 	// soil deficit threshold, not the soil moisture threshold, fs_threshold is defined as the soil moiture threshold as
 	// percentage of the max soil moisture holding capacity
-	double threshold;
-	//double p_decay;
-	//double p_0;
-	//double soil_depth;
-	double fs_spill;
-	double fs_percolation;
+//	double threshold;
+//	double fs_spill;
+//	double fs_percolation;
 
 
 	/*--------------------------------------------------------------*/
 	/* calculate or initialize value    				*/
 	/*--------------------------------------------------------------*/
-//	p_decay = patch[0].soil_defaults[0][0].porosity_decay;
-//	p_0 = patch[0].soil_defaults[0][0].porosity_0;
-//	soil_depth = patch[0].soil_defaults[0][0].soil_depth;
     
     // p_0 * p_decay * (1 - exp(-soil_depth/p_decay))
-	threshold = patch[0].soil_defaults[0][0].soil_water_cap * (1 - patch[0].soil_defaults[0][0].fs_threshold);// fs_threshold default is 0.2
-        // threshold = 80% of full column of water
-	fs_spill = patch[0].soil_defaults[0][0].fs_spill;
-	fs_percolation = patch[0].soil_defaults[0][0].fs_percolation;
+//	threshold = patch[0].soil_defaults[0][0].soil_water_cap * (1 - patch[0].soil_defaults[0][0].fs_threshold);// fs_threshold default is 0.2
+//        // threshold = 80% of full column of water
+//	fs_spill = patch[0].soil_defaults[0][0].fs_spill;
+//	fs_percolation = patch[0].soil_defaults[0][0].fs_percolation;
 
 	normal[0] = 0;
 	normal[1] = 0.253;
@@ -130,58 +124,11 @@ double	compute_varbased_flow(
         
 	}else{
        //normal runs
-        
-//        double    compute_varbased_flow(
-//                                        int num_soil_intervals,
-//                                        double std,
-//                                        double s1,  <<---- sat-deficit
-//                                        double gamma, <<---- total gamma
-//                                        double interval_size,
-//                                        double *transmissivity,
-//                                        struct patch_object *patch)
-        
-        
-//		didx = (int) lround(s1/interval_size); //sat_def
-//		didthr = (int) lround(threshold/interval_size);///<<---------- this is new!!
-//		if (didx > num_soil_intervals) didx = num_soil_intervals;
 
-		/* default lateral flow (seepage) below the threshold is 1/3 of the original value, the multiplier is arbitary. Xiaoli */
-        // why not calculate transimissivity at real time? performance issue?
-        // to have a pre-calculated table to look up because gamma is transimissivity at surface and it decay with depth
 
-		/* if sat_deficit > threshold */
-		if(patch[0].sat_deficit > threshold){
-            // water table is very low, less than 80% of the full capacity
-		    //flow = transmissivity[didx] * fs_percolation; // fs_percolation defaults = 1
-            //fs_percolation = 1 means no loss flow to GW?
-            
-            //didx=sat_def_pct_index
-            //if(didx<0) didx = 0;
-            
-            flow = min( gamma*(sat_def_pct_indexM * patch[0].soil_defaults[0][0].transmissivity_dailyflux[sat_def_pct_index+1] + (1.0-sat_def_pct_indexM) * patch[0].soil_defaults[0][0].transmissivity_dailyflux[sat_def_pct_index]), patch[0].area*(sat_def_pct_indexM * patch[0].soil_defaults[0][0].transmissivity_maxdailyflux[sat_def_pct_index+1] + (1.0-sat_def_pct_indexM) * patch[0].soil_defaults[0][0].transmissivity_maxdailyflux[sat_def_pct_index]));
-            flow *= fs_percolation;
-    
-		}else{
-            // if water level exceed moisture threshold (or sat_deficit <= soil deficit threshold)
-            // threshold = patch[0].soil_defaults[0][0].sat_zZ[0] * (1 - patch[0].soil_defaults[0][0].fs_threshold);
-            
-            //  didx = (int) lround(s1/interval_size); //sat_def
-            //  didthr = (int) lround(threshold/interval_size);///<<---------- this is new!!
-            
-            didthr = (int)(threshold*1000*patch[0].soil_defaults[0][0].max_sat_def_1); // volumn
-            thre_flow = min(gamma*patch[0].soil_defaults[0][0].transmissivity_dailyflux[didthr], patch[0].area*patch[0].soil_defaults[0][0].transmissivity_maxdailyflux[didthr]);
-            
-            abovthre_flow = min(gamma*(sat_def_pct_indexM * patch[0].soil_defaults[0][0].transmissivity_dailyflux[sat_def_pct_index+1] + (1.0-sat_def_pct_indexM) * patch[0].soil_defaults[0][0].transmissivity_dailyflux[sat_def_pct_index]), patch[0].area *(sat_def_pct_indexM * patch[0].soil_defaults[0][0].transmissivity_maxdailyflux[sat_def_pct_index+1] + (1.0-sat_def_pct_indexM) * patch[0].soil_defaults[0][0].transmissivity_maxdailyflux[sat_def_pct_index]));
-            abovthre_flow -= thre_flow;
-            abovthre_flow *= (abovthre_flow>0.0? fs_spill : 0.0); // fs_spill default = 1
-            
-            //thre_flow=transmissivity[didthr];
-		    //abovthre_flow = (transmissivity[didx]-thre_flow) * fs_spill; // fs_spill default value is 1
-            
-            flow = abovthre_flow + thre_flow*fs_percolation;  // fs_percolation defaults = 1
-		}
+        flow = min( gamma*(sat_def_pct_indexM * patch[0].soil_defaults[0][0].transmissivity_dailyflux[sat_def_pct_index+1] + (1.0-sat_def_pct_indexM) * patch[0].soil_defaults[0][0].transmissivity_dailyflux[sat_def_pct_index]), patch[0].area*(sat_def_pct_indexM * patch[0].soil_defaults[0][0].transmissivity_maxdailyflux[sat_def_pct_index+1] + (1.0-sat_def_pct_indexM) * patch[0].soil_defaults[0][0].transmissivity_maxdailyflux[sat_def_pct_index]));
+        
 
-	
 	}//std or not
 
 	//flow = flow*gamma; // merge this calculation to above

@@ -586,8 +586,9 @@ struct hillslope_default
         double  gw_loss_coeff;                                  /* percent/day */
         double  gw_loss_fast_coeff;                                     /* percent/day */
         double  gw_loss_fast_threshold;                                 /* m */
-            double gw_loss_coeff_decay; /* 1/m */
+            double gw_loss_coeff_decay; /* m */
             double gw_soluteConc_decay; /* 1/m */
+            double gw_storage_capacity; /* m */
             double gw_soluteLOSSCoef; /* holding value */
         };
 
@@ -623,6 +624,7 @@ struct  gw_object
         double  NH4;            /* kgN/m2       */
         double  DOC;            /* kgC/m2       */
         double  DON;            /* kgN/m2       */
+        double  soluteConc0coef;            /* for expon distribution of solute in GW */
         double  Qout;                   /* m/m2/day     */
         double  NO3out;                 /* kgN/m2/day   */
         double  NH4out;                 /* kgN/m2/day   */
@@ -916,6 +918,7 @@ struct	soil_default
 	double	psi_air_entry;					/* m */
 	double	psi_max;					/* m */
 	double	sat_to_gw_coeff;				/* percent/day */
+    double  surf_to_gw_coeff;                /* percent/day */
 	double	soil_depth;					/* m */ //--->> should go to patch
 	double	soil_water_cap;					/* m of water */
 	double	deltaz;						/* m */
@@ -996,8 +999,10 @@ struct	soil_default
         double *rtz2sat_def_0z;
         int *rtz2sat_def_pct_index;
         int active_zone_index;
+        int maxrootdepth_index;
         double active_zone_sat_0z;
         double active_zone_sat_0z_1;
+        double active_zone_omProp;
         double *rtz2NO3prop;
         double *rtz2NH4prop;
         double *rtz2DOMprop;
@@ -1407,6 +1412,8 @@ struct accumulate_patch_object
     double subNO3net;
     double subNO3vnet;
     double subDOCnet;
+    double no3drain2gw;
+    double no3diffuse2gw;
 };
 /*----------------------------------------------------------*/
 /*      Define an patch object                              */      
@@ -1432,7 +1439,7 @@ struct patch_object
         double  acc_year_trans;         /* m water      */
         double  base_flow;              /* m water */
         double  cap_rise;               /* m water / day */
-        double  tmp;                    /* diagnostic variable - open units */
+        //double  tmp;                    /* diagnostic variable - open units */
         double  daily_fire_litter_turnover;                     /* (DIM) 0-1 */
         double  delta_rain_stored;      /* m water      */
         double  delta_snow_stored;      /* m water      */
@@ -1445,6 +1452,11 @@ struct patch_object
         double  gasnow;                 /* m/s */         
         double  gasnow_final;           /* m/s */         
         double  gw_drainage;            /* m/day */
+            double  gw_drainage_NO3;            /* m/day */
+            double  gw_drainage_NH4;            /* m/day */
+            double  gw_drainage_DOC;            /* m/day */
+            double  gw_drainage_DON;            /* m/day */
+            double  gw_diffuse;
 	    double	gw_drainage_hourly;     /* m/day  */
         double  hourly_rz_drainage;     /* m water  */
         double  hourly_unsat_drainage;  /* m water  */
@@ -1506,9 +1518,6 @@ struct patch_object
         double  Lstar_pond_night;       /* Kj/(m^2*day) */
         double  Lstar_pond_day;         /* Kj/(m^2*day) */
         double  Ldown_subcanopy;        /* Kj/(m^2*day) */
-//        double  m;                      /* m^-1 */  // <<-- no use at all
-//        double  m_z;                    /* m^-1 */  // <<-- no use at all
-//        double  original_m;             /* m^-1 */  // <<-- no use at all
         double  PAR_direct;             /* umol/(m^2*day)       */
         double  PAR_diffuse;            /* umol/(m^2*day)       */
         double  PAR_direct_final;       /* umol/(m^2*day)       */
@@ -1644,11 +1653,11 @@ struct patch_object
             double  pipedrainYield_NH4;
             double  pipedrainYield_DON;
             double  pipedrainYield_DOC;
-        double  constraintWaterTableTopDepth; // Sept 24 for basement depth; default zero;
-        double  constraintWaterTableTopDepth_def;
-            double basementSideAdjustWTZ;
-            double basementSideAdjustH2O;
-            double basementFrac;
+        //double  constraintWaterTableTopDepth; // Sept 24 for basement depth; default zero;
+        //double  constraintWaterTableTopDepth_def;
+        //    double basementSideAdjustWTZ;
+        //    double basementSideAdjustH2O;
+        //    double basementFrac;
             double aeratedSoilFrac; // increase nitrificaiton in farm land
             // August 19, 2019; first implement of "aeratedSoilFrac"
             // this should couple with Ksat_0 and based on CROP rather than GRASS
@@ -1664,6 +1673,7 @@ struct patch_object
             double stored_fertilizer_NO3;
             double stored_fertilizer_NH4;
             //------------ implement of lookup table
+            double sat_def_head;
             double available_soil_water;
             double sat_def_pct;
             int sat_def_pct_index; // = (int)(sat_def_pct*1000); m = 1000*(sat_def_pct-sat_def_pct_index*0.001); value = m*[sat_def_pct_index+1] + (1-m)*[sat_def_pct_index]
@@ -2008,6 +2018,7 @@ struct  command_line_object
         double  fire_grid_res;
         double  sat_to_gw_coeff_mult;
         double  gw_loss_coeff_mult;
+        double  surf_to_gw_coeff_mult;
         double  snow_scale_tol;
         double  sen[3];
         double  vsen[2];

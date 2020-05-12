@@ -419,8 +419,7 @@ void		patch_daily_F(
 	/*	alos for the Kdowns and PAR (for now Ldown can be kept )	*/
 	/*--------------------------------------------------------------*/
 
-	if (command_line[0].surface_energy_flag == 0) 
-		patch[0].Tsoil = zone[0].metv.tsoil;
+    if (command_line[0].surface_energy_flag == 0) patch[0].Tsoil = zone[0].metv.tsoil;// +1-patch[0].Ksat_vertical;
 
     d=0;
 	patch[0].Kdown_direct = zone[0].Kdown_direct;
@@ -744,7 +743,7 @@ void		patch_daily_F(
         }
         
         totalfc = patch[0].sat_def_pct_indexM * patch[0].soil_defaults[0][0].fc1_0z[patch[0].sat_def_pct_index+1] + (1.0-patch[0].sat_def_pct_indexM) * patch[0].soil_defaults[0][0].fc1_0z[patch[0].sat_def_pct_index];
-        totalfc *= (1.0-patch[0].basementFrac); // <---- second thought on this, Oct 8, 2019; basement is 3m at most
+        //totalfc *= (1.0-patch[0].basementFrac); // <---- second thought on this, Oct 8, 2019; basement is 3m at most
         if (patch[0].sat_deficit < ZERO) {
             //patch[0].aboveWT_SatPct = 1.0;
             //patch[0].rootzone.SatPct = 1.0;
@@ -883,7 +882,7 @@ void		patch_daily_F(
          }
          
         totalfc = patch[0].sat_def_pct_indexM * patch[0].soil_defaults[0][0].fc1_0z[patch[0].sat_def_pct_index+1] + (1.0-patch[0].sat_def_pct_indexM) * patch[0].soil_defaults[0][0].fc1_0z[patch[0].sat_def_pct_index];
-         totalfc *= (1.0-patch[0].basementFrac); // <---- second thought on this, Oct 8, 2019; basement is 3m at most
+         //totalfc *= (1.0-patch[0].basementFrac); // <---- second thought on this, Oct 8, 2019; basement is 3m at most
          if (patch[0].sat_deficit < ZERO) {
              //patch[0].aboveWT_SatPct = 1.0;
              //patch[0].rootzone.SatPct = 1.0;
@@ -1819,6 +1818,39 @@ void		patch_daily_F(
 			/*	move both nitrogen and water				    	*/
 			/*------------------------------------------------------------------------*/
 			if (command_line[0].gw_flag > 0 && ((patch[0].drainage_type>0 && patch[0].drainage_type % actionGWDRAIN==0) || patch[0].drainage_type==ROAD)) {
+                
+                // these patch[0].gw_drainage.XX are calculated hourly in subsurface_routing -> land_drainage ()
+                hillslope[0].gw.storage += patch[0].gw_drainage / hillslope[0].area;
+                hillslope[0].gw.DON += patch[0].gw_drainage_DON / hillslope[0].area;
+                hillslope[0].gw.DOC += patch[0].gw_drainage_DOC / hillslope[0].area;
+                hillslope[0].gw.NH4 += patch[0].gw_drainage_NH4 / hillslope[0].area;
+                hillslope[0].gw.NO3 += patch[0].gw_drainage_NO3 / hillslope[0].area;
+                patch[0].gw_drainage /= patch[0].area; // for water balance below;
+                // patch[0].gw_drainage and patch[0].gw_drainage_DON are from yesterday, right
+                
+                // diffusion
+//                if(patch[0].soil_defaults[0][0].sat_to_gw_coeff>0 && patch[0].available_soil_water>0 && hillslope[0].gw.storage>0){
+//                    // hillslope[0].gw.NO3*hillslope[0].gw.soluteConc0coef is the [N0]
+//                    patch[0].gw_diffuse = hillslope[0].defaults[0][0].gw_diffusion_coef * (patch[0].sat_NO3 - hillslope[0].gw.NO3*hillslope[0].gw.soluteConc0coef * patch[0].available_soil_water); // a flux
+//                    patch[0].gw_diffuse += hillslope[0].defaults[0][0].gw_diffusion_coef * (patch[0].sat_NO3 - hillslope[0].gw.NO3*patch[0].available_soil_water/hillslope[0].gw.storage); // a flux
+//                    patch[0].gw_diffuse *= 0.5;
+//
+//                    patch[0].gw_diffuse = max(min(patch[0].gw_diffuse, patch[0].sat_NO3), -hillslope[0].gw.NO3*hillslope[0].area/patch[0].area);
+//                    //if(solute2gw>0) // bounded by patch[0].sat_NO3
+//                    //if(solute2gw<0) // bounded by hillslope[0].gw.NO3*hillslope[0].area/patch[0].area
+//
+//                    patch[0].sat_NO3 -= patch[0].gw_diffuse;
+//                    hillslope[0].gw.NO3 += patch[0].gw_diffuse * patch[0].area/hillslope[0].area;
+//                    if(patch[0].sat_NO3<0){
+//                        if(patch[0].sat_NO3 < -1e-8) printf("sat-gw diffusion@%d %f %f %f %f\n",patch[0].ID, patch[0].sat_NO3, hillslope[0].gw.NO3, patch[0].gw_diffuse, patch[0].area/hillslope[0].area);
+//                        patch[0].sat_NO3 = 0.0;
+//                    }
+//                    if(hillslope[0].gw.NO3<0){
+//                        if(hillslope[0].gw.NO3 < -1e-8) printf("sat-gw diffusion@%d %f %f %f %f\n",patch[0].ID, patch[0].sat_NO3, hillslope[0].gw.NO3, patch[0].gw_diffuse, patch[0].area/hillslope[0].area);
+//                        hillslope[0].gw.NO3 = 0.0;
+//                    }
+//                }// end of if
+                
                 if ( update_gw_drainage(patch,
 					hillslope,
 					zone,
@@ -2216,7 +2248,7 @@ void		patch_daily_F(
     }
     // update fc
     totalfc = patch[0].sat_def_pct_indexM * patch[0].soil_defaults[0][0].fc1_0z[patch[0].sat_def_pct_index+1] + (1.0-patch[0].sat_def_pct_indexM) * patch[0].soil_defaults[0][0].fc1_0z[patch[0].sat_def_pct_index];
-    totalfc *= (1.0-patch[0].basementFrac); // <---- second thought on this, Oct 8, 2019; basement is 3m at most
+    //totalfc *= (1.0-patch[0].basementFrac); // <---- second thought on this, Oct 8, 2019; basement is 3m at most
     
     
 	if (patch[0].rootzone.depth > ZERO ) { /* VEG CASE */
@@ -2610,7 +2642,7 @@ void		patch_daily_F(
     }
     // update fc
     totalfc = patch[0].sat_def_pct_indexM * patch[0].soil_defaults[0][0].fc1_0z[patch[0].sat_def_pct_index+1] + (1.0-patch[0].sat_def_pct_indexM) * patch[0].soil_defaults[0][0].fc1_0z[patch[0].sat_def_pct_index];
-    totalfc *= (1.0-patch[0].basementFrac); // <---- second thought on this, Oct 8, 2019; basement is 3m at most
+    //totalfc *= (1.0-patch[0].basementFrac); // <---- second thought on this, Oct 8, 2019; basement is 3m at most
     
     if (patch[0].sat_deficit < ZERO) {
         //patch[0].aboveWT_SatPct = 1.0;
@@ -2714,7 +2746,7 @@ void		patch_daily_F(
     
     // fc & SatPct
     totalfc = patch[0].sat_def_pct_indexM * patch[0].soil_defaults[0][0].fc1_0z[patch[0].sat_def_pct_index+1] + (1.0-patch[0].sat_def_pct_indexM) * patch[0].soil_defaults[0][0].fc1_0z[patch[0].sat_def_pct_index];
-    totalfc *= (1.0-patch[0].basementFrac); // <---- second thought on this, Oct 8, 2019; basement is 3m at most
+    //totalfc *= (1.0-patch[0].basementFrac); // <---- second thought on this, Oct 8, 2019; basement is 3m at most
     
     if (patch[0].sat_deficit < ZERO) {
         //patch[0].aboveWT_SatPct = 1.0;
@@ -2754,8 +2786,8 @@ void		patch_daily_F(
 
     
     if(patch[0].rootzone.potential_sat>ZERO){
-        if (patch[0].sat_deficit > patch[0].rootzone.potential_sat) theta = min(patch[0].rz_storage/patch[0].rootzone.potential_sat/(1.0-patch[0].basementFrac), 1.0);
-        else theta = min((patch[0].rz_storage + patch[0].rootzone.potential_sat - patch[0].sat_deficit)/patch[0].rootzone.potential_sat/(1.0-patch[0].basementFrac),1.0);
+        if (patch[0].sat_deficit > patch[0].rootzone.potential_sat) theta = min(patch[0].rz_storage/patch[0].rootzone.potential_sat, 1.0);//(1.0-patch[0].basementFrac)
+        else theta = min((patch[0].rz_storage + patch[0].rootzone.potential_sat - patch[0].sat_deficit)/patch[0].rootzone.potential_sat,1.0);//(1.0-patch[0].basementFrac)
     }else{ theta = 0.0; }
     patch[0].theta_std = (patch[0].soil_defaults[0][0].theta_mean_std_p2*theta*theta +
                 patch[0].soil_defaults[0][0].theta_mean_std_p1*theta);
