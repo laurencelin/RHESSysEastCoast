@@ -147,7 +147,7 @@ void	basin_daily_F(
 	/*--------------------------------------------------------------*/
 	/* update basin patch accumulator				*/
 	/*--------------------------------------------------------------*/
-    update_basin_patch_accumulator(command_line,
+    if(command_line[0].output_flags.yearly == 1 || command_line[0].output_flags.monthly == 1) update_basin_patch_accumulator(command_line,
                     basin,
                     current_date);
 

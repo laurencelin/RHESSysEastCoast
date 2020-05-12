@@ -70,13 +70,13 @@ void	update_soil_moisture(
 	/*	We use the strict assumption that sat deficit is the	*/
 	/*	amount of water needed to saturate the soil.		*/
 	/*--------------------------------------------------------------*/
-	if ( infiltration > patch[0].sat_deficit - patch[0].unsat_storage - patch[0].rz_storage - patch[0].constraintWaterTableTopDepth_def) {
+	if ( infiltration > patch[0].sat_deficit - patch[0].unsat_storage - patch[0].rz_storage) {
 		/*--------------------------------------------------------------*/
 		/*		Yes the unsat zone will be filled so we may	*/
 		/*		as well treat the unsat_storage and infiltration*/
 		/*		as water added to the water table.		*/
 		/*--------------------------------------------------------------*/
-		patch[0].sat_deficit -= (infiltration + patch[0].unsat_storage + patch[0].rz_storage-patch[0].constraintWaterTableTopDepth_def);
+		patch[0].sat_deficit -= (infiltration + patch[0].unsat_storage + patch[0].rz_storage);
 		/*--------------------------------------------------------------*/
 		/*		There is no unsat_storage left.			*/
 		/*--------------------------------------------------------------*/
@@ -90,23 +90,23 @@ void	update_soil_moisture(
 		//patch[0].cap_rise = 0;
 	}									
 	else if ((patch[0].sat_deficit > patch[0].rootzone.potential_sat) &&
-		(infiltration > patch[0].rootzone.potential_sat*(1.0-patch[0].basementFrac) - patch[0].rz_storage)) {
+		(infiltration > patch[0].rootzone.potential_sat - patch[0].rz_storage)) {
 		/*------------------------------------------------------------------------------*/
 		/*		Just add the infiltration to the rz_storage and unsat_storage	*/
 		/*------------------------------------------------------------------------------*/
-		patch[0].unsat_storage += infiltration - (patch[0].rootzone.potential_sat*(1.0-patch[0].basementFrac) - patch[0].rz_storage);
-		patch[0].rz_storage = patch[0].rootzone.potential_sat*(1.0-patch[0].basementFrac);
+		patch[0].unsat_storage += infiltration - (patch[0].rootzone.potential_sat - patch[0].rz_storage);//*(1.0-patch[0].basementFrac)
+        patch[0].rz_storage = patch[0].rootzone.potential_sat;//*(1.0-patch[0].basementFrac);
 	}								
 		/* Only rootzone layer saturated - perched water table case */
 	else if ((patch[0].sat_deficit > patch[0].rootzone.potential_sat) &&
-		(infiltration <= patch[0].rootzone.potential_sat*(1.0-patch[0].basementFrac) - patch[0].rz_storage)) {
+		(infiltration <= patch[0].rootzone.potential_sat - patch[0].rz_storage)) {
 		/*--------------------------------------------------------------*/
 		/*		Just add the infiltration to the rz_storage	*/
 		/*--------------------------------------------------------------*/
 		patch[0].rz_storage += infiltration;
 	}
 	else if ((patch[0].sat_deficit <= patch[0].rootzone.potential_sat) &&
-		(infiltration <= patch[0].sat_deficit - patch[0].rz_storage - patch[0].unsat_storage- patch[0].constraintWaterTableTopDepth_def)) {
+		(infiltration <= patch[0].sat_deficit - patch[0].rz_storage - patch[0].unsat_storage)) {
 		patch[0].rz_storage += patch[0].unsat_storage;		/* transfer left water in unsat storage to rootzone layer */
 		patch[0].unsat_storage = 0;
 		patch[0].rz_storage += infiltration;

@@ -122,7 +122,7 @@ double	compute_vascular_stratum_conductance(
         );
         // this exp(log(a)*b)is fast then pow(a,b)!
         // LWP_stom_closure = epc.psi_close; when epc.psi_close is big, the wilting_point is small
-	wilting_point *= (1.0-patch[0].basementFrac) * min(patch[0].sat_deficit, patch[0].rootzone.potential_sat);
+	wilting_point *= min(patch[0].sat_deficit, patch[0].rootzone.potential_sat); //(1.0-patch[0].basementFrac) *
 		
 	/*--------------------------------------------------------------*/
 	/*	incident PAR multiplier					*/

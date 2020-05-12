@@ -371,7 +371,7 @@ void		patch_hourly(
 
 
     double totalfc = patch[0].sat_def_pct_indexM * patch[0].soil_defaults[0][0].fc1_0z[patch[0].sat_def_pct_index+1] + (1.0-patch[0].sat_def_pct_indexM) * patch[0].soil_defaults[0][0].fc1_0z[patch[0].sat_def_pct_index];
-    totalfc *= (1.0-patch[0].basementFrac); // <---- second thought on this, Oct 8, 2019; basement is 3m at most
+    //totalfc *= (1.0-patch[0].basementFrac); // <---- second thought on this, Oct 8, 2019; basement is 3m at most
 
 	if (patch[0].sat_deficit < ZERO) {
         //patch[0].aboveWT_SatPct = 1.0;
@@ -496,8 +496,8 @@ void		patch_hourly(
 
     
     if(patch[0].rootzone.potential_sat>ZERO){
-        if (patch[0].sat_deficit > patch[0].rootzone.potential_sat) theta = min(patch[0].rz_storage/patch[0].rootzone.potential_sat/(1.0-patch[0].basementFrac), 1.0);
-        else theta = min((patch[0].rz_storage + patch[0].rootzone.potential_sat - patch[0].sat_deficit)/patch[0].rootzone.potential_sat/(1.0-patch[0].basementFrac),1.0);
+        if (patch[0].sat_deficit > patch[0].rootzone.potential_sat) theta = min(patch[0].rz_storage/patch[0].rootzone.potential_sat, 1.0);//(1.0-patch[0].basementFrac)
+        else theta = min((patch[0].rz_storage + patch[0].rootzone.potential_sat - patch[0].sat_deficit)/patch[0].rootzone.potential_sat,1.0);//(1.0-patch[0].basementFrac)
     }else{ theta = 0.0; }
 	patch[0].theta_std = (patch[0].soil_defaults[0][0].theta_mean_std_p2*theta*theta +
 				patch[0].soil_defaults[0][0].theta_mean_std_p1*theta);

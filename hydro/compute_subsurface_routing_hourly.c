@@ -339,7 +339,7 @@ void compute_subsurface_routing_hourly(
             }
             // fc & SatPct
             totalfc = patch[0].sat_def_pct_indexM * patch[0].soil_defaults[0][0].fc1_0z[patch[0].sat_def_pct_index+1] + (1.0-patch[0].sat_def_pct_indexM) * patch[0].soil_defaults[0][0].fc1_0z[patch[0].sat_def_pct_index];
-            totalfc *= (1.0-patch[0].basementFrac); // <---- second thought on this, Oct 8, 2019; basement is 3m at most
+            //totalfc *= (1.0-patch[0].basementFrac); // <---- second thought on this, Oct 8, 2019; basement is 3m at most
             
             if (patch[0].sat_deficit < ZERO) {
                 //patch[0].aboveWT_SatPct = 1.0;
@@ -445,7 +445,7 @@ void compute_subsurface_routing_hourly(
 			/*	that it accumulates flux in from patches		*/
 			/*	(roads) that direct water to the stream			*/
 			/*--------------------------------------------------------------*/
-                double excess = patch[0].rz_storage+patch[0].unsat_storage - patch[0].sat_deficit + patch[0].constraintWaterTableTopDepth_def;
+            double excess = patch[0].rz_storage+patch[0].unsat_storage - patch[0].sat_deficit;// + patch[0].constraintWaterTableTopDepth_def;
 		      	if (excess > 0) {
 				  
 					patch[0].detention_store += excess;
@@ -679,7 +679,7 @@ void compute_subsurface_routing_hourly(
             }
 
             totalfc = patch[0].sat_def_pct_indexM * patch[0].soil_defaults[0][0].fc1_0z[patch[0].sat_def_pct_index+1] + (1.0-patch[0].sat_def_pct_indexM) * patch[0].soil_defaults[0][0].fc1_0z[patch[0].sat_def_pct_index]; // total fc after ET water consumption to SAT
-            totalfc *= (1.0-patch[0].basementFrac); // <---- second thought on this, Oct 8, 2019; basement is 3m at most
+            //totalfc *= (1.0-patch[0].basementFrac); // <---- second thought on this, Oct 8, 2019; basement is 3m at most
             if (patch[0].sat_deficit < ZERO) {
                 //patch[0].aboveWT_SatPct = 1.0;
                 //patch[0].rootzone.SatPct = 1.0;
@@ -793,7 +793,7 @@ void compute_subsurface_routing_hourly(
             }
             // fc & SatPct
             totalfc = patch[0].sat_def_pct_indexM * patch[0].soil_defaults[0][0].fc1_0z[patch[0].sat_def_pct_index+1] + (1.0-patch[0].sat_def_pct_indexM) * patch[0].soil_defaults[0][0].fc1_0z[patch[0].sat_def_pct_index];
-            totalfc *= (1.0-patch[0].basementFrac); // <---- second thought on this, Oct 8, 2019; basement is 3m at most
+            //totalfc *= (1.0-patch[0].basementFrac); // <---- second thought on this, Oct 8, 2019; basement is 3m at most
             
             if (patch[0].sat_deficit < ZERO) {
                 //patch[0].aboveWT_SatPct = 1.0;
@@ -1077,7 +1077,7 @@ void compute_subsurface_routing_hourly(
             
             // fc & SatPct
             totalfc = patch[0].sat_def_pct_indexM * patch[0].soil_defaults[0][0].fc1_0z[patch[0].sat_def_pct_index+1] + (1.0-patch[0].sat_def_pct_indexM) * patch[0].soil_defaults[0][0].fc1_0z[patch[0].sat_def_pct_index];
-            totalfc *= (1.0-patch[0].basementFrac); // <---- second thought on this, Oct 8, 2019; basement is 3m at most
+            //totalfc *= (1.0-patch[0].basementFrac); // <---- second thought on this, Oct 8, 2019; basement is 3m at most
             
             if (patch[0].sat_deficit < ZERO) {
                  //patch[0].aboveWT_SatPct = 1.0;
@@ -1145,7 +1145,7 @@ void compute_subsurface_routing_hourly(
             
             // fc & SatPct
             totalfc = patch[0].sat_def_pct_indexM * patch[0].soil_defaults[0][0].fc1_0z[patch[0].sat_def_pct_index+1] + (1.0-patch[0].sat_def_pct_indexM) * patch[0].soil_defaults[0][0].fc1_0z[patch[0].sat_def_pct_index];
-            totalfc *= (1.0-patch[0].basementFrac); // <---- second thought on this, Oct 8, 2019; basement is 3m at most
+            //totalfc *= (1.0-patch[0].basementFrac); // <---- second thought on this, Oct 8, 2019; basement is 3m at most
             
             if (patch[0].sat_deficit < ZERO) {
                 //patch[0].aboveWT_SatPct = 1.0;

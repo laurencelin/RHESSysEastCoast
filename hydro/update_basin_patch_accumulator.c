@@ -69,7 +69,7 @@ void update_basin_patch_accumulator(
                 patch[0].acc_month.surfQnet += (patch[0].surface_Qout_total - patch[0].surface_Qin_total);
                 patch[0].acc_month.subQvnet += (patch[0].unsat_drainage - patch[0].cap_rise);
                 patch[0].acc_month.precip += basin->hillslopes[h][0].zones[z][0].rain_hourly_total+basin->hillslopes[h][0].zones[z][0].rain+basin->hillslopes[h][0].zones[z][0].snow; // ERROR
-                patch[0].acc_month.recharge += patch[0].recharge;
+                patch[0].acc_month.recharge += patch[0].recharge; // need to track net recharge
                 patch[0].acc_month.PET += patch[0].PET;
                 patch[0].acc_month.ET += (patch[0].transpiration_sat_zone + patch[0].transpiration_unsat_zone + patch[0].evaporation + patch[0].evaporation_surf  + patch[0].exfiltration_sat_zone + patch[0].exfiltration_unsat_zone);
                 patch[0].acc_month.sat_deficit_z += patch[0].sat_deficit_z;
@@ -82,9 +82,10 @@ void update_basin_patch_accumulator(
                 patch[0].acc_month.mineralization += patch[0].ndf.net_mineralized;
                 patch[0].acc_month.uptake += patch[0].ndf.sminn_to_npool;
                 patch[0].acc_month.subNO3net += patch[0].soil_ns.NO3_Qout_total - patch[0].soil_ns.NO3_Qin_total;
-                patch[0].acc_month.subNO3vnet = patch[0].sat_NO3 - patch[0].acc_month.subNO3vnet;
+                patch[0].acc_month.subNO3vnet += patch[0].sat_NO3 - patch[0].acc_month.subNO3vnet;
                 patch[0].acc_month.subDOCnet += patch[0].soil_cs.DOC_Qout_total - patch[0].soil_cs.DOC_Qin_total;
-                
+                patch[0].acc_month.no3drain2gw += patch[0].gw_drainage_NO3;
+                //patch[0].acc_month.no3diffuse2gw += patch[0].gw_diffuse;
                 
                 // annual
                 patch[0].acc_year.subQnet += (patch[0].Qout_total - patch[0].Qin_total);
@@ -104,9 +105,10 @@ void update_basin_patch_accumulator(
                 patch[0].acc_year.mineralization += patch[0].ndf.net_mineralized;
                 patch[0].acc_year.uptake += patch[0].ndf.sminn_to_npool;
                 patch[0].acc_year.subNO3net += patch[0].soil_ns.NO3_Qout_total - patch[0].soil_ns.NO3_Qin_total;
-                patch[0].acc_year.subNO3vnet = patch[0].sat_NO3 - patch[0].acc_year.subNO3vnet;
+                patch[0].acc_year.subNO3vnet += patch[0].sat_NO3 - patch[0].acc_year.subNO3vnet;
                 patch[0].acc_year.subDOCnet += patch[0].soil_cs.DOC_Qout_total - patch[0].soil_cs.DOC_Qin_total;
-                
+                patch[0].acc_year.no3drain2gw += patch[0].gw_drainage_NO3;
+                //patch[0].acc_year.no3diffuse2gw += patch[0].gw_diffuse;
         
             } /* end of p*/
         } /* end of z*/

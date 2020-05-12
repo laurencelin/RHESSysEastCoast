@@ -327,7 +327,7 @@ void  update_drainage_stream(
     if(extrawater>0){
         // bounded by impervious surface
         // trigger returnflow and fully saturation
-        double imp_unsat_storage = (patch[0].rz_storage+patch[0].unsat_storage+patch[0].constraintWaterTableTopDepth_def)*patch[0].Ksat_vertical;
+        double imp_unsat_storage = (patch[0].rz_storage+patch[0].unsat_storage)*patch[0].Ksat_vertical;
         double imp_sat_def = (patch[0].sat_deficit+route_to_patch/patch[0].area)*patch[0].Ksat_vertical;
         return_flow = max( (imp_unsat_storage-imp_sat_def),0.0); // no counting litter storage
         
@@ -336,7 +336,7 @@ void  update_drainage_stream(
         //counting litter storage
         return_flow = compute_varbased_returnflow(
             patch[0].std * command_line[0].std_scale,
-            (patch[0].rz_storage+patch[0].unsat_storage+patch[0].constraintWaterTableTopDepth_def)*patch[0].Ksat_vertical,
+            (patch[0].rz_storage+patch[0].unsat_storage)*patch[0].Ksat_vertical,
             (patch[0].sat_deficit+route_to_patch/patch[0].area)*patch[0].Ksat_vertical,
             &(patch[0].litter));
         

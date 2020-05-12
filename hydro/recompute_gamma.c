@@ -87,7 +87,8 @@ double recompute_gamma(
             
             
             // new code, Sept 19, 2018
-            if( (water_table_z1 - water_table_z2 - patch[0].innundation_list[d].neighbours[i].patch[0].constraintWaterTableTopDepth )>0 ){
+            if( (water_table_z1 - water_table_z2 )>0 ){
+                // - patch[0].innundation_list[d].neighbours[i].patch[0].constraintWaterTableTopDepth
                 // updating the gamma fractions too
                 patch[0].innundation_list[d].neighbours[i].gamma = (water_table_z1 - water_table_z2) * patch[0].innundation_list[d].neighbours[i].edgedistance; // (edge/distance)
                 revised_total_gamma += patch[0].innundation_list[d].neighbours[i].gamma;

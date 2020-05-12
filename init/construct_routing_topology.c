@@ -152,9 +152,18 @@ struct routing_list_object *construct_routing_topology(char *routing_filename,
             
             // basement implementation is disabled
             // 3m basement depth then 3*baseFrac + 0*(1-baseFrac) = wttd --> baseFrac = wttd/3.0;
-            patch[0].constraintWaterTableTopDepth = wttd;
-            patch[0].basementFrac = 0.0; //min(1.0,wttd/3.0);
-            patch[0].constraintWaterTableTopDepth_def = 0.0;
+            //patch[0].constraintWaterTableTopDepth = wttd;
+            //patch[0].basementFrac = 0.0; //min(1.0,wttd/3.0);
+            //patch[0].constraintWaterTableTopDepth_def = 0.0;
+            
+            if(patch[0].sat_def_head>0){
+                //do nothing
+            }else if(wttd>0){
+                //need to convert depth to sat_def
+                int rtz2_index = (int)(round(wttd*1000));
+                patch[0].sat_def_head = patch[0].soil_defaults[0][0].rtz2sat_def_0z[rtz2_index];
+                //patch[0].rootdepth_index = patch[0].soil_defaults[0][0].rtz2sat_def_pct_index[patch[0].rtz2_index]; // do i need this?
+            }
             
         }// not surface
 		rlist->list[i] = patch;
