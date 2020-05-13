@@ -835,9 +835,13 @@ struct soil_default *construct_soil_defaults(
         
         double solute_0_rtz_soil = rtz_soil_om/(rtz_soil_coef-exp(rtz_soil_vdeay*soildepth));// negative when rtz_soil_vdeay>0
         if(fabs(soilcDecay)>0){
-            default_object_list[i].NO3decayRate_1 = -1.0/default_object_list[i].NO3decayRate + 1.0/default_object_list[i].mz_v;
-            default_object_list[i].NH4decayRate_1 = -1.0/default_object_list[i].NH4decayRate + 1.0/default_object_list[i].mz_v;
-            default_object_list[i].DOMdecayRate_1 = -1.0/default_object_list[i].DOMdecayRate + 1.0/default_object_list[i].mz_v;
+            default_object_list[i].NO3decayRate_1 = -1.0/soilcDecay + 1.0/default_object_list[i].mz_v;
+            default_object_list[i].NH4decayRate_1 = -1.0/soilcDecay + 1.0/default_object_list[i].mz_v;
+            default_object_list[i].DOMdecayRate_1 = -1.0/soilcDecay + 1.0/default_object_list[i].mz_v;
+            
+            default_object_list[i].NO3decayRate = -1.0/default_object_list[i].NO3decayRate_1;
+            default_object_list[i].NH4decayRate = -1.0/default_object_list[i].NH4decayRate_1;
+            default_object_list[i].DOMdecayRate = -1.0/default_object_list[i].DOMdecayRate_1;
         }else{
             if(fabs(default_object_list[i].NO3decayRate)>0){
                 default_object_list[i].NO3decayRate_1 = -1.0/default_object_list[i].NO3decayRate;
