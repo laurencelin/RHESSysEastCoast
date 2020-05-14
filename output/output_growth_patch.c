@@ -114,14 +114,16 @@ void	output_growth_patch(
 					patch[0].cdf.soil3c_hr + 
 					patch[0].cdf.soil4c_hr);
 
-			aresp += strata->cover_fraction
-					* (strata->cdf.leaf_day_mr + strata->cdf.cpool_leaf_gr
-					+ strata->cdf.leaf_night_mr +	strata->cdf.livestem_mr
-					+ strata->cdf.cpool_livestem_gr + strata->cdf.livecroot_mr
-					+ strata->cdf.cpool_livecroot_gr
-					+ strata->cdf.cpool_deadcroot_gr
-					+ strata->cdf.froot_mr + strata->cdf.cpool_froot_gr
-					+ strata->cdf.cpool_to_gresp_store);
+            aresp += strata->cover_fraction * (strata->cdf.total_mr + strata->cdf.total_gr);
+
+//			aresp += strata->cover_fraction
+//					* (strata->cdf.leaf_day_mr + strata->cdf.cpool_leaf_gr
+//					+ strata->cdf.leaf_night_mr +	strata->cdf.livestem_mr
+//					+ strata->cdf.cpool_livestem_gr + strata->cdf.livecroot_mr
+//					+ strata->cdf.cpool_livecroot_gr
+//					+ strata->cdf.cpool_deadcroot_gr
+//					+ strata->cdf.froot_mr + strata->cdf.cpool_froot_gr
+//					+ strata->cdf.cpool_to_gresp_store);
 
 //            awoodc += strata->cover_fraction * (strata->cs.live_crootc
 //                + strata->cs.live_stemc + strata->cs.dead_crootc

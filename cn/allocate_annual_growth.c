@@ -90,8 +90,12 @@ int allocate_annual_growth(				int id,
 
     
     //annual plant report for its growth period performance
+    // gwPSN = GPP;
     double what = 1.0/(1.0*stratum->gDayCount);
-    double evaluate = stratum[0].cs.cpool + (stratum->gwPSN - stratum->gwMResp)*what*(1.0*stratum->gDayCount) - stratum->gwMResp*what*(365.0-1.0*stratum->gDayCount);
+    double evaluate = stratum[0].cs.cpool + (stratum->gwPSN/(1.0+stratum[0].defaults[0][0].epc.gr_perc) - stratum->gwMResp);
+    evaluate -= epc.phenology_type != EVERGREEN? (stratum->gwMResp - stratum->gwMRespLeaf)*what*(365.0-1.0*stratum->gDayCount) : stratum->gwMResp*what*(365.0-1.0*stratum->gDayCount);
+    
+    
     /* for deciduous system, force leafc and frootc to exactly 0.0 on the last day */
     if (epc.phenology_type != EVERGREEN){
         if (ns->leafn < 1e-10)  {
@@ -102,7 +106,7 @@ int allocate_annual_growth(				int id,
             ns->frootn = 0.0;
             cs->frootc = 0.0;
         }
-    }
+    }// count for slight negative in leaffall process
     
     
     existingLeafCarbon = cs->leafc + cs->leafc_store + cs->leafc_transfer;
@@ -124,10 +128,10 @@ int allocate_annual_growth(				int id,
     double minFrootCarbon = existingLivebiomass * allometric_frootRatio;
     double minWoodCarbon = existingLivebiomass * allometric_livewoodRatio;
     
-    
+    // this function is call at the last day of leaf fall, right?
     //stratum[0].cdf.leaf_day_mr reset everyday
-    double totalResp = epc.veg_type == TREE? 0.002739726/(ns->live_stemn + ns->live_crootn + ns->frootn + ns->leafn) : 0.002739726/(ns->frootn + ns->leafn);
-    double potReduceLeafCarbon = evaluate>0? 0.0 : -evaluate*ns->leafn*totalResp;
+    double totalResp = epc.veg_type == TREE? 0.002739726/(ns->live_stemn + ns->live_crootn + ns->frootn + (epc.phenology_type != EVERGREEN? 0.0 : ns->leafn)) : 0.002739726/(ns->frootn + ns->leafn);// conver annual to daily
+    double potReduceLeafCarbon = evaluate>0? 0.0 : -evaluate*(epc.phenology_type != EVERGREEN? 0.0 : ns->leafn)*totalResp;
     double potReduceCrootCarbon = evaluate>0? 0.0 : -evaluate*ns->live_crootn*totalResp;
     double potReduceStemCarbon = evaluate>0? 0.0 : -evaluate*ns->live_stemn*totalResp;
     double potReduceFrootCarbon = evaluate>0? 0.0 : -evaluate*ns->frootn*totalResp;
@@ -256,8 +260,9 @@ int allocate_annual_growth(				int id,
     }// end of if
     
     // ---- leafc
+    double maxReducePropLeaf = epc.phenology_type == EVERGREEN? 0.4 : 0.2;
     if(epc.veg_type != NON_VEG && potReduceLeafCarbon>0){
-        if(cs->leafc_transfer>0 && cs->leafc_transfer > potReduceLeafCarbon){
+        if(cs->leafc_transfer>0 && cs->leafc_transfer*maxReducePropLeaf > potReduceLeafCarbon){
             tmpRatio = potReduceCrootCarbon/cs->leafc_transfer;
             exceedC += potReduceLeafCarbon;
             exceedN += ns->leafn_transfer * tmpRatio;
@@ -266,15 +271,15 @@ int allocate_annual_growth(				int id,
             ns->leafn_transfer *= tmpRatio;
             potReduceLeafCarbon=0.0;
         }else{
-            exceedC += cs->leafc_transfer;
-            exceedN += ns->leafn_transfer;
-            potReduceCrootCarbon -= cs->leafc_transfer;
-            cs->leafc_transfer = 0.0;
-            ns->leafn_transfer = 0.0;
+            exceedC += cs->leafc_transfer*maxReducePropLeaf;
+            exceedN += ns->leafn_transfer*maxReducePropLeaf;
+            potReduceCrootCarbon -= cs->leafc_transfer*maxReducePropLeaf;
+            cs->leafc_transfer *= 1.0-maxReducePropLeaf;
+            ns->leafn_transfer *= 1.0-maxReducePropLeaf;
         }// end of if
     }// end of if
     if(epc.veg_type != NON_VEG && potReduceLeafCarbon>0){
-        if(cs->leafc_store >0 && cs->leafc_store > potReduceLeafCarbon){
+        if(cs->leafc_store >0 && cs->leafc_store*maxReducePropLeaf > potReduceLeafCarbon){
             tmpRatio = potReduceCrootCarbon/cs->leafc_store;
             exceedC += potReduceLeafCarbon;
             exceedN += ns->leafn_store * tmpRatio;
@@ -283,15 +288,15 @@ int allocate_annual_growth(				int id,
             ns->leafn_store *= tmpRatio;
             potReduceLeafCarbon=0.0;
         }else{
-            exceedC += cs->leafc_store;
-            exceedN += ns->livecrootn_store;
-            potReduceCrootCarbon -= cs->leafc_store;
-            cs->leafc_store = 0.0;
-            ns->leafn_store = 0.0;
+            exceedC += cs->leafc_store*maxReducePropLeaf;
+            exceedN += ns->livecrootn_store*maxReducePropLeaf;
+            potReduceCrootCarbon -= cs->leafc_store*maxReducePropLeaf;
+            cs->leafc_store *= 1.0-maxReducePropLeaf;
+            ns->leafn_store *= 1.0-maxReducePropLeaf;
         }// end of if
     }// end of if
     if(epc.veg_type != NON_VEG && potReduceLeafCarbon>0){
-        if(cs->leafc >0 && cs->leafc*0.2 > potReduceLeafCarbon){
+        if(cs->leafc >0 && cs->leafc*maxReducePropLeaf > potReduceLeafCarbon){
             tmpRatio = potReduceCrootCarbon/cs->leafc;
             double N2liter = potReduceCrootCarbon/epc.leaflitr_cn;
             exceedN += ns->leafn * tmpRatio - N2liter;
@@ -314,8 +319,8 @@ int allocate_annual_growth(				int id,
             potReduceLeafCarbon=0.0;
         }else if(cs->leafc >0){
             //printf();
-            double tmpC = 0.2 * cs->leafc;
-            tmpRatio = 0.2;
+            double tmpC = maxReducePropLeaf * cs->leafc;
+            tmpRatio = maxReducePropLeaf;
             double N2liter = tmpC/epc.leaflitr_cn;
             exceedN += ns->leafn * tmpRatio - N2liter;
             
@@ -582,17 +587,7 @@ int allocate_annual_growth(				int id,
                (stratum[0].cs.frootc + stratum[0].cs.frootc_store + stratum[0].cs.frootc_transfer)
                );
         
-        stratum->gDayCount=0;
-        stratum->nFactor=0.0; // tracking @ allocate_daily_growth  <<--------- need to check
-        stratum->wFactor=0.0; // tracking @ patch_daily_F          <<--------- need to check
-        stratum->lFactor=0.0; // tracking @ canopy_stratum_daily_F <<--------- need to check
-        stratum->gFactor=0.0; // tracking @ canopy_stratum_daily_F <<--------- actual gl vs potential gl (what's difference?)
-        stratum->gwPSN=0.0; // tracking @ canopy_stratum_daily_F
-        stratum->gwMResp=0.0; // tracking @ canopy_stratum_daily_F
-        stratum->gwAPAR=0.0; // tracking @ canopy_stratum_daily_F
-        stratum->gwLWP=0.0; // tracking @ canopy_stratum_daily_F
-        stratum->gwVPD=0.0; // tracking @ canopy_stratum_daily_F
-        // patch vegid day month year gday nfactor wfactor lfactor gfactor basement cover cpool gwPSN gwMresp gwAPAR gwLWP gwVPD wtz adjustWTZ adjustH2O leafc frootc num_resprout
+        // report patch vegid day month year gday nfactor wfactor lfactor gfactor basement cover cpool gwPSN gwMresp gwAPAR gwLWP gwVPD wtz perivnss  num_resprout redLeafC redCrootc redStemC redFrootC leafc rootc stemc frootc
         cs->num_resprout += 1;
         
         if (cs->num_resprout > 5 ) {
@@ -682,6 +677,18 @@ int allocate_annual_growth(				int id,
         cs->age += 1;
     }// min leafc
 
+    
+    stratum->gDayCount=0;
+    stratum->nFactor=0.0; // tracking @ allocate_daily_growth  <<--------- need to check
+    stratum->wFactor=0.0; // tracking @ patch_daily_F          <<--------- need to check
+    stratum->lFactor=0.0; // tracking @ canopy_stratum_daily_F <<--------- need to check
+    stratum->gFactor=0.0; // tracking @ canopy_stratum_daily_F <<--------- actual gl vs potential gl (what's difference?)
+    stratum->gwPSN=0.0; // tracking @ canopy_stratum_daily_F
+    stratum->gwMResp=0.0; // tracking @ canopy_stratum_daily_F
+    stratum->gwMRespLeaf=0.0; // tracking @ canopy_stratum_daily_F
+    stratum->gwAPAR=0.0; // tracking @ canopy_stratum_daily_F
+    stratum->gwLWP=0.0; // tracking @ canopy_stratum_daily_F
+    stratum->gwVPD=0.0; // tracking @ canopy_stratum_daily_F
     
 
 	

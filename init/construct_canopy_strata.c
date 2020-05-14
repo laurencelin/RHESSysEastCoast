@@ -610,6 +610,7 @@ struct canopy_strata_object *construct_canopy_strata(
     canopy_strata[0].gFactor = 0.0;
     canopy_strata[0].gwPSN = 0.0;
     canopy_strata[0].gwMResp = 0.0;
+    canopy_strata[0].gwMRespLeaf = 0.0;
     canopy_strata[0].gwAPAR = 0.0;
     canopy_strata[0].gwLWP = 0.0;
     canopy_strata[0].gwVPD = 0.0;

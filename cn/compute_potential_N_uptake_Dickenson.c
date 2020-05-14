@@ -102,17 +102,14 @@ double compute_potential_N_uptake_Dickenson(
     
 	fleaf = exp(-1.0*epc.dickenson_pa * epv->proj_lai);
     // dickenson_pa = 0.25 default
-    fleaf = min(fleaf, 1.0) * (epv->proj_lai<MAX_LAI? 1.0 : 0.0);
+    // at LAI 6, fleaf = 0.22 - 0.23
     
-    //total_nonwood = (cs->dead_leafc + cs->leafc + cs->frootc);
-	//total_wood = (cs->live_crootc + cs->dead_crootc + cs->live_stemc + cs->dead_stemc);
-    // this calculation here only varies the allocation ratio at daily basis within a year. does not actually simulating the aging effect. stem allocation is less as tree gets old.
-    
+
 
 	if (epc.veg_type==TREE) {
 		if (2*fleaf < 0.8) {
             //when LAI is greater than the turning point
-            froot = (fleaf>0, fleaf, 0.39); //max(fleaf,0.39);
+            froot = fleaf; //max(fleaf,0.39);
 			fwood= 1.0-fleaf-froot; // --> greater wood growth
         }else{
             //when LAI is less than the turning point

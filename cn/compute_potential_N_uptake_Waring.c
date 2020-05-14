@@ -122,7 +122,7 @@ double compute_potential_N_uptake_Waring(
             // epc.waring_pa = 0.8 default
             // epc.waring_pb = 2.5 default
             if (epc.veg_type == TREE){
-                fleaf = (1.0 - froot) / (1 + (1+f2)*f3) * (epv->proj_lai<MAX_LAI? 1.0 : 0.0);
+                fleaf = (1.0 - froot) / (1 + (1+f2)*f3);
                 fwood = 1.0 - froot - fleaf;
             } else{
                 fleaf = 1.0 - froot;
@@ -134,12 +134,6 @@ double compute_potential_N_uptake_Waring(
             fwood = 0.0;
         }
 
-//        if (fleaf > ZERO)
-//            f3 = (1.0-fleaf-froot)/ (fleaf*(1.0+f2));
-//        else
-//            f3 = 0.0;
-
-         // fwood = fleaf*f3*(1.0+f2);
 
 
         if ((fleaf + froot) > ZERO) {

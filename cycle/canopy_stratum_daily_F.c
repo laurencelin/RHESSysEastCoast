@@ -1694,6 +1694,7 @@ void	canopy_stratum_daily_F(
 		}
         if(stratum[0].phen.gwseasonday>0){
             stratum[0].gwMResp += stratum[0].cdf.leaf_day_mr + stratum[0].cdf.leaf_night_mr + stratum[0].cdf.livecroot_mr + stratum[0].cdf.livestem_mr + stratum[0].cdf.froot_mr;
+            stratum[0].gwMRespLeaf += stratum[0].cdf.leaf_day_mr + stratum[0].cdf.leaf_night_mr;
         }
         
 		if ((stratum[0].epv.all_lai > ZERO) && (stratum[0].snow_stored < ZERO))  {

@@ -59,7 +59,36 @@ int update_C_stratum_daily(struct epconst_struct epc,
 		cs->livecroot_mr_snk += cdf->livecroot_mr;
 	}
 	cs->net_psn = cdf->psn_to_cpool - cdf->total_mr - cdf->total_gr;
-
+//    if(cs->net_psn < -0.02) printf("problem[%d] %e %e, %e[%e+%e+%e+%e+%e], %e[%e+%e+%e+%e+%e+%e+%e+%e+%e+%e+%e+%e], %e[(%e+%e+%e+%e+%e+%e)*%e], %e\n",
+//        stratum[0].ID,
+//        cs->net_psn,
+//        cdf->psn_to_cpool,
+//        //--------
+//        cdf->total_mr,
+//        cdf->leaf_day_mr, cdf->leaf_night_mr,//
+//        cdf->livestem_mr,//
+//        cdf->livecroot_mr,//
+//        cdf->froot_mr,// 6
+//        //--------
+//        cdf->total_gr, // cost to turn into flesh (error?)
+//        cdf->cpool_leaf_gr, cdf->transfer_leaf_gr,
+//        cdf->cpool_livestem_gr, cdf->transfer_livestem_gr,
+//        cdf->cpool_livecroot_gr, cdf->transfer_livecroot_gr,
+//        cdf->cpool_deadcroot_gr, cdf->transfer_deadcroot_gr,
+//        cdf->cpool_deadstem_gr, cdf->transfer_deadstem_gr,
+//        cdf->cpool_froot_gr, cdf->transfer_froot_gr,//13
+//        //--------
+//        cdf->cpool_to_gresp_store, // cost to build storage (error?)
+//        cdf->cpool_to_leafc_store,
+//        cdf->cpool_to_frootc_store,
+//        cdf->cpool_to_livestemc_store, cdf->cpool_to_deadstemc_store,
+//        cdf->cpool_to_livecrootc_store, cdf->cpool_to_deadcrootc_store,
+//        epc.gr_perc,//8
+//        //---------
+//        cs->availc);
+      
+    
+    
 
 	/* Daily allocation fluxes */
 	/* daily leaf allocation fluxes */

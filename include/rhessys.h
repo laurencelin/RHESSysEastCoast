@@ -2756,6 +2756,7 @@ struct  canopy_strata_object
             double gFactor; //conductivity
             double gwPSN;
             double gwMResp;
+            double gwMRespLeaf;
             double gwAPAR;
             double gwLWP;
             double gwVPD;

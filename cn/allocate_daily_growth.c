@@ -339,143 +339,26 @@ int allocate_daily_growth(int nlimit,
     excess_lai = 0.0;
     double MAX_LAI = stratum[0].local_max_lai; //epc.max_lai;
     double MAX_LAI_c = MAX_LAI/epc.proj_sla;
-    excess_lai = (cs->leafc + cs->leafc_store + cs->leafc_transfer + cdf->cpool_to_leafc + cdf->cpool_to_leafc_store) * epc.proj_sla - MAX_LAI;
+    
+    // nned to fix below; it prevent allocation to leaf_store for next year if current year LAI reaches its max.
+    excess_lai = (cs->leafc + cs->leafc_transfer + cdf->cpool_to_leafc) * epc.proj_sla - MAX_LAI; //one solution is to drop the store in calculation
     if ( excess_lai > ZERO){
 
-        //excess_c = excess_lai / epc.proj_sla;
-        if (epc.veg_type == TREE) {
-            
-            excess_allocation_to_leaf = cs->leafc + cs->leafc_store + cs->leafc_transfer - MAX_LAI_c; // if exiting > max_LAI
-            double sumGO = cdf->cpool_to_leafc + cdf->cpool_to_leafc_store;
-            if(excess_allocation_to_leaf > 0){
-                // existing: cs->leafc + cs->leafc_store + cs->leafc_transfer
-                // building: cdf->cpool_to_leafc + cdf->cpool_to_leafc_store (theses are removed)
-                cdf->cpool_to_deadstemc += fdead*sumGO;
-                cdf->cpool_to_livestemc += flive*sumGO;
-                ndf->npool_to_deadstemn += fdead*sumGO / cndw;
-                ndf->npool_to_livestemn += flive*sumGO / cnlw;
-
-                cdf->cpool_to_leafc = 0.0;
-                cdf->cpool_to_leafc_store = 0.0;
-                ndf->npool_to_leafn = 0.0;
-                ndf->npool_to_leafn_store = 0.0;
-                // actual uptake is calculated below.
-                
-                // to do something on the existing mass: liter, DOC
-                // litter
-//                if (compute_leaf_litfall(epc,
-//                                         excess_allocation_to_leaf * cs->leafc / (cs->leafc + cs->leafc_store + cs->leafc_transfer),
-//                                         stratum[0].cover_fraction,
-//                                         cs,
-//                                         ns,
-//                                         patch[0].litter_cs,
-//                                         patch[0].litter_ns,
-//                                         patch,
-//                                         patch[0].cdf,
-//                                         patch[0].ndf,
-//                                         cdf,ndf,
-//                                         command_line[0].grow_flag,
-//                                         command_line[0].BGC_flag)){
-//                    fprintf(stderr,
-//                            "FATAL ERROR: in leaf_litfall() from update_phenology()\n");
-//                    exit(EXIT_FAILURE);
-//                }
-                // DOC
-                double hold = min(cs->leafc_store, excess_allocation_to_leaf *  cs->leafc_store /(cs->leafc + cs->leafc_store + cs->leafc_transfer));
-                cs->leafc_store -= hold;
-                cs->cpool += hold;
-                hold = min(ns->leafn_store, hold/cnl);
-                ns->leafn_store -= hold;
-                ns->npool += hold;
-                
-                hold = min(cs->leafc_transfer, excess_allocation_to_leaf *  cs->leafc_transfer /(cs->leafc + cs->leafc_store + cs->leafc_transfer));
-                cs->leafc_transfer -= hold;
-                cs->cpool += hold;
-                hold = min(ns->leafn_transfer, hold/cnl);
-                ns->leafn_transfer -= hold;
-                ns->npool += hold;
-                
-                
-                
-            }else if(sumGO>0){
-                // excess_allocation_to_leaf <= 0 but excess_lai>0
-                //existing parts are not yet over the max LAI yet; so some "transfer" will go
-                //sumGO = cdf->cpool_to_leafc + cdf->cpool_to_leafc_store;
-                excess_allocation_to_leaf += sumGO; // should make "excess_allocation_to_leaf" positive
-                double ratio = 1.0 - excess_allocation_to_leaf/sumGO;
-                
-                //cdf->cpool_to_frootc += excess_allocation_to_leaf;
-                //ndf->npool_to_frootn += excess_allocation_to_leaf/cnfr;
-                
-                cdf->cpool_to_deadstemc += fdead*excess_allocation_to_leaf;
-                cdf->cpool_to_livestemc += flive*excess_allocation_to_leaf;
-                ndf->npool_to_deadstemn += fdead*excess_allocation_to_leaf / cndw;
-                ndf->npool_to_livestemn += flive*excess_allocation_to_leaf / cnlw;
-                cdf->cpool_to_leafc *= ratio;
-                cdf->cpool_to_leafc_store *= ratio;
-                ndf->npool_to_leafn *= ratio;
-                ndf->npool_to_leafn_store *= ratio;
-            }
-//            printf("allocate_daily_growth excess_lai tree [%d: %d,%d,%d]: (%e[%e,%e,%e], %e~%e, %e)\n",
-//                   stratum->defaults[0][0].ID, current_date.day, current_date.month, current_date.year,
-//                   excess_c,
-//                   cs->leafc, cs->leafc_transfer, cs->leafc_store,
-//                   excess_allocation_to_leaf, cdf->cpool_to_leafc,
-//                   excess_lai);
-
-        } else {
-            
-            // non-tree
-            excess_allocation_to_leaf = cs->leafc + cs->leafc_store + cs->leafc_transfer - MAX_LAI_c;
-            // problem here: cs->leafc_store and cs->leafc_transfer are previously stored
-            
-            double sumGO = cdf->cpool_to_leafc + cdf->cpool_to_leafc_store;
-            if(excess_allocation_to_leaf > 0){
-                // mean all transfer and store can go to froot
-//                printf("allocate_daily_growth_excessLAI_grass %e,%e,%e\n",
-//                       sumGO,sumGO/cnfr,);
-                cdf->cpool_to_frootc += sumGO;
-                ndf->npool_to_frootn += sumGO/cnfr;
-                
-                cdf->cpool_to_leafc = 0.0;
-                cdf->cpool_to_leafc_store = 0.0;
-                ndf->npool_to_leafn = 0.0;
-                ndf->npool_to_leafn_store = 0.0;
-                
-                // turn some tissus to DOC
-                double hold = min(cs->leafc_store, excess_allocation_to_leaf *  cs->leafc_store /(cs->leafc + cs->leafc_store + cs->leafc_transfer));
-                cs->leafc_store -= hold;
-                cs->cpool += hold;
-                hold = min(ns->leafn_store, hold/cnl);
-                ns->leafn_store -= hold;
-                ns->npool += hold;
-                
-                hold = min(cs->leafc_transfer, excess_allocation_to_leaf *  cs->leafc_transfer /(cs->leafc + cs->leafc_store + cs->leafc_transfer));
-                cs->leafc_transfer -= hold;
-                cs->cpool += hold;
-                hold = min(ns->leafn_transfer, hold/cnl);
-                ns->leafn_transfer -= hold;
-                ns->npool += hold;
-                
-            }else if(sumGO>0){
-                //existing parts are not yet over the max LAI yet; so some "transfer" will go
-                excess_allocation_to_leaf += sumGO; // should make "excess_allocation_to_leaf" positive !! based on the first if
-                double ratio = 1.0 - excess_allocation_to_leaf/sumGO;
-                
-                cdf->cpool_to_frootc += excess_allocation_to_leaf;
-                ndf->npool_to_frootn += excess_allocation_to_leaf/cnfr;
-                cdf->cpool_to_leafc *= ratio;
-                cdf->cpool_to_leafc_store *= ratio;
-                ndf->npool_to_leafn *= ratio;
-                ndf->npool_to_leafn_store *= ratio;
-            }
-//            printf("allocate_daily_growth excess_lai non-tree [%d: %d,%d,%d]: (%e[%e,%e,%e], %e~%e, %e)\n",
-//                   stratum->defaults[0][0].ID, current_date.day, current_date.month, current_date.year,
-//                   excess_c,
-//                   cs->leafc, cs->leafc_transfer, cs->leafc_store,
-//                   excess_allocation_to_leaf, cdf->cpool_to_leafc,
-//                   excess_lai);
-        }// tree
+        // cs->leafc_transfer + cdf->cpool_to_leafc need to go away
+        excess_allocation_to_leaf = cs->leafc + cs->leafc_transfer + cdf->cpool_to_leafc - MAX_LAI_c; // if exiting > max_LAI
+        
+        double tmpRatio = min(1.0, excess_allocation_to_leaf / (cs->leafc_transfer + cdf->cpool_to_leafc));
+        cs->cpool += cs->leafc_transfer * tmpRatio;
+        ns->npool += ns->leafn_transfer * tmpRatio;
+        cdf->cpool_to_leafc_store += cdf->cpool_to_leafc * tmpRatio;
+        ndf->npool_to_leafn_store += ndf->npool_to_leafn * tmpRatio;
+        
+        tmpRatio = max(0.0, 1.0 - tmpRatio);
+        cs->leafc_transfer *= tmpRatio;
+        ns->leafn_transfer *= tmpRatio;
+        cdf->cpool_to_leafc *= tmpRatio;
+        ndf->npool_to_leafn *= tmpRatio;
+        
     }//excess_lai
     
 

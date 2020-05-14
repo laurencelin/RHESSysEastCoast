@@ -211,6 +211,12 @@ void	canopy_stratum_growth(
             exit(EXIT_FAILURE);
         }
         
+        //38610, 42534, 40571
+//        if(patch[0].ID==38610) printf("track %d %d %d %d %e %e %e %e %e\n",
+//            current_date.year, current_date.month, current_date.day,stratum[0].defaults[0][0].ID,
+//            stratum[0].cs.leafc, stratum[0].cs.leafc_store, stratum[0].cs.leafc_transfer,
+//            stratum[0].cdf.cpool_to_leafc, stratum[0].cdf.cpool_to_leafc_store);
+//
 	} else  {
         // non-growth
 		stratum[0].cs.net_psn = stratum[0].cdf.psn_to_cpool - stratum[0].cdf.total_mr - stratum[0].cdf.total_gr;
