@@ -56,7 +56,7 @@ double compute_potential_N_uptake_combined(
 	/*------------------------------------------------------*/
 	double day_gpp;     /* daily gross production */
 	double day_mresp;   /* daily total maintenance respiration */
-	double froot, fleaf, fwood;          /* RATIO   new fine root C : new leaf C     */
+    double froot, fleaf, fwood, fstem, fcroot;          /* RATIO   new fine root C : new leaf C     */
 	double f2;          /* RATIO   fraction to leaf and fraction to root*/
 	double f4;          /* RATIO   new live wood C : new wood C     */
 	double f3;          /* RATIO   new leaf C : new wood C     */
@@ -114,70 +114,78 @@ double compute_potential_N_uptake_combined(
 	/*	constants a and b are taken from Landsberg and Waring, 1997 */
 	/*--------------------------------------------------------------*/
 	
-	if (((cdf->potential_psn_to_cpool) > ZERO) && (cdf->psn_to_cpool > ZERO)) {
-	c = max(cdf->potential_psn_to_cpool, cdf->psn_to_cpool);
-	plant_calloc = cs->availc;
-	if ((plant_calloc > ZERO) && (c > 0)){
-		
-		/*--------------------------------------------------------------- 
-		combined allocation 
-		waring_pa and waring_pb control the exponential decay constant (k)
-		in the dickenson allocation (i.e. old dickenson_pa) 
-		original dickenson allocation was fleaf=exp(-1*k*lai) use  
-		froot = (1-leaf) for simplicity  
-			--------------------------------------------------------------- */
-		dickenson_k = (epc.waring_pa / (1.0 + epc.waring_pb * (cdf->psn_to_cpool) / c));
-        // when cdf->psn_to_cpool/c = 1, then dickenson_k = 0.2285714
+    if (((cdf->potential_psn_to_cpool) > ZERO) && (cdf->psn_to_cpool > ZERO)) {
+        c = max(cdf->potential_psn_to_cpool, cdf->psn_to_cpool);
+        plant_calloc = cs->availc;
+        if ((plant_calloc > ZERO) && (c > 0)){
+            
+            /*---------------------------------------------------------------
+            combined allocation
+            waring_pa and waring_pb control the exponential decay constant (k)
+            in the dickenson allocation (i.e. old dickenson_pa)
+            original dickenson allocation was fleaf=exp(-1*k*lai) use
+            froot = (1-leaf) for simplicity
+                --------------------------------------------------------------- */
+            dickenson_k = (epc.waring_pa / (1.0 + epc.waring_pb * (cdf->psn_to_cpool) / c));
+            // when cdf->psn_to_cpool/c = 1, then dickenson_k = 0.2285714
 
-        froot = (1-exp(-1.0*dickenson_k * epv->proj_lai)); //let LAI = 1; then 0.2043305
-        // when LAI is high, it develops root more;
-        // when LAI is low, it develop less root; but "fleaf" is still largely limited by the def allometic ratio
-        // 0.5 LAI will make froot ~ 0.1
-		
-		if (epc.veg_type == TREE)
-			fleaf = (1.0 - froot) / (1 + (1+f2)*f3);
-		else
-			fleaf = 1.0 - froot;
-	}
-	else {
-		froot = 0.0;
-		fleaf = 0.0;
-	}
-
-	if (fleaf > ZERO)
-		f3 = (1.0-fleaf-froot)/ (fleaf*(1.0+f2));
-	else
-		f3 = 0.0;
-
-	fwood = fleaf*f3*(1.0+f2);
-
-
-	if ((fleaf + froot) > ZERO) {	
-	if (epc.veg_type == TREE){
-		mean_cn = 1.0 / (fleaf / cnl + froot / cnfr + f4 * fwood / cnlw + fwood * (1.0-f4) / cndw);
-		}
-        else{
-           mean_cn = 1.0 / (fleaf / cnl + froot / cnfr);
+            froot = (1-exp(-1.0*dickenson_k * epv->proj_lai)); //let LAI = 1; then 0.2043305
+            // when LAI is high, it develops root more;
+            // when LAI is low, it develop less root; but "fleaf" is still largely limited by the def allometic ratio
+            // 0.5 LAI will make froot ~ 0.1
+            
+            if (epc.veg_type == TREE)
+                fleaf = (1.0 - froot) / (1 + (1+f2)*f3);
+            else
+                fleaf = 1.0 - froot;
         }
-	}
-	else mean_cn = 1.0;
+        else {
+            froot = 0.0;
+            fleaf = 0.0;
+        }
 
-	if (c_allometry > ZERO)
-        plant_ndemand = cs->availc / (1.0+epc.gr_perc) / mean_cn;// -  max(ns->retransn,0.0);
-	else
-		plant_ndemand = 0.0;
+        if (fleaf > ZERO)
+            f3 = (1.0-fleaf-froot)/ (fleaf*(1.0+f2));
+        else
+            f3 = 0.0;
 
-	}
-	else {
+        fwood = fleaf*f3*(1.0+f2);
+        fstem = fwood * (1.0-epc.alloc_crootc_stemc/ (1.0+epc.alloc_crootc_stemc));
+        fcroot = fwood * epc.alloc_crootc_stemc/ (1.0+epc.alloc_crootc_stemc);
+     
+            
+            
+            
+            
+        if ((fleaf + froot) > ZERO) {
+            if (epc.veg_type == TREE){
+                mean_cn = (fleaf+froot+fwood) / (fleaf / cnl + froot / cnfr + f4 * fwood / cnlw + fwood * (1.0-f4) / cndw);
+            } else{
+               mean_cn = (fleaf+froot) / (fleaf / cnl + froot / cnfr);
+            }
+        } else{
+          mean_cn = 1.0;
+        }
+
+        if (c_allometry > ZERO)
+            plant_ndemand = cs->availc / (1.0+epc.gr_perc) *(fleaf+froot+fwood) / mean_cn;// -  max(ns->retransn,0.0);
+        else
+            plant_ndemand = 0.0;
+
+    } else {
 		plant_ndemand = 0.0;
 		fleaf = 0.0;
 		froot = 0.0;
 		fwood = 0.0;
+        fstem = 0.0;
+        fcroot = 0.0;
 	}
 
 	cdf->fleaf = fleaf;
 	cdf->fwood = fwood;
 	cdf->froot = froot;
+    cdf->fstem = fstem;
+    cdf->fcroot = fcroot;
 
 //    printf("plant uptake (combined): %f,%f,%f,%f,%f\n",cdf->psn_to_cpool,cdf->total_mr,cs->cpool,cs->availc,plant_ndemand);
     

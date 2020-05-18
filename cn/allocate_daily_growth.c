@@ -65,33 +65,30 @@ int allocate_daily_growth(int nlimit,
 	double froot;          /* RATIO   new fine root C : new total C     */
 	double flive, fdead;	/* RATIO  live/dead C : new total C */
 	double fwood;          /* RATIO   wood          */
-	double fcroot;          /* RATIO   new stem C : new croot C */   
+    double fstem, fcroot;
 	double f3;		
 	double g1;          /* RATIO   C respired for growth : C grown  */
 	double cnl;         /* RATIO   leaf C:N      */
 	double cnfr;        /* RATIO   fine root C:N */
 	double cnlw;        /* RATIO   live wood C:N */
 	double cndw;        /* RATIO   dead wood C:N */
-	double nlc;         /* actual new leaf C, minimum of C and N limits   */
+	//double nlc;         /* actual new leaf C, minimum of C and N limits   */
 	double amt_fix, cost_fix, closs;
 	double gresp_store, total_wood;
 	double mean_cn;
 	double sum_plant_nsupply, soil_nsupply;
 	double plant_nalloc=0.0;
 	double plant_calloc;
-	double plant_remaining_ndemand;
+	double plant_remaining_ndemand=0.0;
 	double excess_allocation_to_leaf, excess_c, excess_lai;
 	double sminn_to_npool;
 	double totalc_used;
 	
 
 	/* assign local values for the allocation control parameters */
-	//fcroot = epc.alloc_crootc_stemc; (wrong);
-    //fcroot means "croot/(croof+stemc)" here
-    fcroot = epc.alloc_crootc_stemc/ (1.0+epc.alloc_crootc_stemc);
 	flive = epc.alloc_livewoodc_woodc;
 	f3 = epc.alloc_stemc_leafc;
-	fdead = (1-flive);
+	fdead = (1.0-flive);
 	g1 = epc.gr_perc;
 	cnl = epc.leaf_cn;
 	cnfr = epc.froot_cn;
@@ -120,13 +117,15 @@ int allocate_daily_growth(int nlimit,
 	fleaf = cdf->fleaf;
 	froot = cdf->froot;
 	fwood = cdf->fwood;
-	
+	fstem = cdf->fstem;
+    fcroot = cdf->fcroot;
+    
 	if ((fleaf + froot) > ZERO) {
         if (epc.veg_type == TREE){
-            mean_cn = 1.0 / (fleaf / cnl + froot / cnfr + flive * fwood / cnlw + fwood * fdead / cndw);
+            mean_cn = (fleaf+froot+fwood)>0? (fleaf+froot+fwood)/(fleaf/cnl + froot/cnfr + flive*fwood/cnlw + fwood*fdead/cndw) : 0.0;
             /*mean_cn = fleaf * cnl + froot * cnfr + flive * fwood * cnlw + fdead * fwood * cndw;*/
         } else{
-           mean_cn = 1.0 / (fleaf / cnl + froot / cnfr);
+            mean_cn = (fleaf+froot)>0? (fleaf+froot)/(fleaf/cnl + froot/cnfr) : 0.0;
         }
 	} else mean_cn = 0.0;
 
@@ -156,35 +155,36 @@ int allocate_daily_growth(int nlimit,
             if (plant_remaining_ndemand <= ns->retransn){
                 ndf->retransn_to_npool = plant_remaining_ndemand;
                 plant_nalloc = ndf->retransn_to_npool + sminn_to_npool;
-                plant_calloc = cs->availc/(1+epc.gr_perc);
+                plant_calloc = cs->availc/(1.0+epc.gr_perc); // correct for less growth
                 ns->nlimit = 0;
             }else{
-                sminn_to_npool = soil_nsupply;
                 ndf->retransn_to_npool = ns->retransn;
-                plant_nalloc = ndf->retransn_to_npool + sminn_to_npool;
-                plant_calloc = plant_nalloc  *  mean_cn;
-                excess_c = max(cs->availc - (plant_calloc*(1+epc.gr_perc)),0.0); // adjust to cdf->psn_to_cpool
+                plant_nalloc = ndf->retransn_to_npool + sminn_to_npool;//<---
+                plant_calloc = min(cs->availc/(1.0+epc.gr_perc), plant_nalloc * mean_cn);
+                if(plant_calloc>0 && (fleaf+froot+fwood)>0) plant_calloc /= (fleaf+froot+fwood);//correction
+                excess_c = max(cs->availc - (plant_calloc*(1.0+epc.gr_perc)),0.0); // adjust to cdf->psn_to_cpool
 
                 if  (epc.nfix == 1){
-                    // N fixing: the code does not make sense!
-                    cost_fix = -0.625*(exp(-3.62 + 0.27 * Tsoil*(1 - 0.5 * Tsoil / 25.15)) - 2);// reference?
-                    if (cost_fix > ZERO)
-                        amt_fix = 0.5*cost_fix * excess_c / mean_cn; // N or C?
-                    else
-                        amt_fix = 0.0;
-
-                    //amt_fix = min(excess_c, amt_fix);
-                    plant_calloc = plant_calloc + excess_c - amt_fix; //non-sense
-                    plant_nalloc = plant_calloc/mean_cn;
-
-                    ndf_patch->nfix_to_sminn = plant_nalloc - ndf->retransn_to_npool - sminn_to_npool;
-                    excess_c = excess_c - amt_fix;
-                    if (excess_c > ZERO) {
-                        cdf->psn_to_cpool -= excess_c;
-                        ns->nlimit = 1;
-                    }else{
-                        ns->nlimit=0;
-                    }
+                    // disable for now; fix this later
+//                    // N fixing: the code does not make sense!
+//                    cost_fix = -0.625*(exp(-3.62 + 0.27 * Tsoil*(1 - 0.5 * Tsoil / 25.15)) - 2);// reference?
+//                    if (cost_fix > ZERO)
+//                        amt_fix = 0.5*cost_fix * excess_c / mean_cn; // N or C?
+//                    else
+//                        amt_fix = 0.0;
+//
+//                    //amt_fix = min(excess_c, amt_fix);
+//                    plant_calloc = plant_calloc + excess_c - amt_fix; //non-sense
+//                    plant_nalloc = plant_calloc/mean_cn;
+//
+//                    ndf_patch->nfix_to_sminn = plant_nalloc - ndf->retransn_to_npool - sminn_to_npool;
+//                    excess_c = excess_c - amt_fix;//
+//                    if (excess_c > ZERO) {
+//                        cdf->psn_to_cpool -= excess_c;
+//                        ns->nlimit = 1;
+//                    }else{
+//                        ns->nlimit=0;
+//                    }
                 }else {
                     // no N-fix
                     cdf->psn_to_cpool -= excess_c; // if not enough N, it will reduce fraq_psn result.
@@ -214,10 +214,11 @@ int allocate_daily_growth(int nlimit,
                        sum_plant_nsupply); //debug
             
             //ndf->potential_N_uptake in this case is what plant needs, ns->retransn serves as extra
+            //ndf->potential_N_uptake * (ns->retransn/sum_plant_nsupply) is fraction of "ns->retransn" used for growth
             ndf->retransn_to_npool = min(ns->retransn, ndf->potential_N_uptake * (ns->retransn/sum_plant_nsupply) );
             sminn_to_npool = ndf->potential_N_uptake - ndf->retransn_to_npool;
-            plant_nalloc = ndf->retransn_to_npool + sminn_to_npool;
-            plant_calloc = cs->availc/(1+epc.gr_perc);
+            plant_nalloc = ndf->retransn_to_npool + sminn_to_npool; // should == ndf->potential_N_uptake
+            plant_calloc = cs->availc/(1.0+epc.gr_perc); // correct for less growth
             ns->nlimit = 0;
         }// nlimit
     }else{
@@ -240,59 +241,59 @@ int allocate_daily_growth(int nlimit,
 	/* pnow is the proportion of this day's growth that is displayed now,
 	the remainder going into storage for display next year through the
 	transfer pools */
-	nlc = plant_calloc * fleaf;
+	//nlc = plant_calloc * fleaf;
 
 	/* daily C fluxes out of cpool and into new growth or storage */
-	cdf->cpool_to_leafc              = nlc * pnow;
-	cdf->cpool_to_leafc_store      = nlc * (1.0-pnow);
-	cdf->cpool_to_frootc             = froot * plant_calloc * pnow;
-	cdf->cpool_to_frootc_store     = froot * plant_calloc * (1.0-pnow);
-	if (epc.veg_type == TREE){
-		cdf->cpool_to_livestemc        = plant_calloc * flive * fwood * (1-fcroot) * pnow;
-		cdf->cpool_to_livestemc_store  = plant_calloc * flive * fwood * (1-fcroot) * (1.0-pnow);
-		cdf->cpool_to_deadstemc          = plant_calloc * fdead * fwood * (1-fcroot)  * pnow;
-		cdf->cpool_to_deadstemc_store  = plant_calloc * fdead * fwood * (1-fcroot) * (1.0-pnow);
-        
-		cdf->cpool_to_livecrootc         = plant_calloc * fwood * fcroot * flive  * pnow;
-		cdf->cpool_to_livecrootc_store = plant_calloc * fwood * fcroot * flive  * (1.0-pnow);
-		cdf->cpool_to_deadcrootc         = plant_calloc * fwood * fcroot * fdead *  pnow;
-		cdf->cpool_to_deadcrootc_store = plant_calloc * fwood  * fcroot * fdead *  (1.0-pnow);
-    }else{
-        cdf->cpool_to_livestemc        = 0.0;
-        cdf->cpool_to_livestemc_store  = 0.0;
-        cdf->cpool_to_deadstemc          = 0.0;
-        cdf->cpool_to_deadstemc_store  = 0.0;
-        
-        cdf->cpool_to_livecrootc         = 0.0;
-        cdf->cpool_to_livecrootc_store = 0.0;
-        cdf->cpool_to_deadcrootc         = 0.0;
-        cdf->cpool_to_deadcrootc_store = 0.0;
-    }
-
 	/* daily N fluxes out of npool and into new growth or storage */
 	
 	
 
     if(plant_calloc>0){
-        // mean_cn = 1.0 / (fleaf/cnl + froot/cnfr + flive*fwood/cnlw + fwood*fdead/cndw);
-        ndf->npool_to_leafn              = cdf->cpool_to_leafc / cnl;
+        cdf->cpool_to_leafc            = plant_calloc * fleaf * pnow;
+        cdf->cpool_to_leafc_store      = plant_calloc * fleaf * (1.0-pnow);
+        ndf->npool_to_leafn            = cdf->cpool_to_leafc / cnl;
         ndf->npool_to_leafn_store      = cdf->cpool_to_leafc_store / cnl;
-        ndf->npool_to_frootn              = cdf->cpool_to_frootc / cnfr;
-        ndf->npool_to_frootn_store      = cdf->cpool_to_frootc_store / cnfr;
+        
+        cdf->cpool_to_frootc           = froot * plant_calloc * pnow;
+        cdf->cpool_to_frootc_store     = froot * plant_calloc * (1.0-pnow);
+        ndf->npool_to_frootn           = cdf->cpool_to_frootc / cnfr;
+        ndf->npool_to_frootn_store     = cdf->cpool_to_frootc_store / cnfr;
+        
         if (epc.veg_type == TREE){
+            cdf->cpool_to_livestemc        = plant_calloc * flive * fstem * pnow;
+            cdf->cpool_to_livestemc_store  = plant_calloc * flive * fstem * (1.0-pnow);
             ndf->npool_to_livestemn        = cdf->cpool_to_livestemc / cnlw;
             ndf->npool_to_livestemn_store  = cdf->cpool_to_livestemc_store / cnlw;
+            
+            cdf->cpool_to_deadstemc        = plant_calloc * fdead * fstem  * pnow;
+            cdf->cpool_to_deadstemc_store  = plant_calloc * fdead * fstem * (1.0-pnow);
             ndf->npool_to_deadstemn        = cdf->cpool_to_deadstemc / cndw;
             ndf->npool_to_deadstemn_store  = cdf->cpool_to_deadstemc_store / cndw;
-            ndf->npool_to_livecrootn        = cdf->cpool_to_livecrootc / cnlw;
-            ndf->npool_to_livecrootn_store  = cdf->cpool_to_livecrootc_store / cnlw;
-            ndf->npool_to_deadcrootn        = cdf->cpool_to_deadcrootc / cndw;
-            ndf->npool_to_deadcrootn_store  = cdf->cpool_to_deadcrootc_store / cndw;
+            
+            cdf->cpool_to_livecrootc       = plant_calloc * fcroot * flive  * pnow;
+            cdf->cpool_to_livecrootc_store = plant_calloc * fcroot * flive  * (1.0-pnow);
+            ndf->npool_to_livecrootn       = cdf->cpool_to_livecrootc / cnlw;
+            ndf->npool_to_livecrootn_store = cdf->cpool_to_livecrootc_store / cnlw;
+            
+            cdf->cpool_to_deadcrootc       = plant_calloc * fcroot * fdead *  pnow;
+            cdf->cpool_to_deadcrootc_store = plant_calloc * fcroot * fdead *  (1.0-pnow);
+            ndf->npool_to_deadcrootn       = cdf->cpool_to_deadcrootc / cndw;
+            ndf->npool_to_deadcrootn_store = cdf->cpool_to_deadcrootc_store / cndw;
+            
         }else{
+            cdf->cpool_to_livestemc        = 0.0;
+            cdf->cpool_to_livestemc_store  = 0.0;
+            cdf->cpool_to_deadstemc          = 0.0;
+            cdf->cpool_to_deadstemc_store  = 0.0;
             ndf->npool_to_livestemn        = 0.0;
             ndf->npool_to_livestemn_store  = 0.0;
             ndf->npool_to_deadstemn        = 0.0;
             ndf->npool_to_deadstemn_store  = 0.0;
+            
+            cdf->cpool_to_livecrootc         = 0.0;
+            cdf->cpool_to_livecrootc_store = 0.0;
+            cdf->cpool_to_deadcrootc         = 0.0;
+            cdf->cpool_to_deadcrootc_store = 0.0;
             ndf->npool_to_livecrootn        = 0.0;
             ndf->npool_to_livecrootn_store  = 0.0;
             ndf->npool_to_deadcrootn        = 0.0;
@@ -300,14 +301,28 @@ int allocate_daily_growth(int nlimit,
         }
     }else{
         // not enough carbon to make a positive availc due to dormin season or deficit in cpool
-        ndf->npool_to_leafn              = 0.0;
+        cdf->cpool_to_leafc            = 0.0;
+        cdf->cpool_to_leafc_store      = 0.0;
+        cdf->cpool_to_frootc           = 0.0;
+        cdf->cpool_to_frootc_store     = 0.0;
+        ndf->npool_to_leafn            = 0.0;
         ndf->npool_to_leafn_store      = 0.0;
-        ndf->npool_to_frootn              = 0.0;
-        ndf->npool_to_frootn_store      = 0.0;
+        ndf->npool_to_frootn           = 0.0;
+        ndf->npool_to_frootn_store     = 0.0;
+        
+        cdf->cpool_to_livestemc        = 0.0;
+        cdf->cpool_to_livestemc_store  = 0.0;
+        cdf->cpool_to_deadstemc          = 0.0;
+        cdf->cpool_to_deadstemc_store  = 0.0;
         ndf->npool_to_livestemn        = 0.0;
         ndf->npool_to_livestemn_store  = 0.0;
         ndf->npool_to_deadstemn        = 0.0;
         ndf->npool_to_deadstemn_store  = 0.0;
+        
+        cdf->cpool_to_livecrootc         = 0.0;
+        cdf->cpool_to_livecrootc_store = 0.0;
+        cdf->cpool_to_deadcrootc         = 0.0;
+        cdf->cpool_to_deadcrootc_store = 0.0;
         ndf->npool_to_livecrootn        = 0.0;
         ndf->npool_to_livecrootn_store  = 0.0;
         ndf->npool_to_deadcrootn        = 0.0;
@@ -392,39 +407,7 @@ int allocate_daily_growth(int nlimit,
         cdf->cpool_to_deadcrootc         +
         cdf->cpool_to_deadcrootc_store;
     
-    if( ndf->actual_N_uptake-plant_nalloc>ZERO || totalc_used-plant_calloc>ZERO ){
-        
-        printf("allocation_daily[%d: %d,%d,%d]:(%e->%e)[%e,%e,%e]:{%e,%e,%e,%d} \n", //[%e,%e,%e=%e][%e,%e,%e]{%e,%e,%e,%e}
-               stratum->defaults[0][0].ID, current_date.day, current_date.month, current_date.year,
-               
-               ndf->actual_N_uptake, (ndf->actual_N_uptake - plant_nalloc),
-               
-               patch[0].soil_ns.fract_potential_uptake, ndf->potential_N_uptake, ns->retransn,
-               
-               pnow,plant_calloc,excess_lai,epc.nfix
-               
-               
-               //fleaf,froot,fwood, (fleaf+froot+fwood),
-               //flive,fdead,fcroot,
-               //cnl,cnfr,cnlw,cndw
-               );
-    }//debug
-
-	/*---------------------------------------------------------------------------
-	if ((current_date.month == 5) && (current_date.day < 10))
-	printf(" \n %lf %lf %lf %lf %lf %lf ",
-	gresp_store, cdf->cpool_to_leafc, cdf->cpool_to_leafc_store, cs->leafc,
-	cs->leafc_store, cdf->psn_to_cpool);
-	---------------------------------------------------------------------------*/
-    if(plant_nalloc>0 && plant_calloc>0){
-        ///<<----------- bad move?
-        ndf->retransn_to_npool *= ndf->actual_N_uptake/plant_nalloc;
-        sminn_to_npool *= ndf->actual_N_uptake/plant_nalloc;
-        plant_nalloc = ndf->retransn_to_npool + sminn_to_npool;
-    }
-    
-    
-    if(ndf->actual_N_uptake!=ndf->actual_N_uptake || sminn_to_npool!=sminn_to_npool){
+    if( ndf->actual_N_uptake!=ndf->actual_N_uptake || sminn_to_npool!=sminn_to_npool ){
         printf("allocate_daily_growth [%d: %d,%d,%d]: (%e{%e,%e}[%e,%e],%e[%e],%d,%e,%e>=%e,%e)\n",
                stratum->defaults[0][0].ID, current_date.day, current_date.month, current_date.year,
                plant_nalloc, ns->retransn, ndf->potential_N_uptake,
@@ -438,30 +421,45 @@ int allocate_daily_growth(int nlimit,
     }//debug
     
     
-    
-    
-    // should ndf->actual_N_uptake = plant_nalloc; ndf->actual_N_uptake < plant_nalloc --> increasing npool
-    if(ndf->actual_N_uptake + 1e-8 < plant_nalloc && plant_nalloc>0 && plant_calloc>0){ //<<----- bad
-        printf("allocate_daily_growth N balance[%d: %d,%d,%d]: (%e, %e, %e, %e)\n",
+    // fabs(ndf->actual_N_uptake-plant_nalloc) > 1e-8
+    // fabs(totalc_used-plant_calloc*(fleaf+froot+fwood)) > 1e-8
+    plant_calloc *= (fleaf+froot+fwood);
+    if( fabs(ndf->actual_N_uptake-plant_nalloc)>ZERO || fabs(totalc_used-plant_calloc)>ZERO || sminn_to_npool>patch[0].soil_ns.fract_potential_uptake * ndf->potential_N_uptake){
+        // actual_N_uptake > plant_nalloc problem!
+            
+        printf("allocation_daily[%d: %d,%d,%d]::%d, C{%e = %e = %e, %e %e %e} N{(%f)%e = %e = %e(%e), %e, %e -> %e/%e, %e/%e, %e/%e, %e/%e, %e/%e, %e/%e, %e/%e, %e/%e, %e/%e, %e/%e, %e/%e, %e/%e} \n",
                stratum->defaults[0][0].ID, current_date.day, current_date.month, current_date.year,
-               ndf->actual_N_uptake,
-               plant_nalloc,
-               ndf->retransn_to_npool,
-               sminn_to_npool
+               nlimit,
+               totalc_used, plant_calloc, cs->availc/(1+epc.gr_perc), fleaf, froot, fwood,
+               mean_cn, ndf->actual_N_uptake, plant_nalloc, ndf->potential_N_uptake, patch[0].soil_ns.fract_potential_uptake,
+               sminn_to_npool, ndf->retransn_to_npool,
+               //-----
+                cdf->cpool_to_leafc,ndf->npool_to_leafn,
+                cdf->cpool_to_leafc_store,ndf->npool_to_leafn_store,
+                cdf->cpool_to_frootc,ndf->npool_to_frootn,
+                cdf->cpool_to_frootc_store,ndf->npool_to_frootn_store, //<----
+                cdf->cpool_to_livestemc,ndf->npool_to_livestemn,
+                cdf->cpool_to_livestemc_store,ndf->npool_to_livestemn_store,
+                cdf->cpool_to_deadstemc,ndf->npool_to_deadstemn,
+                cdf->cpool_to_deadstemc_store,ndf->npool_to_deadstemn_store,
+                cdf->cpool_to_livecrootc,ndf->npool_to_livecrootn,
+                cdf->cpool_to_livecrootc_store,ndf->npool_to_livecrootn_store,
+                cdf->cpool_to_deadcrootc,ndf->npool_to_deadcrootn,
+                cdf->cpool_to_deadcrootc_store,ndf->npool_to_deadcrootn_store
                );
-        ndf->retransn_to_npool *= ndf->actual_N_uptake/plant_nalloc;
-        sminn_to_npool *= ndf->actual_N_uptake/plant_nalloc;
+     
+        // why "ndf->actual_N_uptake" is so large, and yet make sense value?
     }//debug
-	
-    if( fabs(totalc_used-plant_calloc) > 1e-8  && plant_nalloc>0 && plant_calloc>0){
-        printf("allocate_daily_growth C balance[%d: %d,%d,%d]: (%e, %e)\n",
-               stratum->defaults[0][0].ID, current_date.day, current_date.month, current_date.year,
-               totalc_used,
-               plant_calloc
-               );
-        excess_c = max(cs->availc - (totalc_used*(1+epc.gr_perc)),0.0); // adjust to cdf->psn_to_cpool
-        cdf->psn_to_cpool -= excess_c; // if not enough N, it will reduce fraq_psn result.
-    }//debug
+
+    excess_c = max(cs->availc - (totalc_used*(1+epc.gr_perc)),0.0); // adjust to cdf->psn_to_cpool
+    cdf->psn_to_cpool -= excess_c; // if not enough N, it will reduce fraq_psn result.
+//    if(plant_nalloc>0 && plant_calloc>0){
+//        ///<<----------- bad move?
+//        ndf->retransn_to_npool *= ndf->actual_N_uptake/plant_nalloc;
+//        sminn_to_npool *= ndf->actual_N_uptake/plant_nalloc;
+//        plant_nalloc = ndf->retransn_to_npool + sminn_to_npool;
+//    }
+    
     
     
     ndf->sminn_to_npool = sminn_to_npool;

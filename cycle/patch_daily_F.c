@@ -628,7 +628,8 @@ void		patch_daily_F(
     patch[0].sat_NO3!=patch[0].sat_NO3 ||
     patch[0].sat_NO3<0 || patch[0].sat_NH4!=patch[0].sat_NH4 ||
     patch[0].sat_NH4<0 || patch[0].sat_DOC!=patch[0].sat_DOC ||
-    patch[0].sat_DOC<0) printf("patch daily F0N [%d,%d,%d,%d]{%e,%e,%e,%e}[%e,%e,%e,%e]\n",
+    patch[0].sat_DOC<0) printf("patch daily F0N %d-%d-%d [%d,%d,%d,%d]{%e,%e,%e,%e}[%e,%e,%e,%e]\n",
+       current_date.year, current_date.month, current_date.day,
        patch[0].ID, patch[0].drainage_type, actionPIPEDRAIN, actionSEWER,
        patch[0].soil_ns.nitrate,
        patch[0].soil_ns.sminn,
@@ -718,7 +719,8 @@ void		patch_daily_F(
         patch[0].sat_DOC!=patch[0].sat_DOC || patch[0].sat_DOC<0 ||
         patch[0].surface_NO3!=patch[0].surface_NO3 || patch[0].surface_NO3<0 ||
         patch[0].surface_NH4!=patch[0].surface_NH4 || patch[0].surface_NH4<0 ||
-        patch[0].surface_DOC!=patch[0].surface_DOC || patch[0].surface_DOC<0) printf("patch daily F1N [%d,%d,%d,%d] [%e %e %e] [%e %e %e] [%e %e %e]\n",
+        patch[0].surface_DOC!=patch[0].surface_DOC || patch[0].surface_DOC<0) printf("patch daily F1N %d-%d-%d [%d,%d,%d,%d] [%e %e %e] [%e %e %e] [%e %e %e]\n",
+           current_date.year, current_date.month, current_date.day,
            patch[0].ID, patch[0].drainage_type, actionPIPEDRAIN, actionSEWER,
            patch[0].soil_ns.nitrate,patch[0].soil_ns.sminn,patch[0].soil_cs.DOC,
            patch[0].sat_NO3,patch[0].sat_NH4,patch[0].sat_DOC,
@@ -940,7 +942,8 @@ void		patch_daily_F(
     patch[0].sat_DOC!=patch[0].sat_DOC || patch[0].sat_DOC<0 ||
     patch[0].surface_NO3!=patch[0].surface_NO3 || patch[0].surface_NO3<0 ||
     patch[0].surface_NH4!=patch[0].surface_NH4 || patch[0].surface_NH4<0 ||
-    patch[0].surface_DOC!=patch[0].surface_DOC || patch[0].surface_DOC<0) printf("patch daily F2N [%d,%d,%d,%d] [%e %e %e] [%e %e %e] [%e %e %e]\n",
+    patch[0].surface_DOC!=patch[0].surface_DOC || patch[0].surface_DOC<0) printf("patch daily F2N %d-%d-%d [%d,%d,%d,%d] [%e %e %e] [%e %e %e] [%e %e %e]\n",
+       current_date.year, current_date.month, current_date.day,
        patch[0].ID, patch[0].drainage_type, actionPIPEDRAIN, actionSEWER,
        patch[0].soil_ns.nitrate,patch[0].soil_ns.sminn,patch[0].soil_cs.DOC,
        patch[0].sat_NO3,patch[0].sat_NH4,patch[0].sat_DOC,
@@ -1791,7 +1794,8 @@ void		patch_daily_F(
     patch[0].soil_cs.DOC<0 ||
     patch[0].sat_NO3!=patch[0].sat_NO3 ||
     patch[0].sat_NO3<0 || patch[0].sat_NH4!=patch[0].sat_NH4 ||
-    patch[0].sat_NH4<0 ) printf("patch daily F3N [%d,%d,%d,%d]{%e,%e,%e,%e}[%e,%e,%e,%e]\n",
+    patch[0].sat_NH4<0 ) printf("patch daily F3N %d-%d-%d [%d,%d,%d,%d]{%e,%e,%e,%e}[%e,%e,%e,%e]\n",
+       current_date.year, current_date.month, current_date.day,
        patch[0].ID, patch[0].drainage_type, actionPIPEDRAIN, actionSEWER,
        patch[0].soil_ns.nitrate,
        patch[0].soil_ns.sminn,
@@ -1960,8 +1964,7 @@ void		patch_daily_F(
 			/*--------------------------------------------------------------*/
 			/*	Add up nitrogen demand					*/
 			/*--------------------------------------------------------------*/
-			patch[0].ndf.plant_potential_ndemand += strata[0].cover_fraction
-				* (strata[0].ndf.potential_N_uptake);
+			//patch[0].ndf.plant_potential_ndemand += strata[0].cover_fraction * (strata[0].ndf.potential_N_uptake);
 			/*--------------------------------------------------------------*/
 			/*	Add up evaporation.					*/
 			/*--------------------------------------------------------------*/
@@ -2443,21 +2446,22 @@ void		patch_daily_F(
     patch[0].sat_DOC!=patch[0].sat_DOC || patch[0].sat_DOC<0 ||
     patch[0].surface_NO3!=patch[0].surface_NO3 || patch[0].surface_NO3<0 ||
     patch[0].surface_NH4!=patch[0].surface_NH4 || patch[0].surface_NH4<0 ||
-    patch[0].surface_DOC!=patch[0].surface_DOC || patch[0].surface_DOC<0) printf("patch daily F4N [%d,%d,%d,%d] [%e %e %e] [%e %e %e] [%e %e %e]\n",
+    patch[0].surface_DOC!=patch[0].surface_DOC || patch[0].surface_DOC<0) printf("patch daily F4N %d-%d-%d [%d,%d,%d,%d] [%e %e %e] [%e %e %e] [%e %e %e]\n",
+       current_date.year, current_date.month, current_date.day,
        patch[0].ID, patch[0].drainage_type, actionPIPEDRAIN, actionSEWER,
        patch[0].soil_ns.nitrate,patch[0].soil_ns.sminn,patch[0].soil_cs.DOC,
        patch[0].sat_NO3,patch[0].sat_NH4,patch[0].sat_DOC,
        patch[0].surface_NO3,patch[0].surface_NH4,patch[0].surface_DOC);
-	/*--------------------------------------------------------------*/
-	/* 	Resolve plant uptake and soil microbial N demands	*/
-	/*--------------------------------------------------------------*/
-	if (command_line[0].grow_flag > 0)  {
-        resolve_sminn_competition(
-                                  &(patch[0].soil_ns),
-                                  patch,
-                                  command_line,
-                                  &(patch[0].ndf));
-	}//growth_flag
+//	/*--------------------------------------------------------------*/
+//	/* 	Resolve plant uptake and soil microbial N demands	*/
+//	/*--------------------------------------------------------------*/
+//	if (command_line[0].grow_flag > 0)  {
+//        resolve_sminn_competition(
+//                                  &(patch[0].soil_ns),
+//                                  patch,
+//                                  command_line,
+//                                  &(patch[0].ndf));
+//	}//growth_flag
 	/*--------------------------------------------------------------*/
 	/*	Reduce the stratum actual transpiration and compute 	*/
 	/*	final N-uptake and daily allocation as a function 	*/
@@ -2546,17 +2550,14 @@ void		patch_daily_F(
             if ( strata[0].defaults[0][0].epc.veg_type != NON_VEG ){
 
 			   	if (transpiration_reduction_percent < 1.0) {
-                    strata->cdf.psn_to_cpool = strata->cdf.psn_to_cpool  * transpiration_reduction_percent;
-                    
-				  // strata->cs.availc *= transpiration_reduction_percent;
-                  // strata->cs.availc @ this point is cdf->psn_to_cpool-cdf->total_mr + ifelse(cpool<0, cpool, 0); and cpool is updated.
-                    double correction = strata->cdf.psn_to_cpool - strata->cdf.total_mr;
-                    if(strata->cs.availc + correction < 0 && correction<0){
-                        strata->cs.availc = 0.0;
-                        strata->cs.cpool += correction;
-                    }else if(correction<0){
-                        strata->cs.availc += correction;
-                    }
+                    // strata->cdf.psn_to_cpool is updated by water availability
+                    // strata->cs.availc = cdf.psn_to_cpool - cdf.total_mr + ifelse(cpool<0, cpool, 0); and "cpool" has be modified
+                    double correction = strata->cdf.psn_to_cpool * (1.0-transpiration_reduction_percent);
+                    double correction2 = (strata->cs.availc>0? max(strata->cs.availc-correction,0.0)/strata->cs.availc : 0.0);
+                    strata->ndf.potential_N_uptake *= correction2;
+                    strata->cdf.psn_to_cpool = strata->cdf.psn_to_cpool * transpiration_reduction_percent;
+                    strata->cs.availc -= correction;
+                    if(strata->cs.availc<0) strata->cs.availc = 0.0;
                     
                     // does not seem to affect a thing for these variables below.
                     strata->gs_sunlit *= transpiration_reduction_percent;//gs_sunlit is calculated in canopy_stratum_daily_F @1383 in this patchDailyF
@@ -2565,32 +2566,13 @@ void		patch_daily_F(
                     //strata->ndf.potential_N_uptake *= transpiration_reduction_percent; wrong to do this
 				}//if transpiration_reduction_percent<1
                 
+                
                 if(strata[0].phen.gwseasonday>0){
                     // transpiration_reduction_percent = 1 when available water satistfy water demand; =0 when not
                     strata[0].wFactor += transpiration_reduction_percent;
                 }
-                
-                
-                if(strata->cs.availc<0){
-                    printf("patch_daily_F[%d]: (%e,%e,%e)\n",
-                            strata->defaults[0][0].ID,
-                            transpiration_reduction_percent,
-                            strata->cs.availc,
-                            strata->cdf.total_mr);
-                }//debug
                     
-				vegtype=1;
-				canopy_stratum_growth(
-					world,
-					basin,
-					hillslope,
-					zone,
-					patch,
-					strata,
-					command_line,
-					event,
-					current_date );
-			
+
             } else {
                 //non_VEG
 				if ( strata->phen.annual_allocation == 1){
@@ -2603,22 +2585,57 @@ void		patch_daily_F(
 					strata->ns.leafn_store -= strata->ndf.leafn_store_to_leafn_transfer;
 				}
 			}//if
-            
+                 
 			if ( unsat_zone_patch_demand_initial > 0.0 )
 				strata->transpiration_unsat_zone = strata->transpiration_unsat_zone *(1-unsat_zone_patch_demand/unsat_zone_patch_demand_initial);
 			if ( sat_zone_patch_demand_initial > 0.0 )
 				strata->transpiration_sat_zone = strata->transpiration_sat_zone *(1 - sat_zone_patch_demand / sat_zone_patch_demand_initial );
 			
-            patch[0].transpiration_unsat_zone += strata->cover_fraction * strata->transpiration_unsat_zone;
-			patch[0].transpiration_sat_zone += strata->cover_fraction * strata->transpiration_sat_zone;
+            patch[0].ndf.plant_potential_ndemand += strata->cover_fraction * strata->ndf.potential_N_uptake; // stratum_dailyF() from far above
             
-			patch[0].PET += strata->cover_fraction * strata->PET;
+            patch[0].transpiration_unsat_zone += strata->cover_fraction * strata->transpiration_unsat_zone; // incorrect? for fire model
+			patch[0].transpiration_sat_zone += strata->cover_fraction * strata->transpiration_sat_zone; // incorrect? for fire model
+            
+			patch[0].PET += strata->cover_fraction * strata->PET; // correct
 			patch[0].totalc += strata->cover_fraction * strata->cs.totalc;
 			patch[0].totaln += strata->cover_fraction * strata->ns.totaln;
-			patch[0].net_plant_psn += strata->cover_fraction *	strata->cs.net_psn;
-			patch[0].lai += strata->cover_fraction * strata->epv.proj_lai;
+			patch[0].net_plant_psn += strata->cover_fraction *	strata->cs.net_psn; // correct
+			patch[0].lai += strata->cover_fraction * strata->epv.proj_lai; // correct
 		}//strata loop
 	}// layer loop
+    
+    /*--------------------------------------------------------------*/
+    /*     Resolve plant uptake and soil microbial N demands    */
+    /*--------------------------------------------------------------*/
+    if (command_line[0].grow_flag > 0)  {
+        resolve_sminn_competition(
+                                  &(patch[0].soil_ns),
+                                  patch,
+                                  command_line,
+                                  &(patch[0].ndf));
+    }//growth_flag
+    
+    for ( layer=0 ; layer<patch[0].num_layers; layer++ ){
+         for ( stratum=0 ; stratum < patch[0].layers[layer].count; stratum++ ){
+             strata = patch[0].canopy_strata[(patch[0].layers[layer].strata[stratum])];
+             if ( strata[0].defaults[0][0].epc.veg_type != NON_VEG ){
+                 // problem "canopy_stratum_growth()" need nlimit and adds "sminn_to_npool" to patch[0].ndf->sminn_to_npool
+                 vegtype=1;
+                 canopy_stratum_growth(
+                     world,
+                     basin,
+                     hillslope,
+                     zone,
+                     patch,
+                     strata,
+                     command_line,
+                     event,
+                     current_date );
+             }// end of if
+         }//strata loop
+     }// layer loop
+    
+    
 	/*-------------------------------------------------------------------------*/
 	/*	Compute current actual depth to water table				*/
 	/*------------------------------------------------------------------------*/
@@ -2815,7 +2832,8 @@ void		patch_daily_F(
     patch[0].sat_DOC!=patch[0].sat_DOC || patch[0].sat_DOC<0 ||
     patch[0].surface_NO3!=patch[0].surface_NO3 || patch[0].surface_NO3<0 ||
     patch[0].surface_NH4!=patch[0].surface_NH4 || patch[0].surface_NH4<0 ||
-    patch[0].surface_DOC!=patch[0].surface_DOC || patch[0].surface_DOC<0) printf("patch daily F5N [%d,%d,%d,%d] [%e %e %e] [%e %e %e] [%e %e %e]\n",
+    patch[0].surface_DOC!=patch[0].surface_DOC || patch[0].surface_DOC<0) printf("patch daily F5N %d-%d-%d [%d,%d,%d,%d] [%e %e %e] [%e %e %e] [%e %e %e]\n",
+       current_date.year, current_date.month, current_date.day,
        patch[0].ID, patch[0].drainage_type, actionPIPEDRAIN, actionSEWER,
        patch[0].soil_ns.nitrate,patch[0].soil_ns.sminn,patch[0].soil_cs.DOC,
        patch[0].sat_NO3,patch[0].sat_NH4,patch[0].sat_DOC,
@@ -2846,7 +2864,8 @@ void		patch_daily_F(
         patch[0].sat_DOC!=patch[0].sat_DOC || patch[0].sat_DOC<0 ||
         patch[0].surface_NO3!=patch[0].surface_NO3 || patch[0].surface_NO3<0 ||
         patch[0].surface_NH4!=patch[0].surface_NH4 || patch[0].surface_NH4<0 ||
-        patch[0].surface_DOC!=patch[0].surface_DOC || patch[0].surface_DOC<0) printf("patch daily F6N after update decomp [%d,%d,%d,%d] [%e %e %e] [%e %e %e] [%e %e %e]\n",
+        patch[0].surface_DOC!=patch[0].surface_DOC || patch[0].surface_DOC<0) printf("patch daily F6N %d-%d-%d after update decomp [%d,%d,%d,%d] [%e %e %e] [%e %e %e] [%e %e %e]\n",
+           current_date.year, current_date.month, current_date.day,
            patch[0].ID, patch[0].drainage_type, actionPIPEDRAIN, actionSEWER,
            patch[0].soil_ns.nitrate,patch[0].soil_ns.sminn,patch[0].soil_cs.DOC,
            patch[0].sat_NO3,patch[0].sat_NH4,patch[0].sat_DOC,
@@ -2881,8 +2900,9 @@ void		patch_daily_F(
         patch[0].sat_DOC!=patch[0].sat_DOC || patch[0].sat_DOC<0 ||
         patch[0].surface_NO3!=patch[0].surface_NO3 || patch[0].surface_NO3<0 ||
         patch[0].surface_NH4!=patch[0].surface_NH4 || patch[0].surface_NH4<0 ||
-        patch[0].surface_DOC!=patch[0].surface_DOC || patch[0].surface_DOC<0) printf("patch daily F7N after DOloss [%d,%d,%d,%d] [%e %e %e] [%e %e %e] [%e %e %e]\n",
-           patch[0].ID, patch[0].drainage_type, actionPIPEDRAIN, actionSEWER,
+        patch[0].surface_DOC!=patch[0].surface_DOC || patch[0].surface_DOC<0) printf("patch daily F7N after DOloss %d-%d-%d [%d,%d,%d,%d,%e] [%e %e %e] [%e %e %e] [%e %e %e]\n",
+           current_date.year, current_date.month, current_date.day,
+           patch[0].ID, patch[0].drainage_type, actionPIPEDRAIN, actionSEWER, patch[0].soil_ns.fract_potential_immob,
            patch[0].soil_ns.nitrate,patch[0].soil_ns.sminn,patch[0].soil_cs.DOC,
            patch[0].sat_NO3,patch[0].sat_NH4,patch[0].sat_DOC,
            patch[0].surface_NO3,patch[0].surface_NH4,patch[0].surface_DOC);
@@ -2906,7 +2926,8 @@ void		patch_daily_F(
         patch[0].sat_DOC!=patch[0].sat_DOC || patch[0].sat_DOC<0 ||
         patch[0].surface_NO3!=patch[0].surface_NO3 || patch[0].surface_NO3<0 ||
         patch[0].surface_NH4!=patch[0].surface_NH4 || patch[0].surface_NH4<0 ||
-        patch[0].surface_DOC!=patch[0].surface_DOC || patch[0].surface_DOC<0) printf("patch daily F8N after nitrif [%d,%d,%d,%d] [%e %e %e] [%e %e %e] [%e %e %e]\n",
+        patch[0].surface_DOC!=patch[0].surface_DOC || patch[0].surface_DOC<0) printf("patch daily F8N after nitrif %d-%d-%d [%d,%d,%d,%d] [%e %e %e] [%e %e %e] [%e %e %e]\n",
+           current_date.year, current_date.month, current_date.day,
            patch[0].ID, patch[0].drainage_type, actionPIPEDRAIN, actionSEWER,
            patch[0].soil_ns.nitrate,patch[0].soil_ns.sminn,patch[0].soil_cs.DOC,
            patch[0].sat_NO3,patch[0].sat_NH4,patch[0].sat_DOC,
@@ -2930,7 +2951,8 @@ void		patch_daily_F(
         patch[0].sat_DOC!=patch[0].sat_DOC || patch[0].sat_DOC<0 ||
         patch[0].surface_NO3!=patch[0].surface_NO3 || patch[0].surface_NO3<0 ||
         patch[0].surface_NH4!=patch[0].surface_NH4 || patch[0].surface_NH4<0 ||
-        patch[0].surface_DOC!=patch[0].surface_DOC || patch[0].surface_DOC<0) printf("patch daily F9N after denitrif [%d,%d,%d,%d] [%e %e %e] [%e %e %e] [%e %e %e]\n",
+        patch[0].surface_DOC!=patch[0].surface_DOC || patch[0].surface_DOC<0) printf("patch daily F9N after denitrif %d-%d-%d [%d,%d,%d,%d] [%e %e %e] [%e %e %e] [%e %e %e]\n",
+              current_date.year, current_date.month, current_date.day,
               patch[0].ID, patch[0].drainage_type, actionPIPEDRAIN, actionSEWER,
               patch[0].soil_ns.nitrate,patch[0].soil_ns.sminn,patch[0].soil_cs.DOC,
               patch[0].sat_NO3,patch[0].sat_NH4,patch[0].sat_DOC,

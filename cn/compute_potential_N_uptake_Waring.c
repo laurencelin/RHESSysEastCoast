@@ -54,7 +54,8 @@ double compute_potential_N_uptake_Waring(
 	/*------------------------------------------------------*/
 	double day_gpp;     /* daily gross production */
 	double day_mresp;   /* daily total maintenance respiration */
-	double froot, fleaf, fwood;          /* RATIO   new fine root C : new leaf C     */
+	double froot, fleaf, fwood, fstem, fcroot;
+    double croot_stem;
 	double f2;          /* RATIO   fraction to leaf and fraction to root*/
 	double f4;          /* RATIO   new live wood C : new wood C     */
 	double f3;          /* RATIO   new leaf C : new wood C     */
@@ -105,6 +106,7 @@ double compute_potential_N_uptake_Waring(
 	cnfr = epc.froot_cn;
 	cnlw = epc.livewood_cn;
 	cndw = epc.deadwood_cn;
+    croot_stem = epc.alloc_crootc_stemc/ (1.0+epc.alloc_crootc_stemc);
 	/*--------------------------------------------------------------- */
 	/*	given the available C, use Waring allometric relationships to */
 	/*	estimate N requirements -					*/ 
@@ -122,43 +124,68 @@ double compute_potential_N_uptake_Waring(
             // epc.waring_pa = 0.8 default
             // epc.waring_pb = 2.5 default
             if (epc.veg_type == TREE){
-                fleaf = (1.0 - froot) / (1 + (1+f2)*f3);
+                fleaf = ((1.0 - froot) / (1 + (1+f2)*f3));
                 fwood = 1.0 - froot - fleaf;
-            } else{
+                fstem = fwood * (1.0 - croot_stem);
+                fcroot = fwood * croot_stem;
+            }else{
                 fleaf = 1.0 - froot;
                 fwood = 0.0;
+                fstem = 0.0;
+                fcroot = 0.0;
             }
         } else {
             froot = 0.0;
             fleaf = 0.0;
             fwood = 0.0;
+            fstem = 0.0;
+            fcroot = 0.0;
         }
 
+        
+        // need to check MAX Croot depth and MAX stem height
+        // from phenology
+        double perc_sunlit = (epv->proj_lai_sunlit) / (epv->proj_lai_sunlit + epv->proj_lai_shade);
+        double potentialLAI = max( ((stratum[0].cs.leafc_store+stratum[0].cs.leafc_transfer) * (epv->proj_sla_sunlit * perc_sunlit + epv->proj_sla_shade * (1-perc_sunlit))), 0.0);
+        double rootdepth = 3.0 * pow(2.0*(stratum[0].cs.live_crootc+stratum[0].cs.dead_crootc), epc.root_growth_direction)
+        / epc.root_distrib_parm;
+        fleaf *= (epv->proj_lai + potentialLAI <epc.max_lai*(1.0+epc.leaf_turnover)? 1.0 : 0.0);
+        fstem *= (epv->height<25? 1.0 : 0.0);
+        fcroot *= (rootdepth<1? 1.0 : 0.0);
+        fwood = fcroot + fstem;
+            
 
-
-        if ((fleaf + froot) > ZERO) {
+        if ( (fleaf + froot + fwood)>0 ) {
             if (epc.veg_type == TREE){
-                mean_cn = 1.0 / (fleaf / cnl + froot / cnfr + f4 * fwood / cnlw + fwood * (1.0-f4) / cndw);
+                mean_cn = (fleaf+froot+fwood) / (fleaf/cnl + froot/cnfr + f4*fwood/cnlw + fwood*(1.0-f4)/cndw);
+                plant_ndemand = cs->availc / (1.0+epc.gr_perc) / mean_cn;// - max(ns->retransn,0.0);
+                plant_ndemand *= (fleaf+froot+fwood);
             }else{
-                mean_cn = 1.0 / (fleaf / cnl + froot / cnfr);
+                mean_cn = (fleaf+froot) / (fleaf / cnl + froot / cnfr);
+                plant_ndemand = cs->availc / (1.0+epc.gr_perc) / mean_cn;// - max(ns->retransn,0.0);
+                plant_ndemand *= (fleaf+froot);
             }
-        } else mean_cn = 1.0;
+        } else {
+            mean_cn = 1.0; plant_ndemand = 0.0;
+        }
 
-        if (mean_cn > ZERO)
-            plant_ndemand = cs->availc / (1.0+epc.gr_perc) / mean_cn;// - max(ns->retransn,0.0);
-        else
-            plant_ndemand = 0.0;
+       
+            
 
 	} else {
 		plant_ndemand = 0.0;
 		fleaf = 0.0;
 		froot = 0.0;
 		fwood = 0.0;
+        fstem = 0.0;
+        fcroot = 0.0;
 	}
 
 	cdf->fleaf = fleaf;
 	cdf->fwood = fwood;
 	cdf->froot = froot;
+    cdf->fstem = fstem;
+    cdf->fcroot = fcroot;
 
 //    printf("plant uptake (waring): %f,%f,%f,%f,%f\n",cdf->psn_to_cpool,cdf->total_mr,cs->cpool,cs->availc,plant_ndemand);
 	return(plant_ndemand);

@@ -59,10 +59,12 @@ double compute_potential_N_uptake_Dickenson(
 	double cnfr;        /* RATIO   fine root C:N */
 	double cnlw;        /* RATIO   live wood C:N */
 	double cndw;        /* RATIO   dead wood C:N */
-	double fwood, fleaf, froot, flive, fdead; 	/* fraction allocate to each component */
+    double fwood, fleaf, froot, fstem, fcroot;
+    double flive, fdead; 	/* fraction allocate to each component */
 	//double total_wood,total_nonwood, B,C;
 	double mean_cn, transfer;
 	double plant_ndemand;
+    double croot_stem;
 	/*---------------------------------------------------------------
 	Assess the carbon availability on the basis of this day's
 	gross production and maintenance respiration costs
@@ -93,44 +95,57 @@ double compute_potential_N_uptake_Dickenson(
 	cnfr = epc.froot_cn;
 	cnlw = epc.livewood_cn;
 	cndw = epc.deadwood_cn;
+    croot_stem = epc.alloc_crootc_stemc/ (1.0+epc.alloc_crootc_stemc);
 	/*---------------------------------------------------------------*/
 	/* constant B and C are currently set for forests from Dickenson et al. */	
 	/*----------------------------------------------------------------*/
     
-    // problem, need to count for "excess_lai" Jan 11th. 2019
-    double MAX_LAI = stratum[0].local_max_lai; //epc.max_lai;
-    
-	fleaf = exp(-1.0*epc.dickenson_pa * epv->proj_lai);
+   
     // dickenson_pa = 0.25 default
     // at LAI 6, fleaf = 0.22 - 0.23
-    
-
-
-	if (epc.veg_type==TREE) {
+	fleaf = exp(-1.0*epc.dickenson_pa * epv->proj_lai);
+    if (epc.veg_type==TREE) {
 		if (2*fleaf < 0.8) {
             //when LAI is greater than the turning point
             froot = fleaf; //max(fleaf,0.39);
 			fwood= 1.0-fleaf-froot; // --> greater wood growth
+            fstem = fwood * (1.0 - croot_stem);
+            fcroot = fwood * croot_stem;
         }else{
             //when LAI is less than the turning point
 			fleaf = min(fleaf, 0.6); //0.6
 			froot = 0.5*(1-fleaf); //0.2
 			fwood = 0.5*(1-fleaf); //0.2
+            fstem = fwood * (1.0 - croot_stem);
+            fcroot = fwood * croot_stem;
         }
     }else{
         //never happened
-		fwood = 0;
+		fwood = 0.0;
 		froot = (1-fleaf);
+        fstem = 0.0;
+        fcroot = 0.0;
     }
 	
-	
+    // need to check MAX Croot depth and MAX stem height
+    // from phenology
+    double perc_sunlit = (epv->proj_lai_sunlit) / (epv->proj_lai_sunlit + epv->proj_lai_shade);
+    double potentialLAI = max( ((stratum[0].cs.leafc_store+stratum[0].cs.leafc_transfer) * (epv->proj_sla_sunlit * perc_sunlit + epv->proj_sla_shade * (1-perc_sunlit))), 0.0);
+    double rootdepth = 3.0 * pow(2.0*(stratum[0].cs.live_crootc+stratum[0].cs.dead_crootc), epc.root_growth_direction)
+    / epc.root_distrib_parm;
+    fleaf *= (epv->proj_lai + potentialLAI <epc.max_lai*(1.0+epc.leaf_turnover)? 1.0 : 0.0);
+    fstem *= (epv->height<25? 1.0 : 0.0);
+    fcroot *= (rootdepth<1? 1.0 : 0.0);
+    fwood = fcroot + fstem;
+    
 
-	if ((fleaf+froot) > ZERO) {
+	if ( (fleaf+froot+fwood)>0) {
         if (epc.veg_type == TREE){
-            mean_cn = 1.0 / (fleaf/cnl + froot/cnfr + flive*fwood/cnlw + fwood*fdead/cndw); // one is the sum of froot + fwood + fleaf
+            // this equaiton is no longer true if fleaf+froot+fwood < 1
+            mean_cn = (fleaf+froot+fwood) / (fleaf/cnl + froot/cnfr + flive*fwood/cnlw + fwood*fdead/cndw); // one is the sum of froot + fwood + fleaf
         }
         else{
-           mean_cn = 1.0 / (fleaf/cnl + froot/cnfr);
+           mean_cn = (fleaf+froot) / (fleaf/cnl + froot/cnfr);
         }
 	}
 	else mean_cn = 1.0;
@@ -140,10 +155,12 @@ double compute_potential_N_uptake_Dickenson(
 	cdf->fleaf = fleaf; // leaf
 	cdf->froot = froot;// fine root
 	cdf->fwood = fwood;// stem and croof together
-
+    cdf->fstem = fstem;
+    cdf->fcroot = fcroot;
+    
 	/* add in nitrogen for plants and for nitrogen deficit in pool */
     plant_ndemand = cs->availc / (1.0+epc.gr_perc) / mean_cn;// - max(ns->retransn,0.0);
-	
+    plant_ndemand *= (fleaf+froot+fwood);
 //    printf("plant uptake (dickenson): %f,%f,%f,%f,%f\n",cdf->psn_to_cpool,cdf->total_mr,cs->cpool,cs->availc,plant_ndemand);
 	return(plant_ndemand);
 } /* 	end compute_potential_N_uptake */

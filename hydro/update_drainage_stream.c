@@ -214,6 +214,16 @@ void  update_drainage_stream(
                 // if previous gamma is smaller, than gamma = gammaCONST & gammaCONST == 1
                 patch[0].innundation_list[d].neighbours[i].gammaCONST /= patch[0].innundation_list[d].neighbours[i].gamma;
                 patch[0].innundation_list[d].neighbours[i].gammaCONST = min(1.0, patch[0].innundation_list[d].neighbours[i].gammaCONST);
+                
+                // gammaCONST is used to seperate subsurface Q and solute into going to next sat/unsat or surface; it is a fraction for each drainge direction
+                // gamma fraction is used to partition total subrface Q and solute into different fluxes in directions
+                // 1) How to count for the grid size (e.g., 30m) and stream channel width (1-2m)?
+                //    stream grid surface -> downstream
+                //    stream grid subsurface -> "gammaCONST" spliting downstream sub and downstream surf
+                //    stream grid returnflow due to "sat_def_header"
+                // 2) How to count for stream incision? the water table depth is controlled by the highest sat_def_header (default 0)
+                // 3) use cover fraction to mask out the channel area (stoping resources taken)
+                
             }else{
                 patch[0].innundation_list[d].neighbours[i].gammaCONST = 0.0;
             }// end of if

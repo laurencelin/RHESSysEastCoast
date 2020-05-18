@@ -125,7 +125,8 @@ double compute_potential_N_uptake(
     cdf->fleaf =  1.0/(1.0+f1+f3+f2*f3);
     cdf->froot = cdf->fleaf*f1;
     cdf->fwood = cdf->fleaf*f3*(1.0+f2);
-
+    cdf->fstem = cdf->fleaf*f3; 
+    cdf->fcroot = cdf->fstem *f2;
     
     
     //printf("plant uptake (default): %f,%f,%f,%f,%f\n",cdf->psn_to_cpool,cdf->total_mr,cs->cpool,cs->availc,plant_ndemand);

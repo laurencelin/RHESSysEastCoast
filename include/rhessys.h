@@ -2305,7 +2305,9 @@ struct epvar_struct
         double fleaf; /* 0-1 */
         double froot; /* 0-1 */
         double fwood; /* 0-1 */
-        
+        double fstem;
+        double fcroot;
+    
         /* gross PSN input */
     double psn_to_cpool;    /* (kgC/m2/d) gross photosynthesis */
     double potential_psn_to_cpool;    /* (kgC/m2/d) potential gross photosynthesis */

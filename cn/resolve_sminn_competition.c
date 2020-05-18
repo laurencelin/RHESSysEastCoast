@@ -57,35 +57,36 @@ int resolve_sminn_competition(
 	/* compare the combined decomposition immobilization and plant*/
 	/*growth N demands against the available soil mineral N pool. */
 	/*--------------------------------------------------------------*/
-    litterndemand = max(0.0, ndf->potential_immoblitter - patch[0].surface_NO3 + patch[0].litter.NO3_stored - patch[0].surface_NH4);
-    totalDecompDemand = ndf->potential_immob - ndf->potential_immoblitter + litterndemand;//N demand for the subsurface N pools
+    
+    // demands:
+    // 1) ndf->plant_potential_ndemand
+    // 2) ndf->potential_immob-ndf->potential_immoblitter
+    // 3) ndf->potential_immoblitter
+    litterndemand = max(0.0, ndf->potential_immoblitter - patch[0].surface_NO3 + patch[0].litter.NO3_stored + patch[0].surface_NH4);
+    totalDecompDemand = (ndf->potential_immob - ndf->potential_immoblitter) + litterndemand;//N demand for the subsurface N pools
 	sum_ndemand = ndf->plant_potential_ndemand + totalDecompDemand;
-	//sum_avail = max(ns_soil->sminn + ns_soil->nitrate + ndf->mineralized, 0.0);
+	
+    
+    // resources
+    // 1) patch[0].surface_NO3 + patch[0].litter.NO3_stored + patch[0].surface_NH4 :: ndf->potential_immoblitter
+    // 2) max(ndf->mineralized, 0.0) :: (ndf->potential_immob-ndf->potential_immoblitter)
+    // 3) patch[0].rtzNO3 + patch[0].rtzSatNO3 + patch[0].rtzNH4 + patch[0].rtzSatNH4 :: ndf->plant_potential_ndemand
+    
     sum_avail = max(ndf->mineralized, 0.0);
-	/*--------------------------------------------------------------*/
-	/* limit available N for plants by rooting depth		*/
-	/* for really small rooting depths this can be problematic	*/
-	/* for now provide a minimum access				*/
-	/*--------------------------------------------------------------*/
-    //active_zone_z = (command_line[0].NH4root2active>0.0? patch[0].rootzone.depth * command_line[0].NH4root2active : (command_line[0].rootNdecayRate > 0? patch[0].soil_defaults[0][0].soil_depth : (command_line[0].root2active>0.0? patch[0].rootzone.depth * command_line[0].root2active : patch[0].soil_defaults[0][0].active_zone_z)));
-    //decay_rate = (command_line[0].NH4root2active>0.0? patch[0].soil_defaults[0][0].N_decay_rate : (command_line[0].rootNdecayRate > 0? patch[0].rootzone.NH4decayRate : patch[0].soil_defaults[0][0].N_decay_rate));
     patch[0].rtzNH4 = max(0.0, ns_soil->sminn*patch[0].soil_defaults[0][0].rtz2NH4prop[patch[0].soil_defaults[0][0].maxrootdepth_index]);
     patch[0].rtzSatNH4 = 0.0;
     if(patch[0].available_soil_water>0){
         patch[0].rtzSatNH4 = patch[0].sat_NH4 * max(patch[0].rootzone.potential_sat-patch[0].sat_deficit,0.0)/patch[0].available_soil_water;
     }//if
     
-    
-    
-    //active_zone_z = (command_line[0].rootNdecayRate > 0? patch[0].soil_defaults[0][0].soil_depth : (command_line[0].root2active > 0.0? patch[0].rootzone.depth * command_line[0].root2active : patch[0].soil_defaults[0][0].active_zone_z));
-    //decay_rate = (command_line[0].rootNdecayRate > 0? patch[0].rootzone.NO3decayRate : patch[0].soil_defaults[0][0].N_decay_rate);
     patch[0].rtzNO3 = max(0.0, ns_soil->nitrate*patch[0].soil_defaults[0][0].rtz2NO3prop[patch[0].soil_defaults[0][0].maxrootdepth_index]);
     patch[0].rtzSatNO3 = 0.0;
     if(patch[0].available_soil_water>0){
         patch[0].rtzSatNO3 = patch[0].sat_NO3 * max(patch[0].rootzone.potential_sat-patch[0].sat_deficit,0.0)/patch[0].available_soil_water;
     }//if
-
-    sum_avail = patch[0].rtzNO3 + patch[0].rtzSatNO3 + patch[0].rtzNH4 + patch[0].rtzSatNH4;
+    sum_avail += patch[0].rtzNO3 + patch[0].rtzSatNO3 + patch[0].rtzNH4 + patch[0].rtzSatNH4;
+    
+    
     
 	if (sum_ndemand <= sum_avail){
 	/* N availability is not limiting immobilization or plant
@@ -96,33 +97,42 @@ int resolve_sminn_competition(
 		ns_soil->fract_potential_uptake = 1.0;
 		ndf->plant_avail_uptake = ndf->plant_potential_ndemand;
 	}else{
-	/* N availability can not satisfy the sum of immobiliation and
-	plant growth demands, so these two demands compete for available
-		soil mineral N */
-        // sum_avail,
+	/* competition */
         
         ns_soil->nlimit = 1;
-		actual_immob = sum_avail * (ndf->potential_immob - ndf->potential_immoblitter + litterndemand)/sum_ndemand;// microbe first
-		actual_uptake = max(sum_avail - actual_immob,0.0); // <<--- could be small negative!!
-		
-        // set limit for microbe
-        if (ndf->potential_immob == 0 && totalDecompDemand == 0){
-			ns_soil->fract_potential_immob = 0.0; // absolutely zero immobilization
-        }else if (ndf->potential_immob > 0 && totalDecompDemand == 0){
-            ns_soil->fract_potential_immob = 1.0; // soilOM mineralizing while surface litter immobilizing from the surface N sources.
+        // litterndemand has been taken care of
+        // totalDecompDemand = (ndf->potential_immob - ndf->potential_immoblitter) + litterndemand;
+  
+        actual_uptake = sum_avail * max(1.0 - totalDecompDemand/sum_ndemand, 0.0); //microbe first
+        if (ndf->plant_potential_ndemand > 0) {
+            ns_soil->fract_potential_uptake = actual_uptake / ndf->plant_potential_ndemand;
+            ndf->plant_avail_uptake = actual_uptake;
         }else{
-            ns_soil->fract_potential_immob = actual_immob/totalDecompDemand;
+            ns_soil->fract_potential_uptake = 0.0;
+            ndf->plant_avail_uptake = 0.0;
         }
         
-        // set limit for plant uptake
-		if (ndf->plant_potential_ndemand == 0) {
-			ns_soil->fract_potential_uptake = 0.0;
-			ndf->plant_avail_uptake = 0.0; 
-		}else {
-			ns_soil->fract_potential_uptake = actual_uptake / ndf->plant_potential_ndemand;
-			ndf->plant_avail_uptake = actual_uptake; // <<--- could be small negative!!
-		}
         
+		actual_immob = max(0.0, sum_avail - actual_uptake);// microbe first
+        if(totalDecompDemand > 0){
+            ns_soil->fract_potential_immob = actual_immob/totalDecompDemand;
+        }else{
+            // totalDecompDemand = 0 --> ndf->potential_immob = ndf->potential_immoblitter && litterndemand = 0
+            ns_soil->fract_potential_immob = 1.0;
+        }
+        
+        
+        if( (ns_soil->fract_potential_immob!=ns_soil->fract_potential_immob) || ns_soil->fract_potential_immob<0 ||
+            (ns_soil->fract_potential_uptake!=ns_soil->fract_potential_uptake) || ns_soil->fract_potential_uptake<0 )
+            printf("error resolve_sminn_competition:%d, %e %e, %d: %e,%e,%e,%e (%e - %e)\n",
+                   patch[0].ID,
+                   ns_soil->fract_potential_immob, ns_soil->fract_potential_uptake, ns_soil->nlimit,
+                   //-----------
+                   litterndemand, totalDecompDemand, sum_ndemand, sum_avail,
+                   ndf->potential_immob, ndf->potential_immoblitter
+                   );
+        
+
         // fract_potential_immob   is very important;  potential_immoblitter
 //        if(ndf->plant_potential_ndemand>0.0) printf(" avail %e = (%e + %e + %e)=%e   demand %e = (%e + %e, %e) -> reduction (immob %f, uptake %f, %d) perc_inroot = %f, nflux(%e,%e,%e,%e, %e,%e,%e,%e)\n",
 //               sum_avail, ns_soil->sminn, ns_soil->nitrate, ndf->mineralized, (ns_soil->sminn+ ns_soil->nitrate+ ndf->mineralized),

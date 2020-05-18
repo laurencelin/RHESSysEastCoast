@@ -212,15 +212,17 @@ int update_dissolved_organic_losses(
     }
     
 //    if(cs_soil->DOC<0 || ns_soil->DON<0) printf("update_dissolved_organic[%d] (%e,%e) + (%e,%e)\n", patch[0].ID, cs_soil->DOC, ns_soil->DON,
-//                                                (cdf->do_soil1c_loss + cdf->do_soil2c_loss + cdf->do_soil3c_loss + cdf->do_soil4c_loss),
-//                                                ( ndf->do_soil1n_loss + ndf->do_soil3n_loss + ndf->do_soil2n_loss + ndf->do_soil4n_loss)
+//                                                cdf->do_soil1c_loss , cdf->do_soil2c_loss , cdf->do_soil3c_loss , cdf->do_soil4c_loss,
+//                                                ndf->do_soil1n_loss , ndf->do_soil3n_loss , ndf->do_soil2n_loss , ndf->do_soil4n_loss
 //                                                );
     
+    
+    
 	cs_soil->DOC +=  (cdf->do_soil1c_loss + cdf->do_soil2c_loss + cdf->do_soil3c_loss + cdf->do_soil4c_loss);
-        // patch[0].surface_DOC += cdf->do_litr1c_loss + cdf->do_litr2c_loss + cdf->do_litr3c_loss + cdf->do_litr4c_loss  is done outside of this function
+    //patch[0].surface_DOC += cdf->do_litr1c_loss + cdf->do_litr2c_loss + cdf->do_litr3c_loss + cdf->do_litr4c_loss  is done outside of this function
     
 	ns_soil->DON  +=  ( ndf->do_soil1n_loss + ndf->do_soil3n_loss + ndf->do_soil2n_loss + ndf->do_soil4n_loss);
-       // patch[0].surface_DON += ndf->do_litr1n_loss + ndf->do_litr2n_loss + ndf->do_litr3n_loss + ndf->do_litr4n_loss is done outside of this function
+    //patch[0].surface_DON += ndf->do_litr1n_loss + ndf->do_litr2n_loss + ndf->do_litr3n_loss + ndf->do_litr4n_loss is done outside of this function
 
 
     
