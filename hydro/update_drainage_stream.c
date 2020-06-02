@@ -471,10 +471,10 @@ void  update_drainage_stream(
 	/*	note we assume that this happens before return_flow losses */
 	/*--------------------------------------------------------------*/
 
-	if ( (patch[0].detention_store > patch[0].landuse_defaults[0][0].detention_store_size*(1.0 - patch[0].Ksat_vertical)) && (patch[0].detention_store > ZERO) ) {
+	if ( (patch[0].detention_store > patch[0].landuse_defaults[0][0].detention_store_size*(1.0 - patch[0].Ksat_vertical)+patch[0].landuse_defaults[0][0].pond_size * patch[0].waterFrac) && (patch[0].detention_store > ZERO) ) {
         
         // this is a stream grid, we assume all surface fluxes are going to streamflow (Feb 13, 2020)
-        Qout = (patch[0].detention_store - patch[0].landuse_defaults[0][0].detention_store_size*(1.0 - patch[0].Ksat_vertical));
+        Qout = (patch[0].detention_store - patch[0].landuse_defaults[0][0].detention_store_size*(1.0 - patch[0].Ksat_vertical)-patch[0].landuse_defaults[0][0].pond_size * patch[0].waterFrac);
         if (command_line[0].grow_flag > 0) {
         
             Nout = (min(1.0, (Qout/ patch[0].detention_store))) * patch[0].surface_DOC;

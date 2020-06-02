@@ -248,8 +248,7 @@ struct patch_object *construct_patch(
 	patch[0].streamflow_NH4 = 0.0;
 	patch[0].streamflow_NO3 = 0.0;
 	patch[0].snowpack.height = patch[0].snowpack.water_equivalent_depth *10.0;
-//	patch[0].detention_store = 0.0;
-//	patch[0].tmp = 0.0;  // <<-------- really?
+
 	
 	if (command_line[0].firespread_flag == 1) {
 		patch[0].fire.et = 0.0;

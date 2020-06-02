@@ -890,7 +890,8 @@ struct  landuse_default
         double  PH;                                     /* DIM  */
         double  septic_NO3_load;                                        /* kg/m2/day */
         double  septic_water_load;                                      /* m/m2/day */
-        double  detention_store_size;                   /* m */
+        double  detention_store_size;                   /* m/impFrac */
+        double  pond_size;
         double  lai_cut;                                /* m2/m2 */
         double  percent_impervious;                     /* 0-1 */
         double  grazing_Closs;                  /* kgC/m2/day */
@@ -1500,7 +1501,8 @@ struct patch_object
         double  Kdown_direct_subcanopy;         /* Kj/(m^2*day) */
         double  Kdown_diffuse_subcanopy;                /* Kj/(m^2*day) */
         double  Ksat_0;                 /* meteres/day  */ // <<-- what's this for?
-        double  Ksat_vertical;          /* meters/day   */
+        double  Ksat_vertical;          /* unitless   */
+        double  waterFrac;
         double  lna;                    /* unitless     */
         double  lai;                    /* unitless     */
         double  Lup_soil;               /* Kj/(m^2*day) */

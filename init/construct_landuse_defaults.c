@@ -104,7 +104,7 @@ struct landuse_default *construct_landuse_defaults(
 		default_object_list[i].septic_NO3_load = 	getDoubleParam(&paramCnt, &paramPtr, "septic_NO3_load", "%lf", 0.0, 1) / 365.0 * numPPLinHouse; // convert annual kgN/yr to daily
 		default_object_list[i].septic_water_load = 	getDoubleParam(&paramCnt, &paramPtr, "septic_water_load", "%lf", 0.0, 1) / 365.0 * numPPLinHouse; // convert annual m3/yr to daily
 		default_object_list[i].detention_store_size = 	getDoubleParam(&paramCnt, &paramPtr, "detention_store_size", "%lf", 0.0, 1);
-        
+        default_object_list[i].pond_size = getDoubleParam(&paramCnt, &paramPtr, "pondDepth", "%lf", 0.0, 1);
         // ------------ non sense below
 		default_object_list[i].PH = 			getDoubleParam(&paramCnt, &paramPtr, "PH", "%lf", 7.0, 1);
 		//default_object_list[i].percent_impervious = 	getDoubleParam(&paramCnt, &paramPtr, "landuse.percent_impervious", "%lf", 0.0, 1);

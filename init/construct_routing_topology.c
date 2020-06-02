@@ -73,7 +73,8 @@ struct routing_list_object *construct_routing_topology(char *routing_filename,
     double  fnum_drainIN_septic, fnum_drainIN_irrigation;
 	int		patch_ID, zone_ID, hill_ID, aggregate_ID, aggregate_index;
 	int		drainage_type;
-	double	x,y, area, gamma, width, wttd;// --> constraintWaterTableTopDepth
+	double	gamma, width, wttd;// --> constraintWaterTableTopDepth
+    double waterFrac, holder;
 	FILE	*routing_file;
 	struct routing_list_object	*rlist;
 	struct	patch_object	*patch;
@@ -112,7 +113,7 @@ struct routing_list_object *construct_routing_topology(char *routing_filename,
                 &patch_ID,
                 &zone_ID,
                 &hill_ID,
-                &x,&y,
+                &waterFrac,&holder,
                 &fnum_drainIN_septic,
                 &fnum_drainIN_irrigation,
                 &wttd,
@@ -129,7 +130,7 @@ struct routing_list_object *construct_routing_topology(char *routing_filename,
                    &patch_ID,
                    &zone_ID,
                    &hill_ID,
-                   &x,&y,
+                   &waterFrac,&holder,
                    &fnum_drainIN_septic,
                    &fnum_drainIN_irrigation,
                    &wttd,
@@ -149,7 +150,7 @@ struct routing_list_object *construct_routing_topology(char *routing_filename,
         if ( !surface ){
             patch[0].aggregate_ID = aggregate_ID;
             patch[0].aggregate_index = aggregate_index;
-            
+            patch[0].waterFrac = (waterFrac>0 && waterFrac<=1? waterFrac : 0.0);
             // basement implementation is disabled
             // 3m basement depth then 3*baseFrac + 0*(1-baseFrac) = wttd --> baseFrac = wttd/3.0;
             //patch[0].constraintWaterTableTopDepth = wttd;
@@ -229,7 +230,7 @@ struct routing_list_object *construct_routing_topology(char *routing_filename,
                        patch_ID,
                        zone_ID,
                        hill_ID,
-                       x,y,
+                       waterFrac,holder,
                        fnum_drainIN_septic,
                        fnum_drainIN_irrigation,
                        wttd,

@@ -750,7 +750,7 @@ void compute_subsurface_routing(struct command_line_object *command_line,
             /*--------------------------------------------------------------*/
             /*    final overland flow routing (horizontally)              */
             /*--------------------------------------------------------------*/
-            excess = patch[0].detention_store - patch[0].landuse_defaults[0][0].detention_store_size* (1.0 - patch[0].Ksat_vertical);
+            excess = patch[0].detention_store - patch[0].landuse_defaults[0][0].detention_store_size* (1.0 - patch[0].Ksat_vertical)-patch[0].landuse_defaults[0][0].pond_size * patch[0].waterFrac;
             if ( excess > ZERO && patch[0].detention_store > ZERO ) {
                 detention_store_1 = 1.0 / patch[0].detention_store;
                 

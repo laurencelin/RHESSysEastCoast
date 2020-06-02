@@ -255,7 +255,7 @@ void		surface_daily_F(
 	
 	/* Case where detention store sits on top of litter */
 	if ( (patch[0].detention_store > (max(litter[0].rain_capacity - litter[0].rain_stored, 0.0)))
-			&& (patch[0].landuse_defaults[0][0].detention_store_size* (1.0 - patch[0].Ksat_vertical) >= 0.0) ) {
+			&& (patch[0].landuse_defaults[0][0].detention_store_size* (1.0 - patch[0].Ksat_vertical)+patch[0].landuse_defaults[0][0].pond_size * patch[0].waterFrac >= 0.0) ) {
 		
 		/* assume if det store over litter then litter is saturated */
 		patch[0].detention_store -= (litter[0].rain_capacity - litter[0].rain_stored);
@@ -342,7 +342,7 @@ void		surface_daily_F(
 		//   (e.g. impervious surface) by gating ET by detention_store_size
 		detention_store_evaporation = min(detention_store_potential_evaporation,
 				min(patch[0].detention_store,
-						patch[0].landuse_defaults[0][0].detention_store_size* (1.0 - patch[0].Ksat_vertical)));
+						patch[0].landuse_defaults[0][0].detention_store_size* (1.0 - patch[0].Ksat_vertical)+patch[0].landuse_defaults[0][0].pond_size * patch[0].waterFrac));
 
 		patch[0].detention_store -= detention_store_evaporation;
 

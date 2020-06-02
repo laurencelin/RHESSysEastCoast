@@ -509,7 +509,7 @@ void compute_subsurface_routing_hourly(
 				/*	final overland flow routing				*/
 				/*--------------------------------------------------------------*/
 				if (((excess = patch[0].detention_store
-						- patch[0].landuse_defaults[0][0].detention_store_size* (1.0 - patch[0].Ksat_vertical))
+						- patch[0].landuse_defaults[0][0].detention_store_size* (1.0 - patch[0].Ksat_vertical)-patch[0].landuse_defaults[0][0].pond_size * patch[0].waterFrac)
 						> ZERO) && (patch[0].detention_store > ZERO)) {
 
 					if (patch[0].drainage_type == STREAM) {
