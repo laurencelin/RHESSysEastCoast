@@ -251,6 +251,7 @@ void compute_subsurface_routing_hourly(
             }//debug
             
             if(patch[0].sat_deficit >= 0){
+                patch[0].sat_deficit = min(patch[0].sat_deficit,patch[0].soil_defaults[0][0].soil_water_cap);
                 patch[0].preday_sat_deficit = patch[0].sat_deficit;
                 patch[0].preday_sat_deficit_z = patch[0].sat_def_pct_indexM * patch[0].soil_defaults[0][0].sat_def_z[patch[0].sat_def_pct_index+1] + (1.0-patch[0].sat_def_pct_indexM) * patch[0].soil_defaults[0][0].sat_def_z[patch[0].sat_def_pct_index];
                 temp = patch[0].sat_def_pct_indexM * patch[0].soil_defaults[0][0].fc1_0z[patch[0].sat_def_pct_index+1] + (1.0-patch[0].sat_def_pct_indexM) * patch[0].soil_defaults[0][0].fc1_0z[patch[0].sat_def_pct_index]; // total fc before ET water consumption to SAT
@@ -323,6 +324,7 @@ void compute_subsurface_routing_hourly(
 //					-1.0 * patch[0].sat_deficit);
             
             if(patch[0].sat_deficit >= 0){
+                patch[0].sat_deficit = min(patch[0].sat_deficit,patch[0].soil_defaults[0][0].soil_water_cap);
                 patch[0].available_soil_water = patch[0].soil_defaults[0][0].soil_water_cap - patch[0].sat_deficit;
                 patch[0].sat_def_pct = patch[0].sat_deficit * patch[0].soil_defaults[0][0].max_sat_def_1;
                 patch[0].sat_def_pct_index = (int)(patch[0].sat_def_pct*1000);
@@ -663,6 +665,7 @@ void compute_subsurface_routing_hourly(
             
             // need to be careful here: patch[0].sat_deficit could be negative.
             if(patch[0].sat_deficit >= 0){
+                patch[0].sat_deficit = min(patch[0].sat_deficit,patch[0].soil_defaults[0][0].soil_water_cap);
                 patch[0].available_soil_water = patch[0].soil_defaults[0][0].soil_water_cap - patch[0].sat_deficit;
                 patch[0].sat_def_pct = patch[0].sat_deficit * patch[0].soil_defaults[0][0].max_sat_def_1;
                 patch[0].sat_def_pct_index = (int)(patch[0].sat_def_pct*1000);
@@ -777,6 +780,7 @@ void compute_subsurface_routing_hourly(
 
             // need to be careful here: patch[0].sat_deficit could be negative.
             if(patch[0].sat_deficit >= 0){
+                patch[0].sat_deficit = min(patch[0].sat_deficit,patch[0].soil_defaults[0][0].soil_water_cap);
                 patch[0].available_soil_water = patch[0].soil_defaults[0][0].soil_water_cap - patch[0].sat_deficit;
                 patch[0].sat_def_pct = patch[0].sat_deficit * patch[0].soil_defaults[0][0].max_sat_def_1;
                 patch[0].sat_def_pct_index = (int)(patch[0].sat_def_pct*1000);
@@ -1060,6 +1064,7 @@ void compute_subsurface_routing_hourly(
             
             // need to be careful here: patch[0].sat_deficit could be negative.
             if(patch[0].sat_deficit >= 0){
+                patch[0].sat_deficit = min(patch[0].sat_deficit,patch[0].soil_defaults[0][0].soil_water_cap);
                 patch[0].available_soil_water = patch[0].soil_defaults[0][0].soil_water_cap - patch[0].sat_deficit;
                 patch[0].sat_def_pct = patch[0].sat_deficit * patch[0].soil_defaults[0][0].max_sat_def_1;
                 patch[0].sat_def_pct_index = (int)(patch[0].sat_def_pct*1000);
@@ -1128,6 +1133,7 @@ void compute_subsurface_routing_hourly(
 
             // need to be careful here: patch[0].sat_deficit could be negative.
             if(patch[0].sat_deficit >= 0){
+                patch[0].sat_deficit = min(patch[0].sat_deficit,patch[0].soil_defaults[0][0].soil_water_cap);
                 patch[0].available_soil_water = patch[0].soil_defaults[0][0].soil_water_cap - patch[0].sat_deficit;
                 patch[0].sat_def_pct = patch[0].sat_deficit * patch[0].soil_defaults[0][0].max_sat_def_1;
                 patch[0].sat_def_pct_index = (int)(patch[0].sat_def_pct*1000);

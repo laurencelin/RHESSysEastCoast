@@ -201,6 +201,7 @@ void		patch_daily_I(
     
     // -- update sat_def related variables
     if(patch[0].sat_deficit >= 0){
+        patch[0].sat_deficit = min(patch[0].sat_deficit,patch[0].soil_defaults[0][0].soil_water_cap);
         patch[0].available_soil_water = patch[0].soil_defaults[0][0].soil_water_cap - patch[0].sat_deficit;
         patch[0].sat_def_pct = patch[0].sat_deficit * patch[0].soil_defaults[0][0].max_sat_def_1;
         patch[0].sat_def_pct_index = (int)(patch[0].sat_def_pct*1000);
@@ -222,9 +223,7 @@ void		patch_daily_I(
     if( patch[0].rootzone.depth > 0.0 && patch[0].rootzone.depth<0.01) patch[0].rootzone.depth= 0.01; // 10 mmm
     patch[0].rtz2_index = (int)(round(patch[0].rootzone.depth*1000));
     patch[0].rootzone.potential_sat = patch[0].soil_defaults[0][0].rtz2sat_def_0z[patch[0].rtz2_index];
-    patch[0].rootdepth_index = patch[0].soil_defaults[0][0].rtz2sat_def_pct_index[patch[0].rtz2_index];
-    //patch[0].rootdepth_indexM = patch[0].soil_defaults[0][0].rtz2sat_def_pct_indexM[patch[0].rtz2_index];
-    //1000*(patch[0].rootzone.potential_sat*patch[0].soil_defaults[0][0].max_sat_def_1 - patch[0].rootdepth_index*0.001);
+    patch[0].rootdepth_index = patch[0].soil_defaults[0][0].rtz2sat_def_pct_index[patch[0].rtz2_index];// this is for "sat_def_pct_index" vector
     if(patch[0].rootdepth_indexM<0.0 || patch[0].rootdepth_indexM>1.0)
         printf("rootdepth_indexM at (%d,%d,%f, %f %f)\n",patch[0].ID, patch[0].rootdepth_index, patch[0].rootdepth_indexM,
                patch[0].rootzone.potential_sat,patch[0].rootzone.depth);
@@ -329,9 +328,20 @@ void		patch_daily_I(
         if (patch[0].sat_deficit > patch[0].rootzone.potential_sat) theta = min(patch[0].rz_storage/patch[0].rootzone.potential_sat, 1.0); //(1.0-patch[0].basementFrac)
         else theta = min((patch[0].rz_storage + patch[0].rootzone.potential_sat - patch[0].sat_deficit)/patch[0].rootzone.potential_sat,1.0);//(1.0-patch[0].basementFrac)
     }else{ theta = 0.0; }
-    //theta *= patch[0].soil_defaults[0][0].porosity_0; // really?
-    patch[0].theta_std = (patch[0].soil_defaults[0][0].theta_mean_std_p2*theta*theta +
-                patch[0].soil_defaults[0][0].theta_mean_std_p1*theta);
+    if( patch[0].drainage_type>0 && patch[0].drainage_type % actionRIPARIAN==0 ){
+        // "theta" below in the equation is water vol / soil vol
+        patch[0].theta_std = patch[0].soil_defaults[0][0].active_zone_sat_0z*theta;
+        patch[0].theta_std *= -1.483 * patch[0].theta_std;
+        patch[0].theta_std += 0.9229 * patch[0].soil_defaults[0][0].active_zone_sat_0z*theta;
+        patch[0].theta_std = max(0.0, patch[0].theta_std);
+        //patch[0].theta_std = (-1.483*theta*theta + 0.9229*theta);
+    }else{
+        //patch[0].theta_std = (patch[0].soil_defaults[0][0].theta_mean_std_p2*theta*theta + patch[0].soil_defaults[0][0].theta_mean_std_p1*theta);
+        patch[0].theta_std = patch[0].soil_defaults[0][0].active_zone_sat_0z*theta;
+        patch[0].theta_std *= -0.4381 * patch[0].theta_std;
+        patch[0].theta_std += 0.2736 * patch[0].soil_defaults[0][0].active_zone_sat_0z*theta;
+        patch[0].theta_std = max(0.0, patch[0].theta_std);
+    }
     
     
     
