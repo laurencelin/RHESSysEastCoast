@@ -825,16 +825,25 @@ struct soil_default *construct_soil_defaults(
         default_object_list[i].rtz2DOMprop = (double*)calloc(rt_len, sizeof(double));
         
         
-        //solute profiles
-        double rtz_soil_vdeay = 1.0/default_object_list[i].mz_v;
-        double rtz_soil_coef = exp(rtz_soil_vdeay*default_object_list[i].maxrootdepth);
-        double rtz_soil_om;// = 0.05; // assumed 5% un-measured //default_object_list[i].soilc is top to horizon c
+        // ------------------- solute profiles
+        // assume most (95%) solutes and OM are bounded in between 0 - maxrootdepth (horizon C)
+        // maxrootdepth (horizon C) >= active_zone_z (horizon B)
+        
+        // ... assume the profile is inverse of vKsat profile below the maxrootdepth zone
+        double rtz_soil_vdeay = 1.0/default_object_list[i].mz_v; // inverse vKsat profile
+        double rtz_soil_coef = exp(rtz_soil_vdeay*default_object_list[i].maxrootdepth); 
+        
+        // ... estimate the om% deeper than maxrootdepth
+        double rtz_soil_om;
         if(fabs(soilcDecay)>0) rtz_soil_om = 0.1*(exp(-default_object_list[i].active_zone_z/soilcDecay) -
                            exp(-default_object_list[i].maxrootdepth/soilcDecay)) / (1.0 - exp(-default_object_list[i].maxrootdepth/soilcDecay));
+                           // 10% of OM in between active_zone_z and maxrootdepth
         else rtz_soil_om = 0.05;
-        
         double solute_0_rtz_soil = rtz_soil_om/(rtz_soil_coef-exp(rtz_soil_vdeay*soildepth));// negative when rtz_soil_vdeay>0
+        
+        // ... profile decay rates
         if(fabs(soilcDecay)>0){
+            // use soil om profile to characterize solute profile
             default_object_list[i].NO3decayRate_1 = -1.0/soilcDecay + 1.0/default_object_list[i].mz_v;
             default_object_list[i].NH4decayRate_1 = -1.0/soilcDecay + 1.0/default_object_list[i].mz_v;
             default_object_list[i].DOMdecayRate_1 = -1.0/soilcDecay + 1.0/default_object_list[i].mz_v;
@@ -843,23 +852,30 @@ struct soil_default *construct_soil_defaults(
             default_object_list[i].NH4decayRate = -1.0/default_object_list[i].NH4decayRate_1;
             default_object_list[i].DOMdecayRate = -1.0/default_object_list[i].DOMdecayRate_1;
         }else{
+            // specify values
             if(fabs(default_object_list[i].NO3decayRate)>0){
+                // NO3decayRate is non-zero
                 default_object_list[i].NO3decayRate_1 = -1.0/default_object_list[i].NO3decayRate;
             }else{
+                // NO3decayRate is zero
                 default_object_list[i].NO3decayRate = -default_object_list[i].maxrootdepth/log(rtz_soil_om); //m
                 default_object_list[i].NO3decayRate_1 = -1.0/default_object_list[i].NO3decayRate;
             }
             
             if(fabs(default_object_list[i].NH4decayRate)>0){
+                // NH4decayRate is non-zero
                 default_object_list[i].NH4decayRate_1 = -1.0/default_object_list[i].NH4decayRate;
             }else{
+                // NH4decayRate is zero
                 default_object_list[i].NH4decayRate = -default_object_list[i].maxrootdepth/log(rtz_soil_om); //m
                 default_object_list[i].NH4decayRate_1 = -1.0/default_object_list[i].NH4decayRate;
             }
             
             if(fabs(default_object_list[i].DOMdecayRate)>0){
+                // DOMdecayRate is non-zero
                 default_object_list[i].DOMdecayRate_1 = -1.0/default_object_list[i].DOMdecayRate;
             }else{
+                // DOMdecayRate is zero
                 default_object_list[i].DOMdecayRate = -default_object_list[i].maxrootdepth/log(rtz_soil_om); //m
                 default_object_list[i].DOMdecayRate_1 = -1.0/default_object_list[i].DOMdecayRate;
             }
@@ -870,7 +886,7 @@ struct soil_default *construct_soil_defaults(
         double NO3_0 = 1.0/(1.0-exp(default_object_list[i].NO3decayRate_1*default_object_list[i].maxrootdepth));
         double NH4_0 = 1.0/(1.0-exp(default_object_list[i].NH4decayRate_1*default_object_list[i].maxrootdepth));
         double DOM_0 = 1.0/(1.0-exp(default_object_list[i].DOMdecayRate_1*default_object_list[i].maxrootdepth));
-        
+        // N0 * (1-exp(z)) = soilN;
         
         for( ii=0; ii<rt_len; ii++){
             zzz = ii*0.001;
@@ -879,6 +895,7 @@ struct soil_default *construct_soil_defaults(
             //default_object_list[i].rtz2sat_def_pct_indexM[ii] = 1000*(default_object_list[i].rtz2sat_def_0z[ii] - default_object_list[i].rtz2sat_def_pct_index[ii]*0.001);
             
             if( zzz > default_object_list[i].maxrootdepth){
+                // (1-rtz_soil_om) is the om% in between 0 and maxrootdepth
                 default_object_list[i].rtz2NO3prop[ii] = (1-rtz_soil_om)+(rtz_soil_coef-exp(rtz_soil_vdeay*zzz)) * solute_0_rtz_soil;
                 default_object_list[i].rtz2NH4prop[ii] = (1-rtz_soil_om)+(rtz_soil_coef-exp(rtz_soil_vdeay*zzz)) * solute_0_rtz_soil;
                 default_object_list[i].rtz2DOMprop[ii] = (1-rtz_soil_om)+(rtz_soil_coef-exp(rtz_soil_vdeay*zzz)) * solute_0_rtz_soil;

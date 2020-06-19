@@ -263,7 +263,7 @@ int allocate_annual_growth(				int id,
     double maxReducePropLeaf = epc.phenology_type == EVERGREEN? 0.4 : 0.2;
     if(epc.veg_type != NON_VEG && potReduceLeafCarbon>0){
         if(cs->leafc_transfer>0 && cs->leafc_transfer*maxReducePropLeaf > potReduceLeafCarbon){
-            tmpRatio = potReduceCrootCarbon/cs->leafc_transfer;
+            tmpRatio = potReduceLeafCarbon/cs->leafc_transfer;
             exceedC += potReduceLeafCarbon;
             exceedN += ns->leafn_transfer * tmpRatio;
             tmpRatio = 1.0 - tmpRatio;
@@ -273,14 +273,14 @@ int allocate_annual_growth(				int id,
         }else{
             exceedC += cs->leafc_transfer*maxReducePropLeaf;
             exceedN += ns->leafn_transfer*maxReducePropLeaf;
-            potReduceCrootCarbon -= cs->leafc_transfer*maxReducePropLeaf;
+            potReduceLeafCarbon -= cs->leafc_transfer*maxReducePropLeaf;
             cs->leafc_transfer *= 1.0-maxReducePropLeaf;
             ns->leafn_transfer *= 1.0-maxReducePropLeaf;
         }// end of if
     }// end of if
     if(epc.veg_type != NON_VEG && potReduceLeafCarbon>0){
         if(cs->leafc_store >0 && cs->leafc_store*maxReducePropLeaf > potReduceLeafCarbon){
-            tmpRatio = potReduceCrootCarbon/cs->leafc_store;
+            tmpRatio = potReduceLeafCarbon/cs->leafc_store;
             exceedC += potReduceLeafCarbon;
             exceedN += ns->leafn_store * tmpRatio;
             tmpRatio = 1.0 - tmpRatio;
@@ -290,15 +290,15 @@ int allocate_annual_growth(				int id,
         }else{
             exceedC += cs->leafc_store*maxReducePropLeaf;
             exceedN += ns->livecrootn_store*maxReducePropLeaf;
-            potReduceCrootCarbon -= cs->leafc_store*maxReducePropLeaf;
+            potReduceLeafCarbon -= cs->leafc_store*maxReducePropLeaf;
             cs->leafc_store *= 1.0-maxReducePropLeaf;
             ns->leafn_store *= 1.0-maxReducePropLeaf;
         }// end of if
     }// end of if
     if(epc.veg_type != NON_VEG && potReduceLeafCarbon>0){
         if(cs->leafc >0 && cs->leafc*maxReducePropLeaf > potReduceLeafCarbon){
-            tmpRatio = potReduceCrootCarbon/cs->leafc;
-            double N2liter = potReduceCrootCarbon/epc.leaflitr_cn;
+            tmpRatio = potReduceLeafCarbon/cs->leafc;
+            double N2liter = potReduceLeafCarbon/epc.leaflitr_cn;
             exceedN += ns->leafn * tmpRatio - N2liter;
             
             tmpMultilper = epc.leaflitr_flab * stratum[0].cover_fraction;
@@ -587,7 +587,7 @@ int allocate_annual_growth(				int id,
                (stratum[0].cs.frootc + stratum[0].cs.frootc_store + stratum[0].cs.frootc_transfer)
                );
         
-        // report patch vegid day month year gday nfactor wfactor lfactor gfactor basement cover cpool gwPSN gwMresp gwAPAR gwLWP gwVPD wtz perivnss  num_resprout redLeafC redCrootc redStemC redFrootC leafc rootc stemc frootc
+        // report,patch,vegid,day,month,year,gday,nfactor,wfactor,lfactor,gfactor,basement,cover,cpool,gwPSN,gwMresp,gwAPAR,gwLWP,gwVPD,wtz,perivnss,,num_resprout,redLeafC,redCrootc,redStemC,redFrootC,leafc,rootc,stemc,frootc
         cs->num_resprout += 1;
         
         if (cs->num_resprout > 5 ) {

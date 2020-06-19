@@ -37,7 +37,6 @@ double recompute_gamma(
 	/*	Local variable definition.				*/ 
 	/*--------------------------------------------------------------*/ 
 	int i, d;
-    double adjustment;
     double revised_total_gamma;
     double totaledge;
 	double z1, z2, water_table_z1, water_table_z2;
@@ -48,7 +47,6 @@ double recompute_gamma(
 	/*	account in modelling surface gradients			*/
 	/*--------------------------------------------------------------*/ 
 
-	adjustment = 0.0;
     totaledge = 0.0;
 	z1 = patch[0].z;  
     if(patch[0].sat_deficit_z > ZERO){
