@@ -109,8 +109,36 @@ struct landuse_default *construct_landuse_defaults(
 		default_object_list[i].PH = 			getDoubleParam(&paramCnt, &paramPtr, "PH", "%lf", 7.0, 1);
 		//default_object_list[i].percent_impervious = 	getDoubleParam(&paramCnt, &paramPtr, "landuse.percent_impervious", "%lf", 0.0, 1);
 		default_object_list[i].grazing_Closs = 	getDoubleParam(&paramCnt, &paramPtr, "grazing_Closs", "%lf", 0.0, 1) / 365;
-
-		/*--------------------------------------------------------------*/
+        
+        // sanitary sewer
+        default_object_list[i].sewerDiameter =     getDoubleParam(&paramCnt, &paramPtr, "sewerDiamInch", "%lf", 8.0, 1)*0.0254; //convert to m
+        default_object_list[i].sewerDensity =     getDoubleParam(&paramCnt, &paramPtr, "sewerDensityMileAcre", "%lf", 0.0, 1)*1609.344/4046.85642; // convert to m/m2; 0.3976776; related to population density
+        default_object_list[i].sewerDepth =     getDoubleParam(&paramCnt, &paramPtr, "sewerDepthft", "%lf", 11, 1)*0.3048;
+            // 15ft deepest = 4.572 m; 11ft = 3.3528 m; 4ft = 1.2192 m // assume this is the depth of the bottom of the pipe.
+        default_object_list[i].sewer_exfiltrationRate =  getDoubleParam(&paramCnt, &paramPtr, "MaxExf_gpimd", "%lf", 9061.0, 1)* 0.00378541178/0.0254/1609.344*default_object_list[i].sewerDiameter*default_object_list[i].sewerDensity;// m3/m2/d = m/d
+        default_object_list[i].sewer_exfiltrationPercent = getDoubleParam(&paramCnt, &paramPtr, "MaxExf_Percent", "%lf", 0.491, 1);
+        default_object_list[i].sewer_emptyPercent = getDoubleParam(&paramCnt, &paramPtr, "emptyPercent", "%lf", 0.25, 1);
+        default_object_list[i].sewer_infiltrationRate = default_object_list[i].sewer_exfiltrationRate / default_object_list[i].sewer_exfiltrationPercent/(1.0-default_object_list[i].sewer_emptyPercent)*default_object_list[i].sewer_emptyPercent;
+        
+        //lookup table
+        //double upee[] = {1.0,0.95,0.9,0.85,0.8,0.75,0.7,0.65,0.6,0.55,0.5,0.45,0.4,0.35,0.3,0.25,0.2,0.15,0.1,0.05,0.0};
+        int jj;
+        double emptyPercent[] = {0.0,0.01869304,0.05204402,0.0940602,0.14237849,0.19550111,0.25231579,0.31191883,0.37353004,0.43644429,0.5,0.51869304,0.55204402,0.5940602,0.64237849,0.69550111,0.75231579,0.81191883,0.87353004,0.93644429,1.0};
+        for(jj=0; jj<21; jj++){
+            if(emptyPercent[jj] >= default_object_list[i].sewer_emptyPercent) break;
+        }// end of for jj
+        double upee = -(default_object_list[i].sewer_emptyPercent-emptyPercent[jj-1])/(emptyPercent[jj]-emptyPercent[jj-1])*0.05+(1-0.05*(jj-1));
+        default_object_list[i].sewer_infiltrationSatDefZThreshold = default_object_list[i].sewerDepth - default_object_list[i].sewerDiameter*upee;// this is the depth of the empty space of the pipe, direct comparable to sat_def_z
+        default_object_list[i].sewer_infiltrationSatDefZHeadSpace = 1.0/(default_object_list[i].sewer_infiltrationSatDefZThreshold - (default_object_list[i].sewerDepth-default_object_list[i].sewerDiameter)); // 1/"thickness of empty space"
+        // default_object_list[i].sewerDepth-default_object_list[i].sewerDiameter = top depth of sewer pipe
+        default_object_list[i].sewer_exfiltrationDepthVol = 1.0/(default_object_list[i].sewerDepth-default_object_list[i].sewer_infiltrationSatDefZThreshold);
+        
+        
+        default_object_list[i].sewerNO3c = getDoubleParam(&paramCnt, &paramPtr, "sewerNO3mgNL", "%lf", 2.5, 1)*0.001; // convert to kgN/m3
+        default_object_list[i].sewerNH4c = getDoubleParam(&paramCnt, &paramPtr, "sewerNH4mgNL", "%lf", 2.5, 1)*0.001;
+        default_object_list[i].sewerDONc = getDoubleParam(&paramCnt, &paramPtr, "sewerDONmgNL", "%lf", 2.5, 1)*0.001;
+        default_object_list[i].sewerDOCc = getDoubleParam(&paramCnt, &paramPtr, "sewerDOCmgCL", "%lf", 2.5, 1)*0.001;
+        /*--------------------------------------------------------------*/
 		/*		Close the ith default file.								*/
 		/*--------------------------------------------------------------*/
 
