@@ -36,7 +36,7 @@ void	output_yearly_patch(
 				FILE *outfile)
 {
     int check;
-	check = fprintf(outfile,"%d %d %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf\n",
+	check = fprintf(outfile,"%d %d %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf\n",
     
     current_date.year,
     patch[0].ID,
@@ -44,7 +44,6 @@ void	output_yearly_patch(
     patch[0].acc_year.surfQnet*1000.0,
     patch[0].acc_year.subQvnet*1000.0,
     patch[0].acc_year.precip*1000.0,
-    patch[0].acc_year.recharge*1000.0,
     patch[0].acc_year.PET*1000.0,
     patch[0].acc_year.ET*1000.0,
     patch[0].acc_year.sat_deficit_z*1000.0 / patch[0].acc_year.days,
@@ -58,7 +57,9 @@ void	output_yearly_patch(
     patch[0].acc_year.subNO3vnet*1000.0,
     patch[0].acc_year.subDOCnet*1000.0,
     patch[0].acc_year.no3drain2gw*1000.0,
-    patch[0].acc_year.no3diffuse2gw*1000.0
+    patch[0].acc_year.satChance/ patch[0].acc_year.days,
+    patch[0].acc_year.plantlimitN/ patch[0].acc_year.days,
+    patch[0].acc_year.plantlimitQ/ patch[0].acc_year.days
     );
     
 	return;

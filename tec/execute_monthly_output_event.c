@@ -80,9 +80,6 @@ void	execute_monthly_output_event(
 	/*--------------------------------------------------------------*/
 	/*	check to see if there are any print options					*/
 	/*--------------------------------------------------------------*/
-	if ((command_line[0].b != NULL) || (command_line[0].h != NULL) ||
-		(command_line[0].z != NULL) || (command_line[0].p != NULL) ||
-		(command_line[0].c != NULL)){
 		/*--------------------------------------------------------------*/
 		/*	output_monthly basins												*/
 		/*--------------------------------------------------------------*/
@@ -101,8 +98,6 @@ void	execute_monthly_output_event(
 			/*--------------------------------------------------------------*/
 			/*	check to see if there are any lower print options			*/
 			/*--------------------------------------------------------------*/
-			if ((command_line[0].h != NULL) || (command_line[0].z != NULL) ||
-				(command_line[0].p != NULL) || (command_line[0].c != NULL)){
 				/*--------------------------------------------------------------*/
 				/*	output_monthly hillslopes 											*/
 				/*--------------------------------------------------------------*/
@@ -126,8 +121,6 @@ void	execute_monthly_output_event(
 					/*------------------------------------------------------------*/
 					/*	check to see if there are any lower print options			*/
 					/*----------------------------------------------------------*/
-					if ((command_line[0].z != NULL) || (command_line[0].p != NULL) ||
-						(command_line[0].c != NULL)){
 						/*------------------------------------------------------*/
 						/*	output_monthly zones												*/
 						/*-----------------------------------------------------*/
@@ -157,14 +150,10 @@ void	execute_monthly_output_event(
 							/*------------------------------------------------------*/
 							/*	check to see if there are any lower print options	  */
 							/*------------------------------------------------------*/
-							if ((command_line[0].p != NULL)
-								|| (command_line[0].c != NULL)){
 								/*--------------------------------------------------*/
 								/*	output_monthly patches 									 */
 								/*--------------------------------------------------*/
-								for (p=0;
-								p < world[0].basins[b][0].hillslopes[h][0].zones[z][0].num_patches;
-								++p){
+								for (p=0; p < world[0].basins[b][0].hillslopes[h][0].zones[z][0].num_patches; ++p){
 									/*------------------------------------------------*/
 									/*	Construct the patch output_monthly files.		  */
 									/*------------------------------------------------*/
@@ -224,13 +213,38 @@ void	execute_monthly_output_event(
 																outfile->canopy_stratum->monthly);
 										} /* end stratum (c) for loop */
 									} /* end if options */
+                                    
+                                    
+                                    // reset accumulated values at each patch
+                                    world[0].basins[b]->hillslopes[h]->zones[z]->patches[p]->acc_month.subQnet = 0.0;
+                                    world[0].basins[b]->hillslopes[h]->zones[z]->patches[p]->acc_month.surfQnet = 0.0;
+                                    world[0].basins[b]->hillslopes[h]->zones[z]->patches[p]->acc_month.subQvnet = 0.0;
+                                    world[0].basins[b]->hillslopes[h]->zones[z]->patches[p]->acc_month.precip = 0.0;
+                                    world[0].basins[b]->hillslopes[h]->zones[z]->patches[p]->acc_month.PET = 0.0;
+                                    world[0].basins[b]->hillslopes[h]->zones[z]->patches[p]->acc_month.ET = 0.0;
+                                    world[0].basins[b]->hillslopes[h]->zones[z]->patches[p]->acc_month.sat_deficit_z = 0.0;
+                                    world[0].basins[b]->hillslopes[h]->zones[z]->patches[p]->acc_month.peakLAI = 0.0;
+                                    world[0].basins[b]->hillslopes[h]->zones[z]->patches[p]->acc_month.meanLAI = 0.0;
+                                    world[0].basins[b]->hillslopes[h]->zones[z]->patches[p]->acc_month.psn = 0.0;
+                                    world[0].basins[b]->hillslopes[h]->zones[z]->patches[p]->acc_month.days = 0.0;
+                                    world[0].basins[b]->hillslopes[h]->zones[z]->patches[p]->acc_month.satChance = 0.0;
+                                    world[0].basins[b]->hillslopes[h]->zones[z]->patches[p]->acc_month.plantlimitN = 0.0;
+                                    world[0].basins[b]->hillslopes[h]->zones[z]->patches[p]->acc_month.plantlimitQ = 0.0;
+                                    world[0].basins[b]->hillslopes[h]->zones[z]->patches[p]->acc_month.denitrif = 0.0;
+                                    world[0].basins[b]->hillslopes[h]->zones[z]->patches[p]->acc_month.mineralization = 0.0;
+                                    world[0].basins[b]->hillslopes[h]->zones[z]->patches[p]->acc_month.uptake = 0.0;
+                                    world[0].basins[b]->hillslopes[h]->zones[z]->patches[p]->acc_month.subNO3net = 0.0;
+                                    world[0].basins[b]->hillslopes[h]->zones[z]->patches[p]->acc_month.subNO3vnet = 0.0;
+                                    world[0].basins[b]->hillslopes[h]->zones[z]->patches[p]->acc_month.subDOCnet = 0.0;
+                                    world[0].basins[b]->hillslopes[h]->zones[z]->patches[p]->acc_month.no3drain2gw = 0.0;
+                                    
+                                    
 								} /* end patch (p) for loop */
-							} /* end if options */
+							
 						} /* end zone (z) for  loop*/
-						} /* end if options */
+						
 					} /* end hillslope (h) for loop */
-				} /* end if options */
+				
 			} /* end basin (b) for loop */
-		} /* end if options */
 		return;
 } /*end execute_monthly_output_event*/

@@ -892,9 +892,25 @@ struct  landuse_default
         double  septic_water_load;                                      /* m/m2/day */
         double  detention_store_size;                   /* m/impFrac */
         double  pond_size;
+        double  sewerDiameter;
+        double  sewerDensity;
+        double  sewerDepth;
+        double  sewer_exfiltrationRate;
+        double  sewer_exfiltrationPercent;
+        double  sewer_emptyPercent;
+        double  sewer_infiltrationRate;
+        double  sewer_infiltrationSatDefZThreshold;
+        double  sewer_exfiltrationDepthVol;
+        double  sewer_infiltrationSatDefZHeadSpace;
+        double  sewerNO3c;
+        double  sewerNH4c;
+        double  sewerDONc;
+        double  sewerDOCc;
+        // useless below
         double  lai_cut;                                /* m2/m2 */
         double  percent_impervious;                     /* 0-1 */
         double  grazing_Closs;                  /* kgC/m2/day */
+    
 };
 /*----------------------------------------------------------*/
 /*	Define an soil 	default object.						*/
@@ -1399,7 +1415,7 @@ struct accumulate_patch_object
     double surfQnet;
     double subQvnet;//unsat zone only
     double precip;
-    double recharge;
+    //double recharge;
     double PET;
     double ET;
     double sat_deficit_z;
@@ -1407,6 +1423,9 @@ struct accumulate_patch_object
     double meanLAI;
     double psn;
     double days;
+    double satChance;
+    double plantlimitN;
+    double plantlimitQ;
     double denitrif;
     double mineralization;
     double uptake;
@@ -1414,7 +1433,7 @@ struct accumulate_patch_object
     double subNO3vnet;
     double subDOCnet;
     double no3drain2gw;
-    double no3diffuse2gw;
+    //double no3diffuse2gw;
 };
 /*----------------------------------------------------------*/
 /*      Define an patch object                              */      

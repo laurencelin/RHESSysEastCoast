@@ -45,7 +45,6 @@ void	output_yearly_hillslope(	int basinID,
     double surfQnet = 0.0;
     double subQvnet = 0.0;
     double precip = 0.0;
-    double recharge = 0.0;
     double PET = 0.0;
     double ET = 0.0;
     double sat_deficit_z = 0.0;
@@ -71,7 +70,6 @@ void	output_yearly_hillslope(	int basinID,
                     surfQnet += patch[0].acc_year.surfQnet*patch[0].area;
                     subQvnet += patch[0].acc_year.subQvnet*patch[0].area;
                     precip += patch[0].acc_year.precip*patch[0].area;
-                    recharge += patch[0].acc_year.recharge*patch[0].area;
                     PET += patch[0].acc_year.PET*patch[0].area;
                     ET += patch[0].acc_year.ET*patch[0].area;
                     sat_deficit_z += patch[0].acc_year.sat_deficit_z / patch[0].acc_year.days *patch[0].area;
@@ -95,7 +93,6 @@ void	output_yearly_hillslope(	int basinID,
         surfQnet *= aarea;
         subQvnet *= aarea;
         precip *= aarea;
-        recharge *= aarea;
         PET *= aarea;
         ET *= aarea;
         sat_deficit_z *= aarea;
@@ -110,7 +107,7 @@ void	output_yearly_hillslope(	int basinID,
         subDOCnet *= aarea;
         
         
-        fprintf(outfile,"%d %d %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf\n",
+        fprintf(outfile,"%d %d %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf\n",
         
         current_date.year,
         hID,
@@ -118,7 +115,6 @@ void	output_yearly_hillslope(	int basinID,
         surfQnet*1000.0,
         subQvnet*1000.0,
         precip*1000.0,
-        recharge*1000.0,
         PET*1000.0,
         ET*1000.0,
         sat_deficit_z*1000.0,

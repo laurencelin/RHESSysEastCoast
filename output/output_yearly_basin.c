@@ -44,7 +44,6 @@ void	output_yearly_basin(
     double surfQnet = 0.0;
     double subQvnet = 0.0;
     double precip = 0.0;
-    double recharge = 0.0;
     double PET = 0.0;
     double ET = 0.0;
     double sat_deficit_z = 0.0;
@@ -58,7 +57,7 @@ void	output_yearly_basin(
     double subNO3vnet = 0.0;
     double subDOCnet = 0.0;
     double no3drain2gw = 0.0;
-    double no3diffuse2gw = 0.0;
+   
     
     for (hh=0; hh < basin[0].num_hillslopes; hh++){
         hillslope = basin[0].hillslopes[hh];
@@ -71,7 +70,6 @@ void	output_yearly_basin(
                 surfQnet += patch[0].acc_year.surfQnet*patch[0].area;
                 subQvnet += patch[0].acc_year.subQvnet*patch[0].area;
                 precip += patch[0].acc_year.precip*patch[0].area;
-                recharge += patch[0].acc_year.recharge*patch[0].area;
                 PET += patch[0].acc_year.PET*patch[0].area;
                 ET += patch[0].acc_year.ET*patch[0].area;
                 sat_deficit_z += patch[0].acc_year.sat_deficit_z / patch[0].acc_year.days *patch[0].area;
@@ -85,7 +83,6 @@ void	output_yearly_basin(
                 subNO3vnet += patch[0].acc_year.subNO3vnet*patch[0].area;
                 subDOCnet += patch[0].acc_year.subDOCnet*patch[0].area;
                 no3drain2gw += patch[0].acc_year.no3drain2gw*patch[0].area;
-                no3diffuse2gw += patch[0].acc_year.no3diffuse2gw*patch[0].area;
             }//p
         }//z
     }//hh
@@ -95,7 +92,6 @@ void	output_yearly_basin(
     surfQnet *= aarea;
     subQvnet *= aarea;
     precip *= aarea;
-    recharge *= aarea;
     PET *= aarea;
     ET *= aarea;
     sat_deficit_z *= aarea;
@@ -109,15 +105,14 @@ void	output_yearly_basin(
     subNO3vnet *= aarea;
     subDOCnet *= aarea;
     no3drain2gw *= aarea;
-    no3diffuse2gw *= aarea;
+   
     
-	fprintf(outfile,"%d %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf\n",
+	fprintf(outfile,"%d %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf\n",
         current_date.year,
         subQnet*1000.0,
         surfQnet*1000.0,
         subQvnet*1000.0,
         precip*1000.0,
-        recharge*1000.0,
         PET*1000.0,
         ET*1000.0,
         sat_deficit_z*1000.0,
@@ -130,8 +125,7 @@ void	output_yearly_basin(
         subNO3net*1000.0,
         subNO3vnet*1000.0,
         subDOCnet*1000.0,
-        no3drain2gw*1000.0,
-        no3diffuse2gw*1000.0
+        no3drain2gw*1000.0
         );
 	return;
 } /*end output_yearly_basin*/

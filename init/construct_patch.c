@@ -961,7 +961,6 @@ struct patch_object *construct_patch(
     patch[0].acc_month.surfQnet = 0.0;
     patch[0].acc_month.subQvnet = 0.0;
     patch[0].acc_month.precip = 0.0;
-    patch[0].acc_month.recharge = 0.0;
     patch[0].acc_month.PET = 0.0;
     patch[0].acc_month.ET = 0.0;
     patch[0].acc_month.sat_deficit_z = 0.0;
@@ -974,7 +973,9 @@ struct patch_object *construct_patch(
     patch[0].acc_month.subNO3net = 0.0;
     patch[0].acc_month.subNO3vnet = 0.0;
     patch[0].acc_month.subDOCnet = 0.0;
-    
+    patch[0].acc_month.satChance = 0.0;
+    patch[0].acc_month.plantlimitN = 0.0;
+    patch[0].acc_month.plantlimitQ = 0.0;
     
     // annual
     //patch[0].acc_year = (struct accumulate_patch_object *) alloc( 1 * sizeof( struct accumulate_patch_object ),"accumulate_patch_object", "construct_patch" );
@@ -982,7 +983,6 @@ struct patch_object *construct_patch(
     patch[0].acc_year.surfQnet = 0.0;
     patch[0].acc_year.subQvnet = 0.0;
     patch[0].acc_year.precip = 0.0;
-    patch[0].acc_year.recharge = 0.0;
     patch[0].acc_year.PET = 0.0;
     patch[0].acc_year.ET = 0.0;
     patch[0].acc_year.sat_deficit_z = 0.0;
@@ -995,7 +995,10 @@ struct patch_object *construct_patch(
     patch[0].acc_year.subNO3net = 0.0;
     patch[0].acc_year.subNO3vnet = 0.0;
     patch[0].acc_year.subDOCnet = 0.0;
-
+    patch[0].acc_year.satChance = 0.0;
+    patch[0].acc_year.plantlimitN = 0.0;
+    patch[0].acc_year.plantlimitQ = 0.0;
+    
 	return(patch);
 } /*end construct_patch.c*/
 

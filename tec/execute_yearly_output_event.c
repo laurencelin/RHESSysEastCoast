@@ -203,7 +203,7 @@ void	execute_yearly_output_event(
                     world[0].basins[b]->hillslopes[h]->zones[z]->patches[p]->acc_year.surfQnet = 0.0;
                     world[0].basins[b]->hillslopes[h]->zones[z]->patches[p]->acc_year.subQvnet = 0.0;
                     world[0].basins[b]->hillslopes[h]->zones[z]->patches[p]->acc_year.precip = 0.0;
-                    world[0].basins[b]->hillslopes[h]->zones[z]->patches[p]->acc_year.recharge = 0.0;
+                    //world[0].basins[b]->hillslopes[h]->zones[z]->patches[p]->acc_year.recharge = 0.0;
                     world[0].basins[b]->hillslopes[h]->zones[z]->patches[p]->acc_year.PET = 0.0;
                     world[0].basins[b]->hillslopes[h]->zones[z]->patches[p]->acc_year.ET = 0.0;
                     world[0].basins[b]->hillslopes[h]->zones[z]->patches[p]->acc_year.sat_deficit_z = 0.0;
@@ -211,6 +211,9 @@ void	execute_yearly_output_event(
                     world[0].basins[b]->hillslopes[h]->zones[z]->patches[p]->acc_year.meanLAI = 0.0;
                     world[0].basins[b]->hillslopes[h]->zones[z]->patches[p]->acc_year.psn = 0.0;
                     world[0].basins[b]->hillslopes[h]->zones[z]->patches[p]->acc_year.days = 0.0;
+                    world[0].basins[b]->hillslopes[h]->zones[z]->patches[p]->acc_year.satChance = 0.0;
+                    world[0].basins[b]->hillslopes[h]->zones[z]->patches[p]->acc_year.plantlimitN = 0.0;
+                    world[0].basins[b]->hillslopes[h]->zones[z]->patches[p]->acc_year.plantlimitQ = 0.0;
                     world[0].basins[b]->hillslopes[h]->zones[z]->patches[p]->acc_year.denitrif = 0.0;
                     world[0].basins[b]->hillslopes[h]->zones[z]->patches[p]->acc_year.mineralization = 0.0;
                     world[0].basins[b]->hillslopes[h]->zones[z]->patches[p]->acc_year.uptake = 0.0;
@@ -218,10 +221,10 @@ void	execute_yearly_output_event(
                     world[0].basins[b]->hillslopes[h]->zones[z]->patches[p]->acc_year.subNO3vnet = 0.0;
                     world[0].basins[b]->hillslopes[h]->zones[z]->patches[p]->acc_year.subDOCnet = 0.0;
                     world[0].basins[b]->hillslopes[h]->zones[z]->patches[p]->acc_year.no3drain2gw = 0.0;
-                    world[0].basins[b]->hillslopes[h]->zones[z]->patches[p]->acc_year.no3diffuse2gw = 0.0;
-                            } /* end patch (p) for loop */
-                    } /* end zone (z) for  loop*/
-                } /* end hillslope (h) for loop */
+                    //world[0].basins[b]->hillslopes[h]->zones[z]->patches[p]->acc_year.no3diffuse2gw = 0.0;
+                    } /* end patch (p) for loop */
+                } /* end zone (z) for  loop*/
+            } /* end hillslope (h) for loop */
         } /* end basin (b) for loop */
 		
 		return;

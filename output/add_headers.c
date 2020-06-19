@@ -42,7 +42,7 @@ void add_headers(struct world_output_file_object *world_output_files,
     
     if (command_line[0].aggregate_flag>0) {
         outfile = world_output_files[0].aggregate[0].daily;
-        fprintf(outfile,"%s,%s,%s,%s, %s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s, %s,%s,%s,%s,%s,%s, %s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s, %s,%s,%s,%s,%s,%s,%s,%s,%s\n",
+        fprintf(outfile,"%s,%s,%s,%s, %s, %s,%s,%s,%s,%s,%s,%s, %s,%s,%s,%s,%s,%s, %s,%s,%s,%s,%s, %s,%s,%s,%s,%s, %s,%s,%s,%s,%s\n",
                 "day", "month", "year", "aggregateID",//[4]
                 
                 "area",
@@ -52,10 +52,11 @@ void add_headers(struct world_output_file_object *world_output_files,
                 "rootS",
                 "LAI",
                 "nlimit",
-                "PARdirect",
-                "PARdiffuse",
-                "ZONEPARdirect",
-                "ZONEPARdiffuse",//[11]
+                "qlimit",
+//                "PARdirect",
+//                "PARdiffuse",
+//                "ZONEPARdirect",
+//                "ZONEPARdiffuse",//[11]
                 
                 "litterLigninN",
                 "litterCelluloseN",
@@ -64,6 +65,7 @@ void add_headers(struct world_output_file_object *world_output_files,
                 "litterCelluloseC",
                 "litterLabileC",//[6]
                 
+                "activeS",
                 "denitri",
                 "Pot_denitrif_SS",
                 "Pot_denitrif_CO2",
@@ -77,19 +79,19 @@ void add_headers(struct world_output_file_object *world_output_files,
                 "wtz",
                 "satq",
                 "satNO3",//[13]
-                "satNH4",
-                "satDON",
-                "satDOC",
-                
-                "frmStrQ",
-                "frmStrNO3",
-                "frmStrNH4",
-                "frmRipQ",
-                "frmRipNO3",
-                "frmRipNH4",
-                "frmLndQ",
-                "frmLndNO3",
-                "frmLndNH4"//[9]
+                "satNH4"
+//                "satDON",
+//                "satDOC",
+//
+//                "frmStrQ",
+//                "frmStrNO3",
+//                "frmStrNH4",
+//                "frmRipQ",
+//                "frmRipNO3",
+//                "frmRipNH4",
+//                "frmLndQ",
+//                "frmLndNO3",
+//                "frmLndNH4"//[9]
                 );
                 
     }//
@@ -267,13 +269,12 @@ void add_headers(struct world_output_file_object *world_output_files,
 	/*	Yearly 							*/
 	/*--------------------------------------------------------------*/
 	outfile = world_output_files[0].basin[0].yearly;
-	check = fprintf(outfile, "%s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s\n" ,
+	check = fprintf(outfile, "%s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s\n" ,
         "year",
         "subQnet",
         "surfQnet",
         "subQvnet",
         "precip",
-        "recharge",
         "pet",
         "et",
         "sat_deficit_z",
@@ -282,7 +283,7 @@ void add_headers(struct world_output_file_object *world_output_files,
         "psn",
         "denitrif",
         "mineralization","uptake","subNO3net", "subNO3vnet","subDOCnet",
-        "no3drain2gw","no3diffuse2gw"
+        "no3drain2gw"
         );
     }// basin
     
@@ -358,7 +359,6 @@ void add_headers(struct world_output_file_object *world_output_files,
         "surfQnet",
         "subQvnet",
         "precip",
-        "recharge",
         "pet",
         "et",
         "sat_deficit_z",
@@ -493,7 +493,7 @@ void add_headers(struct world_output_file_object *world_output_files,
 	/*--------------------------------------------------------------*/
 	outfile = world_output_files[0].patch[0].monthly;
 	check = fprintf(outfile,
-		"%s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s\n",
+		"%s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s\n",
 		"year",
         "month",
 		"patchID",
@@ -501,7 +501,6 @@ void add_headers(struct world_output_file_object *world_output_files,
 		"surfQnet",
         "subQvnet",
 		"precip",
-		"recharge",
 		"pet",
         "et",
 		"sat_deficit_z",
@@ -509,19 +508,19 @@ void add_headers(struct world_output_file_object *world_output_files,
         "meanLAI",
         "psn",
         "denitrif",
-        "mineralization","uptake","subNO3net","subNO3vnet","subDOCnet","no3drain2gw","no3diffuse2gw");
+        "mineralization","uptake","subNO3net","subNO3vnet","subDOCnet","no3drain2gw","no3diffuse2gw",
+        "satChance","plantlimitN","plantlimitQ");
 	/*--------------------------------------------------------------*/
 	/*	Yearly							*/
 	/*--------------------------------------------------------------*/
 	outfile = world_output_files[0].patch[0].yearly;
-	fprintf(outfile, "%s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s\n" ,
+	fprintf(outfile, "%s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s\n" ,
             "year",
             "patchID",
             "subQnet",
             "surfQnet",
             "subQvnet",
             "precip",
-            "recharge",
             "pet",
             "et",
             "sat_deficit_z",
@@ -529,7 +528,8 @@ void add_headers(struct world_output_file_object *world_output_files,
             "meanLAI",
             "psn",
             "denitrif",
-            "mineralization","uptake","subNO3net", "subNO3vnet","subDOCnet","no3drain2gw","no3diffuse2gw");
+            "mineralization","uptake","subNO3net", "subNO3vnet","subDOCnet","no3drain2gw","no3diffuse2gw",
+            "satChance","plantlimitN","plantlimitQ");
 	}
 
 	/*--------------------------------------------------------------*/
