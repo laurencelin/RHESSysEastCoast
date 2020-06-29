@@ -2312,13 +2312,21 @@ void		patch_daily_F(
     // cap_rise = (patch[0].potential_cap_rise)@rtz vs unsat_zone_patch_demand
 
     // because cap_rise is very sensitive to the sat_def. the potential_cap_rise was calculated @ patch dailyI; here we calculate potential_cap_rise once more and take the average of the two (testing).
+    // rtz vs rtz fc
+    double plant_drive_cap_rise = 1.0;
+    if(patch[0].rz_storage < patch[0].rootzone.field_capacity){
+        plant_drive_cap_rise = min(3.0, patch[0].rootzone.field_capacity/(patch[0].rz_storage+0.001));
+    }
+    
     cap_rise = patch[0].sat_def_pct_indexM * patch[0].soil_defaults[0][0].pot_caprise_0z[patch[0].sat_def_pct_index+1] + (1.0-patch[0].sat_def_pct_indexM) *  patch[0].soil_defaults[0][0].pot_caprise_0z[patch[0].sat_def_pct_index];
     cap_rise = min(cap_rise, patch[0].available_soil_water);
     cap_rise = min(cap_rise, max(0.0,totalfc - patch[0].unsat_storage - patch[0].rz_storage));
     patch[0].potential_cap_rise += cap_rise;
     patch[0].potential_cap_rise *= 0.5;
+    //patch[0].potential_cap_rise *= plant_drive_cap_rise;
     
     cap_rise = patch[0].potential_cap_rise * patch[0].zeroRootCoef * (patch[0].rootzone_scale_ref*patch[0].rootzone_end_refcap[patch[0].sat_def_pct_index] + (1.0-patch[0].rootzone_scale_ref)*patch[0].rootzone_start_refcap[patch[0].sat_def_pct_index]);// cap_rise that can reach rtz
+    //cap_rise *= plant_drive_cap_rise;
     cap_rise_unsat = max(0.0, min(patch[0].potential_cap_rise-cap_rise, patch[0].field_capacity-patch[0].unsat_storage));
     patch[0].unsat_storage += cap_rise_unsat;
     // run into problem here. FC_0z is great when satz is deep; and most of that FC_0z is un unsat! at the same time, cap_rise becomes less as satz is deep
