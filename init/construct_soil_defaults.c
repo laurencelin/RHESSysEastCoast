@@ -444,10 +444,11 @@ struct soil_default *construct_soil_defaults(
         
         default_object_list[i].soil_water_cap = p0* p_decay*(1.0-exp(p_decay_1*soildepth));
         default_object_list[i].maxrootdepth_index = (int)(round(default_object_list[i].maxrootdepth*1000));
+        default_object_list[i].maxrootdepth_sat_0z = p0* p_decay*(1.0-exp(p_decay_1*default_object_list[i].maxrootdepth));
         default_object_list[i].active_zone_index = (int)(round(default_object_list[i].active_zone_z*1000));
         default_object_list[i].active_zone_sat_0z = p0* p_decay*(1.0-exp(p_decay_1*default_object_list[i].active_zone_z));
         default_object_list[i].active_zone_sat_0z_1 = 1.0/default_object_list[i].active_zone_sat_0z;
-        default_object_list[i].active_zone_omProp = (1.0-exp(-default_object_list[i].active_zone_z/default_object_list[i].DOMdecayRate))/(1.0-exp(-default_object_list[i].maxrootdepth/default_object_list[i].DOMdecayRate));
+        default_object_list[i].active_zone_omProp = (1.0-exp(-default_object_list[i].active_zone_z/default_object_list[i].DOMdecayRate))/(1.0-exp(-default_object_list[i].maxrootdepth/default_object_list[i].DOMdecayRate)); // assume 95% soil OM is within 0 - maxrootz
         
         double check, check2;
         for( ii=0; ii<1001; ii++){

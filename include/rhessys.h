@@ -1017,6 +1017,7 @@ struct	soil_default
         int *rtz2sat_def_pct_index;
         int active_zone_index;
         int maxrootdepth_index;
+        double maxrootdepth_sat_0z;
         double active_zone_sat_0z;
         double active_zone_sat_0z_1;
         double active_zone_omProp;

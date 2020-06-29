@@ -421,8 +421,8 @@ int update_decomp(
     
     // need to deal with daily_net_nminlitter, daily_net_nmin, and ndf->sminn_to_npool at the same time, as well as totalNH4. (need to work)
     // daily_net_nmin = 0.0; microbal_immob = 0.0; microbal_immoblitter = 0.0; microbal_mineralize = 0.0;
-    double Nnow = patch[0].litter.NO3_stored + patch[0].surface_NO3 + patch[0].surface_NH4 + totalNO3 + totalNH4;
-    double wtfNow = microbal_immoblitter + microbal_immob + ndf->sminn_to_npool;
+    double Nnow = patch[0].litter.NO3_stored + patch[0].surface_NO3 + patch[0].surface_NH4 + totalNO3 + totalNH4; //for debug
+    double wtfNow = microbal_immoblitter + microbal_immob + ndf->sminn_to_npool; //for debug
     
     //daily_net_nmin = 0.0; microbal_immob = 0.0; microbal_immoblitter = 0.0; //microbal_mineralize = 0.0; //<-- disable immob
     // fpi = ns_soil->fract_potential_immob;
@@ -451,12 +451,14 @@ int update_decomp(
         patch[0].sat_NH4 -= min(patch[0].sat_NH4, delta_totalNH4 * patch[0].rtzSatNH4/totalNH4);
     }
 
-    if (nitrate_immob > ZERO) printf("N balance issue: %f, %f, %f(%f), %f(%f) [%f, %f]:: ->%e<-%e (%f)[%f : %f]\n",
+    if (nitrate_immob > ZERO) printf("N balance issue: %e, %e, %e(%e),  %e(%e) [%e, %e]:: ->%e<- (%f,%f)[%f : %f][%d,%d]\n",
                                      microbal_immoblitter, microbal_immob,
-                                  ndf->plant_potential_ndemand, ndf->sminn_to_npool,
-                                  ndf->mineralized, microbal_mineralize,
+                                     ndf->plant_potential_ndemand, ndf->sminn_to_npool,
+                                     ndf->mineralized, microbal_mineralize,
                                      totalNO3, totalNH4,
-                                     nitrate_immob,-23.3, fpi, Nnow, wtfNow);
+                                     nitrate_immob,
+                                     ns_soil->fract_potential_immob,ns_soil->fract_potential_uptake, Nnow, wtfNow,
+                                     patch[0].soil_defaults[0][0].active_zone_index, patch[0].rtz2_index);
     
     //fpi<1.0 ||
 //    if((patch[0].ID==239202)&&(fpi<1.0 || ns_litr->litr1n != ns_litr->litr1n || ns_litr->litr2n != ns_litr->litr2n || ns_litr->litr3n != ns_litr->litr3n || ns_litr->litr4n != ns_litr->litr4n)) printf("actual decomp and uptake (after): patch %d, fpi %lf, carbon(%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf), nflux(%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf), immob(%lf,%lf,%lf,%lf), N(%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf)\n",

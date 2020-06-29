@@ -84,9 +84,8 @@ int update_denitrif(
 	double fnitrate, fCO2;
 	double hr, total_nitrate_ratio, soil_nitrate_ratio;
     double perc_sat;
-	double NORMAL[10]= {0,0,0.253,0.524,0.842,1.283,-0.253,-0.524,-0.842,-1.283};
+	double NORMAL[10]= { -1.283,-0.842,-0.524,-0.253, 0, 0, 0.253,0.524,0.842,1.283};
 	double resource_soilNO3, resource_satNO3;
-    std=0.5;
     
  
 	if ( ns_soil->nitrate+patch[0].sat_NO3 > 0.0 && patch[0].soil_defaults[0][0].soil_water_cap>0.0 ) {
@@ -139,11 +138,12 @@ int update_denitrif(
         if (std > 0) {
             for (i = 1; i< NUM_NORMAL; i++) {
                 thetai = theta + std*NORMAL[i];
-                thetai = min(0.3, thetai);
-                thetai = max(0.9, thetai);
+                thetai = min(1.0, thetai);
+                thetai = max(0.002, thetai);
                 water_scalari = min( a*exp(-c*exp(-d*thetai*log(b))*log(b)), 1.0);
-                water_scalar += 1.0/NUM_NORMAL * water_scalari;
+                water_scalar += water_scalari;
             }// for i
+            water_scalar *= 1.0/NUM_NORMAL;
         } else {
             //water_scalar = min(1.0, a / pow(b,  (c / pow(b, (d*theta) )) ) );
             water_scalar = min( a*exp(-c*exp(-d*theta*log(b))*log(b)), 1.0);
@@ -165,14 +165,14 @@ int update_denitrif(
             max(0.0,patch[0].Ksat_vertical-patch[0].aeratedSoilFrac) * 5e-05 + //4e-06 kgN/m2/day Vermes and Myrold et al., 1991 for forest soil in Oregon (max of 1.150685e-05 kgN/m2/day from many forest denitrification studies); //max 5e-05 kgN/m2/day Groffman and Tiedje 1989a forest soil in MI; max 1.150685e-05 kgN/m2/day Groffman and Tiedje 1989b
             patch[0].aeratedSoilFrac * (theta*patch[0].soil_defaults[0][0].sat_def_0zm[patch[0].soil_defaults[0][0].active_zone_index] >0.35? 6.134247e-05 : 8.082192e-07);// 6.134247e-05 kgN/m2/day  Raciti et al., 2011
         
+        // MaxDenitrify *= (patch[0].drainage_type>0 && patch[0].drainage_type % actionRIPARIAN==0? 1.7:1.0); // new developing wetland feature
+        
         // Parton equation is based on lab incubation at optimized condition. serves max denitrification rate
-        denitrify = min(MaxDenitrify,min(resource_soilNO3+resource_satNO3, (atan(PI*0.002*( total_nitrate_ratio - 180)) * 0.004 / PI + 0.0011)*water_scalar)) * patch[0].Ksat_vertical; // gN/ha/day --> 1e-07 kgN/m2/day
+        denitrify = min(MaxDenitrify, min(resource_soilNO3+resource_satNO3, (atan(PI*0.002*( total_nitrate_ratio - 180)) * 0.004 / PI + 0.0011)*water_scalar)) * patch[0].Ksat_vertical; // gN/ha/day --> 1e-07 kgN/m2/day
         denitrify_soil = min(MaxDenitrify,min(resource_soilNO3, (atan(PI*0.002*( soil_nitrate_ratio - 180)) * 0.004 / PI + 0.0011)*water_scalar)) * patch[0].Ksat_vertical; // gN/ha/day --> 1e-07 kgN/m2/day
         
         
-        
-        // * (1.0 - 0.67*patch[0].aeratedSoilFrac)
-        
+       
         denitrify_sat = min(resource_satNO3, max(0.0, denitrify-denitrify_soil));
         if(denitrify_sat+denitrify_soil<denitrify){
             denitrify_soil = max(0.0,min(resource_soilNO3, denitrify-denitrify_sat));
@@ -181,17 +181,24 @@ int update_denitrif(
             printf("denitrification negative %d,%f,%f,%f\n", patch[0].ID, denitrify,denitrify_soil,denitrify_sat);
         }//debug
         
-        denitrify = denitrify_soil+denitrify_sat;
+        denitrify = denitrify_soil + denitrify_sat;
         ndf->Pot_denitrif_CO2 = fCO2 * water_scalar; // respiration
         ndf->Pot_denitrif_SS = denitrify; // resource
 
-        if(denitrify > 0.0 && ndf->Pot_denitrif_CO2>0.0 && ndf->Pot_denitrif_CO2 < ndf->Pot_denitrif_SS){
-            
+        if(ndf->Pot_denitrif_SS>0.0 && ndf->Pot_denitrif_CO2>0.0 && ndf->Pot_denitrif_CO2 < ndf->Pot_denitrif_SS){
+            // limited by respiration factor
             denitrify_soil *= ndf->Pot_denitrif_CO2 / ndf->Pot_denitrif_SS;
             denitrify_sat *= ndf->Pot_denitrif_CO2 / ndf->Pot_denitrif_SS;
             denitrify = ndf->Pot_denitrif_CO2;
             
-        }else if(denitrify > 0.0 && ndf->Pot_denitrif_CO2>0.0){
+            ns_soil->nvolatilized_snk += denitrify;
+            ndf->sminn_to_nvol = denitrify;
+            if(resource_soilNO3>0.0) ns_soil->nitrate *= max(0.0, 1.0-denitrify_soil/ns_soil->nitrate);
+            if(resource_satNO3>0.0) patch[0].sat_NO3 *= max(0.0, 1.0-denitrify_sat/patch[0].sat_NO3);
+            ndf->denitrif = denitrify;
+            
+        }else if(ndf->Pot_denitrif_SS>0.0 && ndf->Pot_denitrif_CO2>0.0){
+            //limited by resource
             ns_soil->nvolatilized_snk += denitrify;
             ndf->sminn_to_nvol = denitrify;
             if(resource_soilNO3>0.0) ns_soil->nitrate *= max(0.0, 1.0-denitrify_soil/ns_soil->nitrate);
@@ -201,23 +208,24 @@ int update_denitrif(
             denitrify = 0.0;
             ndf->Pot_denitrif_CO2 = 0.0;
             ndf->Pot_denitrif_SS = 0.0;
-            //ns_soil->nvolatilized_snk += denitrify;
             ndf->sminn_to_nvol = 0.0;
-            //ns_soil->nitrate -= ?
-            //patch[0].sat_NO3 -= ?
             ndf->denitrif = 0.0;
         }
     
     } else {
+        // no nitrate
         denitrify = 0.0;
         ndf->Pot_denitrif_CO2 = 0.0;
         ndf->Pot_denitrif_SS = 0.0;
-        //ns_soil->nvolatilized_snk += denitrify;
         ndf->sminn_to_nvol = 0.0;
-        //ns_soil->nitrate -= ?
-        //patch[0].sat_NO3 -= ?
         ndf->denitrif = 0.0;
     }//if else
 
+    if(ndf->denitrif<ndf->Pot_denitrif_CO2 && ndf->denitrif<ndf->Pot_denitrif_SS){
+        printf("denitrification prob %d,%f,%f, %f\n", patch[0].ID,denitrify_soil,denitrify_sat,
+               ndf->denitrif, ndf->Pot_denitrif_CO2, ndf->Pot_denitrif_SS );
+    }
+    
+    
 	return(0);
 } /* end update_denitrif */

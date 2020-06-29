@@ -83,9 +83,7 @@ int update_nitrif(
     MAX_RATE = 1.0 * (1.0 + 59.0*patch[0].aeratedSoilFrac);
     // 0.5606 from coweeta forest (mgN/kg soil/day) WS7 with 8.9 mg NH4-N / kg soil (Coweeta forest book)
     // extract from Table 1 on page 75, the guessed max nitrificaiton in forest is 1 mgN/kg soil/day.
-    std = 0.5;
-   
-   
+    // MAX_RATE *= (patch[0].drainage_type>0 && patch[0].drainage_type % actionRIPARIAN==0? 1.7:1.0); // new developing wetland feature
     
 	if( patch[0].soil_defaults[0][0].active_zone_z>0 && ns_soil->sminn + patch[0].sat_NH4 > 0.0) {
         
@@ -96,6 +94,9 @@ int update_nitrif(
             a=0.6; b=1.27; c=0.0012; d=2.84;
         }// if
         T_scalar = min(-0.06 + 0.13 * exp(0.07 * patch[0].Tsoil),1.0);
+        
+        
+        patch[0].PH = (patch[0].drainage_type>0 && patch[0].drainage_type % actionRIPARIAN==0? 6.5:7.0); // new developing wetland feature
         pH_scalar = 0.56 + (atan(PI*0.45*(-5+patch[0].PH))/PI); // default 7.0, input by climate series.
         // forest may be lower in pH (should look from SSURGO)
         
@@ -125,9 +126,9 @@ int update_nitrif(
                 thetai = theta + NORMAL[i]*std;
                 thetai = min(1.0, thetai);
                 thetai = max(0.002, thetai);
-                water_scalar  += 1.0/NUM_NORMAL * exp(d*(b-a)/(a-c)*log((thetai -b) / (a-b))) * exp(d*log((thetai-c)/ (a-c)));
+                water_scalar  +=  exp(d*(b-a)/(a-c)*log((thetai -b) / (a-b))) * exp(d*log((thetai-c)/ (a-c)));
             }//for
-            
+            water_scalar *= 1.0/NUM_NORMAL;
         } else {
             if (theta  > c)
                 water_scalar  = exp(d*(b-a)/(a-c)*log((thetai -b) / (a-b))) * exp(d*log((thetai-c)/ (a-c)));
