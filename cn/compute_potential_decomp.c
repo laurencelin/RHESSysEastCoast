@@ -78,6 +78,7 @@ int compute_potential_decomp(double tsoil,
 	double pmnf_l1s1,pmnf_l2s2,pmnf_l3l2, pmnf_l4s3,pmnf_s1s2,pmnf_s2s3,pmnf_s3s4,pmnf_s4;
 	double potential_immob,potential_immoblitter,mineralized;
 	double weight1, weight2, theta1, theta2;
+    double w_scalar2;
 	int nlimit, i;
 	#define NUM_NORMAL  10 	/* resolution of normal distribution */
 	double NORMAL[10]= {0,0,0.253,0.524,0.842,1.283,-0.253,-0.524,-0.842,-1.283};
@@ -111,26 +112,44 @@ int compute_potential_decomp(double tsoil,
 			thetai = theta + NORMAL[i]*std;
 			thetai = min(1.0, thetai);
 			thetai = max(0.1, thetai);
-			w_scalar  += (pow( ((thetai -b) / (a-b)), d*(b-a)/(a-c))
-					* pow( ((thetai-c)/ (a-c)), d)) * 1.0/NUM_NORMAL;
-			}
-	}
-	else {
+			w_scalar  += exp(d*(b-a)/(a-c)*log((thetai -b)/(a-b))) * exp(d*log((thetai-c)/(a-c)));
+			}//end of for i
+        w_scalar *= 1.0/NUM_NORMAL;
+	} else {
 		if ((theta <= 0.0) || (theta > 1.0))
 			theta = 1.0;
 		if (theta  > c) {
-			w_scalar  = pow( ((theta -b) / (a-b)), d*(b-a)/(a-c))
-			* pow( ((theta-c)/ (a-c)), d);
-				}
-		else
-			w_scalar = 0.000001;
-	}
-
-	
-	if (w_scalar > 0.0)
-		w_scalar = sqrt(w_scalar);
-	else
-		w_scalar = 0.0;
+			w_scalar  = exp(d*(b-a)/(a-c)*log((theta -b)/(a-b))) * exp(d*log((theta-c)/(a-c)));
+        }else{
+            w_scalar = 0.000001;
+        }//end of ifelse
+	}//end of ifelse
+    if (w_scalar > 0.0)
+        w_scalar = sqrt(w_scalar);
+    else
+        w_scalar = 0.0;
+    
+    
+    if (patch[0].soil_defaults[0][0].soil_type.sand > 0.5) {
+        a = 1.56; b=12.0; c=16.0; d=2.01;
+    } else if (patch[0].soil_defaults[0][0].soil_type.clay > 0.5) {
+        a = 60.0; b=18.0; c=22.0; d=1.06;
+    } else {
+        a=4.82; b=14.0; c=16.0; d=1.39;
+    }
+    w_scalar2 = 0.0;
+    if (std > 0) {
+        for (i = 1; i< NUM_NORMAL; i++) {
+            thetai = theta + std*NORMAL[i];
+            thetai = min(1.0, thetai);
+            thetai = max(0.002, thetai);
+            w_scalar2 += min( a*exp(-c*exp(-d*thetai*log(b))*log(b)), 1.0);;
+        }// for i
+        w_scalar2 *= 1.0/NUM_NORMAL;
+    } else {
+        //water_scalar = min(1.0, a / pow(b,  (c / pow(b, (d*theta) )) ) );
+        w_scalar2 = min( a*exp(-c*exp(-d*theta*log(b))*log(b)), 1.0);
+    }//if
 
 	rate_scalar = w_scalar * t_scalar;
 	/* assign output variables */
@@ -175,13 +194,14 @@ int compute_potential_decomp(double tsoil,
 	/* calculate the corrected rate constants from the rate scalar and their
 	base values. All rate constants are (1/day) */
     double adjust_rate = 0.45;
+    //adjust_rate *= (patch[0].drainage_type>0 && patch[0].drainage_type % actionRIPARIAN==0? 1.7:1.0);
 	kl1_base = 0.7 * adjust_rate;      /* labile litter pool */
 	kl2_base = 0.07 * adjust_rate;     /* cellulose litter pool */
 	kl4_base = 0.014 * adjust_rate;     /* lignin litter pool */
 	ks1_base = 0.07 * adjust_rate * soilDecayScalar;    /* fast microbial recycling pool */
 	ks2_base = 0.014 * adjust_rate * soilDecayScalar;    /* medium microbial recycling pool */
 	ks3_base = 0.0014 * adjust_rate * soilDecayScalar;   /* slow microbial recycling pool */
-	ks4_base = 0.0001 * adjust_rate * soilDecayScalar;   /* recalcitrant SOM (humus) pool */
+    ks4_base = 0.0001 * adjust_rate * soilDecayScalar;   /* recalcitrant SOM (humus) pool */ // scale for wetland (new developing feature)
 	
     //(vegtype>0? (patch[0].Ksat_vertical+(1.0-patch[0].Ksat_vertical)*0.5) : 0.0);
     kl1 = kl1_base * rate_scalar * patch[0].Ksat_vertical; //(vegtype>0? 1.0 : 0.01);
