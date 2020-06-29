@@ -284,7 +284,7 @@ void	execute_daily_output_event(
           
             
             aroots[MyPatch->aggregate_index] += MyPatch[0].rootzone.SatPct *MyPatch[0].area;
-            nlimit[MyPatch->aggregate_index] += MyPatch[0].soil_ns.nlimit *MyPatch[0].area;
+            nlimit[MyPatch->aggregate_index] += MyPatch[0].soil_ns.fract_potential_uptake *MyPatch[0].area;
             qlimit[MyPatch->aggregate_index] += MyPatch[0].trans_reduc_perc *MyPatch[0].area;
             for ( layer=0 ; layer<MyPatch[0].num_layers; layer++ ){
                 for ( c=0 ; c<MyPatch[0].layers[layer].count; c++ ){
@@ -302,7 +302,7 @@ void	execute_daily_output_event(
      
             denitri[MyPatch->aggregate_index] += MyPatch[0].area * MyPatch[0].ndf.denitrif;
             Pot_denitrif_SS[MyPatch->aggregate_index] += MyPatch[0].area * MyPatch[0].ndf.Pot_denitrif_SS;
-            Pot_denitrif_CO2[MyPatch->aggregate_index] += MyPatch[0].area * MyPatch[0].ndf.Pot_denitrif_SS;
+            Pot_denitrif_CO2[MyPatch->aggregate_index] += MyPatch[0].area * MyPatch[0].ndf.Pot_denitrif_CO2;
             nitrif[MyPatch->aggregate_index] += MyPatch[0].area * MyPatch[0].ndf.sminn_to_nitrate;
             Nuptake[MyPatch->aggregate_index] += MyPatch[0].area * MyPatch[0].ndf.plant_avail_uptake;
             Nnmineral[MyPatch->aggregate_index] += MyPatch[0].area * MyPatch[0].ndf.net_mineralized;

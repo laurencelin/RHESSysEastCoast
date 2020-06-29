@@ -78,7 +78,7 @@ void update_basin_patch_accumulator(
                 patch[0].acc_month.psn += patch[0].net_plant_psn;
                 patch[0].acc_month.days += 1.0;
                 patch[0].acc_month.satChance += (patch[0].sat_deficit<=0? 1.0:0.0);
-                patch[0].acc_month.plantlimitN += patch[0].soil_ns.nlimit;
+                patch[0].acc_month.plantlimitN += patch[0].soil_ns.fract_potential_uptake;
                 patch[0].acc_month.plantlimitQ += patch[0].trans_reduc_perc;
                 
                 patch[0].acc_month.denitrif += patch[0].ndf.denitrif;
@@ -104,7 +104,7 @@ void update_basin_patch_accumulator(
                 patch[0].acc_year.psn += patch[0].net_plant_psn;
                 patch[0].acc_year.days += 1.0;
                 patch[0].acc_year.satChance += (patch[0].sat_deficit<=0? 1.0:0.0);
-                patch[0].acc_year.plantlimitN += patch[0].soil_ns.nlimit;
+                patch[0].acc_year.plantlimitN += patch[0].soil_ns.fract_potential_uptake;
                 patch[0].acc_year.plantlimitQ += patch[0].trans_reduc_perc;
                 
                 patch[0].acc_year.denitrif += patch[0].ndf.denitrif;

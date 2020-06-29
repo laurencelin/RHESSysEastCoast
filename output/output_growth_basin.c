@@ -154,7 +154,7 @@ void	output_growth_basin(
                 asoil3 += patch[0].soil_cs.soil3c * patch[0].area;
                 asoil4 += patch[0].soil_cs.soil4c * patch[0].area;
 				asminn += (patch[0].soil_ns.sminn + patch[0].sat_NH4) * patch[0].area;
-                anlimit += (patch[0].soil_ns.nlimit) * patch[0].area;
+                anlimit += (patch[0].soil_ns.fract_potential_uptake) * patch[0].area;
 				anitrate += (patch[0].soil_ns.nitrate + patch[0].sat_NO3) * patch[0].area;
 				asurfaceN += (patch[0].surface_DON+patch[0].surface_NO3+patch[0].surface_NH4) * patch[0].area;
                 asurfaceDIN += (patch[0].surface_NO3+patch[0].surface_NH4) * patch[0].area;
