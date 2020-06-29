@@ -66,59 +66,75 @@ void update_mortality(
 	/*------------------------------------------------------*/
 	/*	Local Variable Definition. 							*/
 	/*------------------------------------------------------*/
-	double m_cpool, m_npool;
-	double m_leafc_to_litr1c, m_leafc_to_litr2c;
-	double m_leafc_to_litr3c, m_leafc_to_litr4c;
-	double m_deadleafc_to_litr1c, m_deadleafc_to_litr2c;
-	double m_deadleafc_to_litr3c, m_deadleafc_to_litr4c;
-	double m_frootc_to_litr1c, m_frootc_to_litr2c;
-	double m_frootc_to_litr3c, m_frootc_to_litr4c;
-	double m_leafc_store_to_litr1c;
-	double m_frootc_store_to_litr1c;
-	double m_livestemc_store_to_litr1c;
-	double m_deadstemc_store_to_litr1c;
-	double m_livecrootc_store_to_litr1c;
-	double m_deadcrootc_store_to_litr1c;
-	double m_leafc_transfer_to_litr1c;
-	double m_frootc_transfer_to_litr1c;
-	double m_livestemc_transfer_to_litr1c;
-	double m_deadstemc_transfer_to_litr1c;
-	double m_livecrootc_transfer_to_litr1c;
-	double m_deadcrootc_transfer_to_litr1c;
-	double m_gresp_store_to_litr1c;
-	double m_gresp_transfer_to_litr1c;
-	double m_leafn_to_litr1n, m_leafn_to_litr2n;
-	double m_leafn_to_litr3n, m_leafn_to_litr4n;
-	double m_deadleafn_to_litr1n, m_deadleafn_to_litr2n;
-	double m_deadleafn_to_litr3n, m_deadleafn_to_litr4n;
-	double m_frootn_to_litr1n, m_frootn_to_litr2n;
-	double m_frootn_to_litr3n, m_frootn_to_litr4n;
-	double m_livestemn_to_litr1n, m_livecrootn_to_litr1n;
-	double m_leafn_store_to_litr1n;
-	double m_frootn_store_to_litr1n;
-	double m_livestemn_store_to_litr1n;
-	double m_deadstemn_store_to_litr1n;
-	double m_livecrootn_store_to_litr1n;
-	double m_deadcrootn_store_to_litr1n;
-	double m_leafn_transfer_to_litr1n;
-	double m_frootn_transfer_to_litr1n;
-	double m_livestemn_transfer_to_litr1n;
-	double m_deadstemn_transfer_to_litr1n;
-	double m_livecrootn_transfer_to_litr1n;
-	double m_deadcrootn_transfer_to_litr1n;
-	double m_retransn_to_litr1n;
-	double m_livestemc_to_cwdc;
-	double m_deadstemc_to_cwdc;
-	double m_livecrootc_to_cwdc;
-	double m_deadcrootc_to_cwdc;
-	double m_livestemn_to_cwdn;
-	double m_deadstemn_to_cwdn;
-	double m_livecrootn_to_cwdn;
-	double m_deadcrootn_to_cwdn;
-    double avgCN;
+	double m_cpool =0.0;
+    double m_npool =0.0;
+	double m_leafc_to_litr1c =0.0;
+    double m_leafc_to_litr2c =0.0;
+	double m_leafc_to_litr3c =0.0;
+    double m_leafc_to_litr4c =0.0;
+	double m_deadleafc_to_litr1c =0.0;
+    double m_deadleafc_to_litr2c =0.0;
+	double m_deadleafc_to_litr3c =0.0;
+    double m_deadleafc_to_litr4c =0.0;
+	double m_frootc_to_litr1c =0.0;
+    double m_frootc_to_litr2c =0.0;
+	double m_frootc_to_litr3c =0.0;
+    double m_frootc_to_litr4c =0.0;
+	double m_leafc_store_to_litr1c =0.0;
+	double m_frootc_store_to_litr1c =0.0;
+	double m_livestemc_store_to_litr1c =0.0;
+	double m_deadstemc_store_to_litr1c =0.0;
+	double m_livecrootc_store_to_litr1c =0.0;
+	double m_deadcrootc_store_to_litr1c =0.0;
+	double m_leafc_transfer_to_litr1c =0.0;
+	double m_frootc_transfer_to_litr1c =0.0;
+	double m_livestemc_transfer_to_litr1c =0.0;
+	double m_deadstemc_transfer_to_litr1c =0.0;
+	double m_livecrootc_transfer_to_litr1c =0.0;
+	double m_deadcrootc_transfer_to_litr1c =0.0;
+	double m_gresp_store_to_litr1c =0.0;
+	double m_gresp_transfer_to_litr1c =0.0;
+	double m_leafn_to_litr1n =0.0;
+    double m_leafn_to_litr2n =0.0;
+	double m_leafn_to_litr3n =0.0;
+    double m_leafn_to_litr4n =0.0;
+	double m_deadleafn_to_litr1n =0.0;
+    double m_deadleafn_to_litr2n =0.0;
+	double m_deadleafn_to_litr3n =0.0;
+    double m_deadleafn_to_litr4n =0.0;
+	double m_frootn_to_litr1n =0.0;
+    double m_frootn_to_litr2n =0.0;
+	double m_frootn_to_litr3n =0.0;
+    double m_frootn_to_litr4n =0.0;
+	double m_livestemn_to_litr1n =0.0;
+    double m_livecrootn_to_litr1n =0.0;
+	double m_leafn_store_to_litr1n =0.0;
+	double m_frootn_store_to_litr1n =0.0;
+	double m_livestemn_store_to_litr1n =0.0;
+	double m_deadstemn_store_to_litr1n =0.0;
+	double m_livecrootn_store_to_litr1n =0.0;
+	double m_deadcrootn_store_to_litr1n =0.0;
+	double m_leafn_transfer_to_litr1n =0.0;
+	double m_frootn_transfer_to_litr1n =0.0;
+	double m_livestemn_transfer_to_litr1n =0.0;
+	double m_deadstemn_transfer_to_litr1n =0.0;
+	double m_livecrootn_transfer_to_litr1n =0.0;
+	double m_deadcrootn_transfer_to_litr1n =0.0;
+	double m_retransn_to_litr1n =0.0;
+	double m_livestemc_to_cwdc =0.0;
+	double m_deadstemc_to_cwdc =0.0;
+	double m_livecrootc_to_cwdc =0.0;
+	double m_deadcrootc_to_cwdc =0.0;
+	double m_livestemn_to_cwdn =0.0;
+	double m_deadstemn_to_cwdn =0.0;
+	double m_livecrootn_to_cwdn =0.0;
+	double m_deadcrootn_to_cwdn =0.0;
+    double avgCN =0.0;
     
-    double add2L1c, add2L1n;
-    double add2DOC, add2DON;
+    double add2L1c =0.0;
+    double add2L1n =0.0;
+    double add2DOC =0.0;
+    double add2DON =0.0;
 	/******************************************************************/
 	/* Non-fire mortality: these fluxes all enter litter or CWD pools */
 	/******************************************************************/
@@ -230,13 +246,19 @@ void update_mortality(
         /* Assumes cpool mortality fraction applies to all non-structural stores and transfers */
         // I would rather think these store and transfer would go to DOC instead; (Laurence Nov 1, 2018)
 		m_livestemc_store_to_litr1c  = mort.mort_cpool * cs->livestemc_store;
-		m_livestemc_transfer_to_litr1c = mort.mort_cpool * cs->livestemc_transfer;
+        cs->livestemc_transfer = max(0.0, cs->livestemc_transfer); m_livestemc_transfer_to_litr1c = mort.mort_cpool * cs->livestemc_transfer;
+        if(cs->livestemc_transfer<0) printf("update mortality m_livestemc_transfer_to_litr1c [%d,%d: %d,%d,%d]BGC_flag[%d], %e %e %e\n",
+                                            patch[0].ID,stratum->defaults[0][0].ID, current_date.day, current_date.month, current_date.year, BGC_flag,
+                                            m_livestemc_transfer_to_litr1c, mort.mort_cpool, cs->livestemc_transfer);
         
         m_deadstemc_store_to_litr1c  = mort.mort_cpool * cs->deadstemc_store;
 		m_deadstemc_transfer_to_litr1c = mort.mort_cpool * cs->deadstemc_transfer;
         
         m_livecrootc_store_to_litr1c  = mort.mort_cpool * cs->livecrootc_store;
-		m_livecrootc_transfer_to_litr1c = mort.mort_cpool * cs->livecrootc_transfer;
+        cs->livecrootc_transfer = max(0.0, cs->livecrootc_transfer); m_livecrootc_transfer_to_litr1c = mort.mort_cpool * cs->livecrootc_transfer;
+        if(cs->livecrootc_transfer<0) printf("update mortality m_livecrootc_transfer_to_litr1c [%d,%d: %d,%d,%d]BGC_flag[%d], %e %e %e\n",
+                                             patch[0].ID,stratum->defaults[0][0].ID, current_date.day, current_date.month, current_date.year, BGC_flag,
+                                             m_livecrootc_transfer_to_litr1c, mort.mort_cpool, cs->livecrootc_transfer);
         
         m_deadcrootc_store_to_litr1c  = mort.mort_cpool * cs->deadcrootc_store;
 		m_deadcrootc_transfer_to_litr1c = mort.mort_cpool * cs->deadcrootc_transfer;
@@ -391,7 +413,16 @@ void update_mortality(
         m_deadcrootn_transfer_to_litr1n = 0.0;
     }// if else
 	
-
+    if(m_leafc_to_litr1c<=0 || m_leafn_to_litr1n<=0){ m_leafc_to_litr1c=0.0; m_leafn_to_litr1n=0.0;}
+    if(m_leafc_transfer_to_litr1c<=0 || m_leafn_transfer_to_litr1n<=0){ m_leafc_transfer_to_litr1c=0.0; m_leafn_transfer_to_litr1n=0.0;}
+    if(m_frootc_store_to_litr1c<=0 || m_frootn_store_to_litr1n<=0){ m_frootc_store_to_litr1c=0.0; m_frootn_store_to_litr1n=0.0;}
+    if(m_frootc_transfer_to_litr1c<=0 || m_frootn_transfer_to_litr1n<=0){ m_frootc_transfer_to_litr1c=0.0; m_frootn_transfer_to_litr1n=0.0;}
+    
+    if(m_livestemc_store_to_litr1c<=0 || m_livestemn_store_to_litr1n<=0){ m_livestemc_store_to_litr1c=0.0; m_livestemn_store_to_litr1n=0.0;}
+    if(m_livestemc_transfer_to_litr1c<=0 || m_livestemn_transfer_to_litr1n<=0){ m_livestemc_transfer_to_litr1c=0.0; m_livestemn_transfer_to_litr1n=0.0;}
+    if(m_livecrootc_store_to_litr1c<=0 || m_livecrootn_store_to_litr1n<=0){ m_livecrootc_store_to_litr1c=0.0; m_livecrootn_store_to_litr1n=0.0;}
+    if(m_livecrootc_transfer_to_litr1c<=0 || m_livecrootn_transfer_to_litr1n<=0){ m_livecrootc_transfer_to_litr1c=0.0; m_livecrootn_transfer_to_litr1n=0.0;}
+    
     
 	// debugging
     add2DOC = m_gresp_store_to_litr1c + m_gresp_transfer_to_litr1c + m_leafc_store_to_litr1c + m_leafc_transfer_to_litr1c + m_frootc_store_to_litr1c + m_frootc_transfer_to_litr1c + m_livestemc_store_to_litr1c + m_livestemc_transfer_to_litr1c + m_livecrootc_store_to_litr1c + m_livecrootc_transfer_to_litr1c;
@@ -403,10 +434,32 @@ void update_mortality(
     add2L1n = m_leafn_to_litr1n + m_deadleafn_to_litr1n + m_frootn_to_litr1n + m_deadstemn_store_to_litr1n + m_deadstemn_transfer_to_litr1n + m_deadcrootn_store_to_litr1n + m_deadcrootn_transfer_to_litr1n;
     
     if(add2DOC<0 || add2DON<0){
-        printf("update mortality DOC issue [%d,%d: %d,%d,%d]BGC_flag[%d], (%e{%e,%e,%e,%e}, %e{%e,%e,%e,%e})\n",
+        printf("update mortality DOC issue [%d,%d: %d,%d,%d]BGC_flag[%d], (%e{%e,%e,%e,%e,%e, %e,%e,%e,%e,%e}, %e{%e,%e,%e,%e,%e, %e,%e,%e,%e,%e})\n",
                patch[0].ID,stratum->defaults[0][0].ID, current_date.day, current_date.month, current_date.year, BGC_flag,
-               add2DOC, cs->leafc_store, cs->leafc_transfer, cs->frootc_store, cs->frootc_transfer,
-               add2DON, ns->leafn_store, ns->leafn_transfer, ns->frootn_store, ns->frootn_transfer);
+               add2DOC, //cs->leafc_store, cs->leafc_transfer, cs->frootc_store, cs->frootc_transfer,
+               m_gresp_store_to_litr1c,//1
+               m_gresp_transfer_to_litr1c,
+               m_leafc_store_to_litr1c,
+               m_leafc_transfer_to_litr1c,
+               m_frootc_store_to_litr1c,//5
+               m_frootc_transfer_to_litr1c,
+               m_livestemc_store_to_litr1c,
+               m_livestemc_transfer_to_litr1c, //problem
+               m_livecrootc_store_to_litr1c,
+               m_livecrootc_transfer_to_litr1c, //problem
+               //
+               add2DON, //ns->leafn_store, ns->leafn_transfer, ns->frootn_store, ns->frootn_transfer
+               m_npool,
+               m_retransn_to_litr1n,
+               m_leafn_store_to_litr1n,
+               m_leafn_transfer_to_litr1n,
+               m_frootn_store_to_litr1n,//5
+               m_frootn_transfer_to_litr1n,
+               m_livestemn_store_to_litr1n,
+               m_livestemn_transfer_to_litr1n,
+               m_livecrootn_store_to_litr1n,
+               m_livecrootn_transfer_to_litr1n
+               );
     }
     
 	double cn_l1,cn_l3, cn_l2,cn_l4,cn_s1,cn_s2,cn_s3,cn_s4;

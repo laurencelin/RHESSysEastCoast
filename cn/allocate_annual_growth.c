@@ -137,10 +137,10 @@ int allocate_annual_growth(				int id,
     double potReduceFrootCarbon = evaluate>0? 0.0 : -evaluate*ns->frootn*totalResp;
     potReduceLeafCarbon = max(existingLeafCarbon - max(MAX_LAI/epc.proj_sla, minLeafCarbon), potReduceLeafCarbon);//issue?
     //for debug
-    if(potReduceLeafCarbon>0 && epc.phenology_type==DECID){
-        printf("annual allocation %d,%d,%f,%f,%f,%f,%f\n",patch[0].ID, stratum->defaults[0][0].ID,
-               existingLeafCarbon, minLeafCarbon, MAX_LAI, epc.proj_sla, potReduceLeafCarbon);
-    }//end of if
+//    if(potReduceLeafCarbon>0 && epc.phenology_type==DECID){
+//        printf("annual allocation %d,%d,%f,%f,%f,%f,%f\n",patch[0].ID, stratum->defaults[0][0].ID,
+//               existingLeafCarbon, minLeafCarbon, MAX_LAI, epc.proj_sla, potReduceLeafCarbon);
+//    }//end of if
     
     double rem_excess_LeafCarbon;
     double rem_excess_StemCarbon=0.0;
@@ -154,7 +154,7 @@ int allocate_annual_growth(				int id,
             tmpRatio = potReduceStemCarbon/cs->livestemc_transfer;
             exceedC += potReduceStemCarbon;
             exceedN += ns->livestemn_transfer * tmpRatio;
-            tmpRatio = 1.0 - tmpRatio;
+            tmpRatio = max(0.0, 1.0 - tmpRatio);
             cs->livestemc_transfer *= tmpRatio;
             ns->livestemn_transfer *= tmpRatio;
             potReduceStemCarbon=0.0;
@@ -171,7 +171,7 @@ int allocate_annual_growth(				int id,
             tmpRatio = potReduceStemCarbon/cs->livestemc_store;
             exceedC += potReduceStemCarbon;
             exceedN += ns->livestemn_transfer * tmpRatio;
-            tmpRatio = 1.0 - tmpRatio;
+            tmpRatio = max(0.0, 1.0 - tmpRatio);
             cs->livestemc_store *= tmpRatio;
             ns->livestemn_store *= tmpRatio;
             potReduceStemCarbon=0.0;
@@ -189,7 +189,7 @@ int allocate_annual_growth(				int id,
             exceedN += ns->live_stemn * tmpRatio - potReduceStemCarbon/epc.deadwood_cn;
             cs->dead_stemc += potReduceStemCarbon;
             ns->dead_stemn += potReduceStemCarbon/epc.deadwood_cn;
-            tmpRatio = 1.0 - tmpRatio;
+            tmpRatio = max(0.0, 1.0 - tmpRatio);
             cs->live_stemc *= tmpRatio;
             ns->live_stemn *= tmpRatio;
             potReduceStemCarbon=0.0;
@@ -199,7 +199,7 @@ int allocate_annual_growth(				int id,
             exceedN += ns->live_stemn * tmpRatio - tmpC/epc.deadwood_cn;
             cs->dead_stemc += tmpC;
             ns->dead_stemn += tmpC/epc.deadwood_cn;
-            tmpRatio = 1.0 - tmpRatio;
+            tmpRatio = max(0.0, 1.0 - tmpRatio);
             cs->live_stemc *= tmpRatio;
             ns->live_stemn *= tmpRatio;
             potReduceStemCarbon -= tmpC;
@@ -212,7 +212,7 @@ int allocate_annual_growth(				int id,
             tmpRatio = potReduceCrootCarbon/cs->livecrootc_transfer;
             exceedC += potReduceCrootCarbon;
             exceedN += ns->livecrootn_transfer * tmpRatio;
-            tmpRatio = 1.0 - tmpRatio;
+            tmpRatio = max(0.0, 1.0 - tmpRatio);
             cs->livecrootc_transfer *= tmpRatio;
             ns->livecrootn_transfer *= tmpRatio;
             potReduceCrootCarbon=0.0;
@@ -229,7 +229,7 @@ int allocate_annual_growth(				int id,
             tmpRatio = potReduceCrootCarbon/cs->livecrootc_store;
             exceedC += potReduceCrootCarbon;
             exceedN += ns->livecrootn_store * tmpRatio;
-            tmpRatio = 1.0 - tmpRatio;
+            tmpRatio = max(0.0, 1.0 - tmpRatio);
             cs->livecrootc_store *= tmpRatio;
             ns->livecrootn_store *= tmpRatio;
             potReduceCrootCarbon=0.0;
@@ -247,7 +247,7 @@ int allocate_annual_growth(				int id,
             exceedN += ns->live_crootn * tmpRatio - potReduceCrootCarbon/epc.deadwood_cn;
             cs->dead_crootc += potReduceCrootCarbon;
             ns->dead_crootn += potReduceCrootCarbon/epc.deadwood_cn;
-            tmpRatio = 1.0 - tmpRatio;
+            tmpRatio = max(0.0, 1.0 - tmpRatio);
             cs->live_crootc *= tmpRatio;
             ns->live_crootn *= tmpRatio;
             potReduceCrootCarbon=0.0;
@@ -257,7 +257,7 @@ int allocate_annual_growth(				int id,
             exceedN += ns->live_crootn * tmpRatio - tmpC/epc.deadwood_cn;
             cs->dead_crootc += tmpC;
             ns->dead_crootn += tmpC/epc.deadwood_cn;
-            tmpRatio = 1.0 - tmpRatio;
+            tmpRatio = max(0.0, 1.0 - tmpRatio);
             cs->live_crootc *= tmpRatio;
             ns->live_crootn *= tmpRatio;
             potReduceCrootCarbon -= tmpC;
@@ -271,7 +271,7 @@ int allocate_annual_growth(				int id,
             tmpRatio = potReduceLeafCarbon/cs->leafc_transfer;
             exceedC += potReduceLeafCarbon;
             exceedN += ns->leafn_transfer * tmpRatio;
-            tmpRatio = 1.0 - tmpRatio;
+            tmpRatio = max(0.0, 1.0 - tmpRatio);
             cs->leafc_transfer *= tmpRatio;
             ns->leafn_transfer *= tmpRatio;
             potReduceLeafCarbon=0.0;
@@ -288,7 +288,7 @@ int allocate_annual_growth(				int id,
             tmpRatio = potReduceLeafCarbon/cs->leafc_store;
             exceedC += potReduceLeafCarbon;
             exceedN += ns->leafn_store * tmpRatio;
-            tmpRatio = 1.0 - tmpRatio;
+            tmpRatio = max(0.0, 1.0 - tmpRatio);
             cs->leafc_store *= tmpRatio;
             ns->leafn_store *= tmpRatio;
             potReduceLeafCarbon=0.0;
@@ -318,7 +318,7 @@ int allocate_annual_growth(				int id,
             tmpMultilper = epc.leaflitr_flig * stratum[0].cover_fraction;
             patch[0].litter_cs.litr4c += potReduceLeafCarbon * tmpMultilper;
             patch[0].litter_ns.litr4n += N2liter * tmpMultilper;
-            tmpRatio = 1.0 - tmpRatio;
+            tmpRatio = max(0.0, 1.0 - tmpRatio);
             cs->leafc *= tmpRatio;
             ns->leafn *= tmpRatio;
             potReduceLeafCarbon=0.0;
@@ -341,7 +341,7 @@ int allocate_annual_growth(				int id,
             tmpMultilper = epc.leaflitr_flig * stratum[0].cover_fraction;
             patch[0].litter_cs.litr4c += tmpC * tmpMultilper;
             patch[0].litter_ns.litr4n += N2liter * tmpMultilper;
-            tmpRatio = 1.0 - tmpRatio;
+            tmpRatio = max(0.0, 1.0 - tmpRatio);
             cs->leafc *= tmpRatio;
             ns->leafn *= tmpRatio;
             potReduceLeafCarbon -= tmpC;
@@ -354,7 +354,7 @@ int allocate_annual_growth(				int id,
             tmpRatio = potReduceFrootCarbon/cs->frootc_transfer;
             exceedC += potReduceFrootCarbon;
             exceedN += ns->frootn_transfer * tmpRatio;
-            tmpRatio = 1.0 - tmpRatio;
+            tmpRatio = max(0.0, 1.0 - tmpRatio);
             cs->frootc_transfer *= tmpRatio;
             ns->frootn_transfer *= tmpRatio;
             potReduceFrootCarbon=0.0;
@@ -371,7 +371,7 @@ int allocate_annual_growth(				int id,
             tmpRatio = potReduceFrootCarbon/cs->frootc_store;
             exceedC += potReduceFrootCarbon;
             exceedN += ns->frootn_store * tmpRatio;
-            tmpRatio = 1.0 - tmpRatio;
+            tmpRatio = max(0.0, 1.0 - tmpRatio);
             cs->frootc_store *= tmpRatio;
             ns->frootn_store *= tmpRatio;
             potReduceFrootCarbon=0.0;
@@ -400,7 +400,7 @@ int allocate_annual_growth(				int id,
             tmpMultilper = epc.frootlitr_flig * stratum[0].cover_fraction;
             patch[0].litter_cs.litr4c += potReduceFrootCarbon * tmpMultilper;
             patch[0].litter_ns.litr4n += N2liter * tmpMultilper;
-            tmpRatio = 1.0 - tmpRatio;
+            tmpRatio = max(0.0, 1.0 - tmpRatio);
             cs->frootc *= tmpRatio;
             ns->frootn *= tmpRatio;
             potReduceFrootCarbon=0.0;
@@ -421,7 +421,7 @@ int allocate_annual_growth(				int id,
             tmpMultilper = epc.frootlitr_flig * stratum[0].cover_fraction;
             patch[0].litter_cs.litr4c += tmpC * tmpMultilper;
             patch[0].litter_ns.litr4n += N2liter * tmpMultilper;
-            tmpRatio = 1.0 - tmpRatio;
+            tmpRatio = max(0.0, 1.0 - tmpRatio);
             cs->frootc *= tmpRatio;
             ns->frootn *= tmpRatio;
             potReduceFrootCarbon -= tmpC;
