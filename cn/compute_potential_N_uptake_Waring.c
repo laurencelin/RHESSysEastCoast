@@ -146,7 +146,7 @@ double compute_potential_N_uptake_Waring(
         // need to check MAX Croot depth and MAX stem height
         // from phenology
         double perc_sunlit = (epv->proj_lai_sunlit) / (epv->proj_lai_sunlit + epv->proj_lai_shade);
-        double potentialLAI = max( ((stratum[0].cs.leafc_store+stratum[0].cs.leafc_transfer) * (epv->proj_sla_sunlit * perc_sunlit + epv->proj_sla_shade * (1-perc_sunlit))), 0.0);
+        double potentialLAI = max( (stratum[0].cs.leafc_store+stratum[0].cs.leafc_transfer)*(epv->proj_sla_sunlit*perc_sunlit + epv->proj_sla_shade*(1-perc_sunlit)), 0.0);
         double rootdepth = 3.0 * pow(2.0*(stratum[0].cs.live_crootc+stratum[0].cs.dead_crootc), epc.root_growth_direction)
         / epc.root_distrib_parm;
         fleaf *= (epv->proj_lai + potentialLAI <epc.max_lai*(1.0+epc.leaf_turnover)? 1.0 : 0.0);

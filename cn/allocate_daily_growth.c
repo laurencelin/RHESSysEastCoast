@@ -356,7 +356,7 @@ int allocate_daily_growth(int nlimit,
     double MAX_LAI_c = MAX_LAI/epc.proj_sla;
     
     // nned to fix below; it prevent allocation to leaf_store for next year if current year LAI reaches its max.
-    excess_lai = (cs->leafc + cs->leafc_transfer + cdf->cpool_to_leafc) * epc.proj_sla - MAX_LAI; //one solution is to drop the store in calculation
+    excess_lai = (cs->leafc + cs->leafc_transfer + cdf->cpool_to_leafc) * epc.proj_sla - MAX_LAI; 
     if ( excess_lai > ZERO){
 
         // cs->leafc_transfer + cdf->cpool_to_leafc need to go away

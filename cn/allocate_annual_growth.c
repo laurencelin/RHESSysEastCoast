@@ -120,7 +120,7 @@ int allocate_annual_growth(				int id,
     }
     existingLivebiomass = existingLeafCarbon + existingFrootCarbon + existingLiveStemCarbon + existingLiveCrootCarbon;
     
-    double MAX_LAI = stratum->local_max_lai; //epc.max_lai;
+    double MAX_LAI = epc.max_lai; // stratum->local_max_lai; //epc.max_lai;
     double allometric_leafRatio = fleaf/(fleaf+froot+fwood*flive);
     double allometric_frootRatio = froot/(fleaf+froot+fwood*flive);
     double allometric_livewoodRatio = fwood*flive/(fleaf+froot+fwood*flive);
@@ -135,7 +135,12 @@ int allocate_annual_growth(				int id,
     double potReduceCrootCarbon = evaluate>0? 0.0 : -evaluate*ns->live_crootn*totalResp;
     double potReduceStemCarbon = evaluate>0? 0.0 : -evaluate*ns->live_stemn*totalResp;
     double potReduceFrootCarbon = evaluate>0? 0.0 : -evaluate*ns->frootn*totalResp;
-    potReduceLeafCarbon = max(existingLeafCarbon - max(MAX_LAI/epc.proj_sla, minLeafCarbon), potReduceLeafCarbon);
+    potReduceLeafCarbon = max(existingLeafCarbon - max(MAX_LAI/epc.proj_sla, minLeafCarbon), potReduceLeafCarbon);//issue?
+    //for debug
+    if(potReduceLeafCarbon>0 && epc.phenology_type==DECID){
+        printf("annual allocation %d,%d,%f,%f,%f,%f,%f\n",patch[0].ID, stratum->defaults[0][0].ID,
+               existingLeafCarbon, minLeafCarbon, MAX_LAI, epc.proj_sla, potReduceLeafCarbon);
+    }//end of if
     
     double rem_excess_LeafCarbon;
     double rem_excess_StemCarbon=0.0;
