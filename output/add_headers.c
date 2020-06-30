@@ -493,43 +493,57 @@ void add_headers(struct world_output_file_object *world_output_files,
 	/*--------------------------------------------------------------*/
 	outfile = world_output_files[0].patch[0].monthly;
 	check = fprintf(outfile,
-		"%s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s\n",
+        "%s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s\n",
 		"year",
         "month",
 		"patchID",
 		"subQnet",
-		"surfQnet",
+		"surfQnet",//5
         "subQvnet",
 		"precip",
 		"pet",
         "et",
-		"sat_deficit_z",
+		"sat_deficit_z",//10
 		"peakLAI",
         "meanLAI",
         "psn",
         "denitrif",
-        "mineralization","uptake","subNO3net","subNO3vnet","subDOCnet","no3drain2gw","no3diffuse2gw",
-        "satChance","plantlimitN","plantlimitQ");
+        "mineralization",//15
+        "uptake",
+        "subNO3net",
+        "subNO3vnet",
+        "subDOCnet",
+        "no3drain2gw",//20
+        "satChance",
+        "plantlimitN",
+        "plantlimitQ");
 	/*--------------------------------------------------------------*/
 	/*	Yearly							*/
 	/*--------------------------------------------------------------*/
 	outfile = world_output_files[0].patch[0].yearly;
-	fprintf(outfile, "%s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s\n" ,
+	fprintf(outfile, "%s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s\n" ,
             "year",
             "patchID",
             "subQnet",
             "surfQnet",
-            "subQvnet",
+            "subQvnet",//5
             "precip",
             "pet",
             "et",
             "sat_deficit_z",
-            "peakLAI",
+            "peakLAI",//10
             "meanLAI",
             "psn",
             "denitrif",
-            "mineralization","uptake","subNO3net", "subNO3vnet","subDOCnet","no3drain2gw","no3diffuse2gw",
-            "satChance","plantlimitN","plantlimitQ");
+            "mineralization",
+            "uptake",//15
+            "subNO3net",
+            "subNO3vnet",
+            "subDOCnet",
+            "no3drain2gw",
+            "satChance",//20
+            "plantlimitN",
+            "plantlimitQ");
 	}
 
 	/*--------------------------------------------------------------*/
