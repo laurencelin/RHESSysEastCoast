@@ -1678,23 +1678,6 @@ void		patch_daily_F(
         patch[0].stored_fertilizer_NH4 *= 1.0 - patch[0].landuse_defaults[0][0].fertilizer_decay_rate; // remaining
     }// fertilizer_flag
 		
-	/*--------------------------------------------------------------*/
-	/* adjust PH using data patch level inputs			*/
-	/*--------------------------------------------------------------*/
-	if (patch[0].base_stations != NULL) {
-		inx = patch[0].base_stations[0][0].dated_input[0].PH.inx;
-		if (inx > -999) {
-			clim_event = patch[0].base_stations[0][0].dated_input[0].PH.seq[inx];
-			while (julday(clim_event.edate) < julday(current_date)) {
-				patch[0].base_stations[0][0].dated_input[0].PH.inx += 1;
-				inx = patch[0].base_stations[0][0].dated_input[0].PH.inx;
-				clim_event = patch[0].base_stations[0][0].dated_input[0].PH.seq[inx];
-            }//while
-			if ((clim_event.edate.year != 0) && ( julday(clim_event.edate) == julday(current_date)) ) {
-				patch[0].PH = clim_event.value;
-            }//if
-        }//if
-    }//if
 
 	
 	/*	Add rain throughfall to detention store for infiltration	*/
