@@ -197,6 +197,8 @@ struct soil_default *construct_soil_defaults(
         default_object_list[i].DOMdecayRate =     getDoubleParam(&paramCnt, &paramPtr, "DOM_decay_rate", "%lf", 0.05, 1);//<<-------------------
         double soilcDecay = getDoubleParam(&paramCnt, &paramPtr, "soilcDecay", "%lf", 0.0, 1);
         
+        
+        default_object_list[i].PH =     getDoubleParam(&paramCnt, &paramPtr, "PH", "%lf", 7.0, 1);
 		/*
 		if (command_line[0].tmp_value > ZERO)
 			default_object_list[i].N_decay_rate *= command_line[0].tmp_value;
@@ -335,11 +337,14 @@ struct soil_default *construct_soil_defaults(
 		/*--------------------------------------------------------------*/
 		/* initialization of optional default file parms		*/
 		/*--------------------------------------------------------------*/
-		default_object_list[i].theta_mean_std_p1 = 	getDoubleParam(&paramCnt, &paramPtr, "theta_mean_std_p1", "%lf", 0.0, 1);
-		default_object_list[i].theta_mean_std_p2 = 	getDoubleParam(&paramCnt, &paramPtr, "theta_mean_std_p2", "%lf", 0.0, 1);
+        // soil moisture parameters
+		default_object_list[i].theta_mean_std_p1 = 	getDoubleParam(&paramCnt, &paramPtr, "theta_mean_std_p1", "%lf", 0.2736, 1); // time theta
+		default_object_list[i].theta_mean_std_p2 = 	getDoubleParam(&paramCnt, &paramPtr, "theta_mean_std_p2", "%lf", -0.4381, 1);// times theta^2
+        // soil evap parameters
 		default_object_list[i].gl_c = 			getDoubleParam(&paramCnt, &paramPtr, "gl_c", "%lf", 0.0062, 1);
 		default_object_list[i].gsurf_slope = 		getDoubleParam(&paramCnt, &paramPtr, "gsurf_slope", "%lf", 0.01, 1);
 		default_object_list[i].gsurf_intercept = 	getDoubleParam(&paramCnt, &paramPtr, "gsurf_intercept", "%lf", 0.001, 1);
+        
 		default_object_list[i].p4 = 			getDoubleParam(&paramCnt, &paramPtr, "p4", "%lf", -1.5, 1);
 		default_object_list[i].NH4_adsorption_rate =    getDoubleParam(&paramCnt, &paramPtr, "NH4_adsorption_rate", "%lf", 0.000005, 1);
 		default_object_list[i].DON_production_rate = 	getDoubleParam(&paramCnt, &paramPtr, "DON_production_rate", "%lf", 0.03, 1);

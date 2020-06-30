@@ -96,8 +96,7 @@ int update_nitrif(
         T_scalar = min(-0.06 + 0.13 * exp(0.07 * patch[0].Tsoil),1.0);
         
         
-        patch[0].PH = (patch[0].drainage_type>0 && patch[0].drainage_type % actionRIPARIAN==0? 6.5:7.0); // new developing wetland feature
-        pH_scalar = 0.56 + (atan(PI*0.45*(-5+patch[0].PH))/PI); // default 7.0, input by climate series.
+        pH_scalar = 0.56 + (atan(PI*0.45*(-5+patch[0].soil_defaults[0][0].PH))/PI); // default 7.0, input by climate series.
         // forest may be lower in pH (should look from SSURGO)
         
         //----------- substrate

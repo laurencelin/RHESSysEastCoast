@@ -503,46 +503,6 @@ struct patch_object *construct_patch(
     
 
 	/*--------------------------------------------------------------*/
-	/* FOR now substitute worldfile m (if > 0) in defaults			*/
-	/*--------------------------------------------------------------*/
-//	patch[0].original_m = mpar;
-//	if (mpar > ZERO) {
-//		patch[0].m = mpar * command_line[0].sen[M];
-//		patch[0].m_z = patch[0].soil_defaults[0][0].porosity_0 * mpar;
-//	} else {
-//		patch[0].m = patch[0].soil_defaults[0][0].m;
-//		patch[0].m_z = patch[0].soil_defaults[0][0].porosity_0 * patch[0].m;
-//    }
-
-	/*--------------------------------------------------------------*/
-	/*	if landuse default files include a percent impervious	*/
-	/*	use this to over-ride Ksat vertical			*/
-	/*--------------------------------------------------------------*/
-//	if (patch[0].landuse_defaults[0][0].percent_impervious > ZERO)
-//		patch[0].Ksat_vertical = 1.0-patch[0].landuse_defaults[0][0].percent_impervious;
-
-	/*--------------------------------------------------------------*/
- 	/* initialize PH to land use default value			*/
-	/*--------------------------------------------------------------*/
-	patch[0].PH = patch[0].landuse_defaults[0][0].PH;
-
-	/*--------------------------------------------------------------*/
-	/* compute a biological soil depth based on the minimum of soil depth */
-	/* and m, K parameters defining conductivity < 0.1% original value */
-	/* turn this off for now */
-	/*--------------------------------------------------------------*/
-//	patch[0].soil_defaults[0][0].maxrootdepth = patch[0].soil_defaults[0][0].soil_depth;
-	
-
-	/*--------------------------------------------------------------*/
-	/* detention store size can vary with both soil and landuse		*/
-	/*	use the maximum of the two									*/
-	/*--------------------------------------------------------------*/
-//	patch[0].soil_defaults[0][0].detention_store_size = patch[0].soil_defaults[0][0].detention_store_size * (1.0 - patch[0].Ksat_vertical);
-                // need to clean up
-                // this use as detention_store_size cap to constrain patch[0].detention_store
-                // this cap should be corrected by imperviousness of a patch (Sept 10, 2019)
-	/*--------------------------------------------------------------*/
 	/*	Read in the number of  patch base stations 					*/
 	/*--------------------------------------------------------------*/
 //	fscanf(world_file,"%d",&(patch[0].num_base_stations));

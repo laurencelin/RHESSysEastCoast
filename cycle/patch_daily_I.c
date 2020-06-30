@@ -328,20 +328,25 @@ void		patch_daily_I(
         if (patch[0].sat_deficit > patch[0].rootzone.potential_sat) theta = min(patch[0].rz_storage/patch[0].rootzone.potential_sat, 1.0); //(1.0-patch[0].basementFrac)
         else theta = min((patch[0].rz_storage + patch[0].rootzone.potential_sat - patch[0].sat_deficit)/patch[0].rootzone.potential_sat,1.0);//(1.0-patch[0].basementFrac)
     }else{ theta = 0.0; }
-    if( patch[0].drainage_type>0 && patch[0].drainage_type % actionRIPARIAN==0 ){
-        // "theta" below in the equation is water vol / soil vol
-        patch[0].theta_std = patch[0].soil_defaults[0][0].active_zone_sat_0z*theta;
-        patch[0].theta_std *= -1.483 * patch[0].theta_std;
-        patch[0].theta_std += 0.9229 * patch[0].soil_defaults[0][0].active_zone_sat_0z*theta;
-        patch[0].theta_std = max(0.0, patch[0].theta_std);
-        //patch[0].theta_std = (-1.483*theta*theta + 0.9229*theta);
-    }else{
-        //patch[0].theta_std = (patch[0].soil_defaults[0][0].theta_mean_std_p2*theta*theta + patch[0].soil_defaults[0][0].theta_mean_std_p1*theta);
-        patch[0].theta_std = patch[0].soil_defaults[0][0].active_zone_sat_0z*theta;
-        patch[0].theta_std *= -0.4381 * patch[0].theta_std;
-        patch[0].theta_std += 0.2736 * patch[0].soil_defaults[0][0].active_zone_sat_0z*theta;
-        patch[0].theta_std = max(0.0, patch[0].theta_std);
-    }
+    patch[0].theta_std = patch[0].soil_defaults[0][0].active_zone_sat_0z*theta;
+    patch[0].theta_std *= patch[0].soil_defaults[0][0].theta_mean_std_p2 * patch[0].theta_std;
+    patch[0].theta_std += patch[0].soil_defaults[0][0].theta_mean_std_p1 * (patch[0].soil_defaults[0][0].active_zone_sat_0z*theta);
+    patch[0].theta_std = max(0.0, patch[0].theta_std);
+    
+//    if( patch[0].drainage_type>0 && patch[0].drainage_type % actionRIPARIAN==0 ){
+//        // "theta" below in the equation is water vol / soil vol
+//        patch[0].theta_std = patch[0].soil_defaults[0][0].active_zone_sat_0z*theta;
+//        patch[0].theta_std *= -1.483 * patch[0].theta_std;
+//        patch[0].theta_std += 0.9229 * patch[0].soil_defaults[0][0].active_zone_sat_0z*theta;
+//        patch[0].theta_std = max(0.0, patch[0].theta_std);
+//        //patch[0].theta_std = (-1.483*theta*theta + 0.9229*theta);
+//    }else{
+//        //patch[0].theta_std = (patch[0].soil_defaults[0][0].theta_mean_std_p2*theta*theta + patch[0].soil_defaults[0][0].theta_mean_std_p1*theta);
+//        patch[0].theta_std = patch[0].soil_defaults[0][0].active_zone_sat_0z*theta;
+//        patch[0].theta_std *= patch[0].soil_defaults[0][0].theta_mean_std_p2 * patch[0].theta_std;
+//        patch[0].theta_std += patch[0].soil_defaults[0][0].theta_mean_std_p1 * (patch[0].soil_defaults[0][0].active_zone_sat_0z*theta);
+//        patch[0].theta_std = max(0.0, patch[0].theta_std);
+//    }
     
     
     

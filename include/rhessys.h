@@ -1024,10 +1024,7 @@ struct	soil_default
         double *rtz2NO3prop;
         double *rtz2NH4prop;
         double *rtz2DOMprop;
-        //double active_zone_soilNO3;
-        //double active_zone_soilNH4;
-        //double active_zone_soilDOM;
-        //double *rtz2sat_def_pct_indexM;
+        double PH;
     // from text book: % pore space = porosity = (1 - BD / PD) * 100 %
 	};
 
@@ -1544,7 +1541,6 @@ struct patch_object
         double  PAR_diffuse;            /* umol/(m^2*day)       */
         double  PAR_direct_final;       /* umol/(m^2*day)       */
         double  PAR_diffuse_final;      /* umol(m^2*day)        */
-        double  PH;                     /* DIM */
         double  potential_cap_rise;     /* m water/ day */
         double  potential_exfiltration; /* m water/ day */
         double  potential_evaporation;  /* m water/ day */
