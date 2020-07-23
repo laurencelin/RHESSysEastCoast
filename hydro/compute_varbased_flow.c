@@ -43,7 +43,7 @@
 
 double	compute_varbased_flow(
 				int num_soil_intervals, // <-- patch[0].num_soil_intervals
-				double std, // <-- patch[0].std * std_scale
+				double std, // <-- patch[0].std * std_scale; std_scale = 0 by default
 				int sat_def_pct_index, // <-- patch[0].sat_def_pct_index
                 double sat_def_pct_indexM, // <-- patch[0].sat_def_pct_indexM
 				double gamma,
@@ -125,8 +125,10 @@ double	compute_varbased_flow(
 	}else{
        //normal runs
 
-
-        flow = min( gamma*(sat_def_pct_indexM * patch[0].soil_defaults[0][0].transmissivity_dailyflux[sat_def_pct_index+1] + (1.0-sat_def_pct_indexM) * patch[0].soil_defaults[0][0].transmissivity_dailyflux[sat_def_pct_index]), patch[0].area*(sat_def_pct_indexM * patch[0].soil_defaults[0][0].transmissivity_maxdailyflux[sat_def_pct_index+1] + (1.0-sat_def_pct_indexM) * patch[0].soil_defaults[0][0].transmissivity_maxdailyflux[sat_def_pct_index]));
+        // note: "gamma" has patch[0].area
+        flow = min(
+                   gamma*(sat_def_pct_indexM * patch[0].soil_defaults[0][0].transmissivity_dailyflux[sat_def_pct_index+1] + (1.0-sat_def_pct_indexM) * patch[0].soil_defaults[0][0].transmissivity_dailyflux[sat_def_pct_index]),
+                   patch[0].area*(sat_def_pct_indexM * patch[0].soil_defaults[0][0].transmissivity_maxdailyflux[sat_def_pct_index+1] + (1.0-sat_def_pct_indexM) * patch[0].soil_defaults[0][0].transmissivity_maxdailyflux[sat_def_pct_index]));
         
 
 	}//std or not

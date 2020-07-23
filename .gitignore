@@ -1,0 +1,11 @@
+
+.DS_Store
+.Rapp 2.history
+*.history
+*.R
+rhessysEC.7.2
+rhessysEC.7.2_old
+main_new.c
+*.o
+hydro/update_drainage_land copy.c
+rhessysEC.7.2_keep

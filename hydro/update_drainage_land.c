@@ -157,16 +157,10 @@ void  update_drainage_land(
     int sat_def_z_index = (int)(max(0.0, patch[0].sat_deficit_z*1000));
     double rate_;
     
+    // soil solute transfer to sat solute because of change in water table depth; this is different from drainage or cap_rise
     rate_ = patch[0].soil_defaults[0][0].rtz2NO3prop[sat_def_z_index];
     patch[0].sat_NO3 += patch[0].soil_ns.nitrate * (1.0-rate_); // o_z / o_Z
     patch[0].soil_ns.nitrate *=  rate_; // this rate_ is negative?
-//    if(patch[0].soil_ns.nitrate<0 || rate_<0){
-//        printf("update_drainage_land0 [%d,%d,%e]: %e,%e, %d,%d,%d\n",
-//               patch[0].ID, kk, rate_,
-//               patch[0].sat_deficit_z, patch[0].sat_deficit,
-//               sat_def_z_index,patch[0].sat_def_pct_index,patch[0].soil_defaults[0][0].soildepthLen);
-//    }//debug
-    
     
     rate_ = patch[0].soil_defaults[0][0].rtz2NH4prop[sat_def_z_index];
     patch[0].sat_NH4 += patch[0].soil_ns.sminn * (1.0-rate_);
@@ -178,7 +172,13 @@ void  update_drainage_land(
     patch[0].soil_cs.DOC *= rate_;
     patch[0].soil_ns.DON *= rate_;
     
-    
+    //    if(patch[0].soil_ns.nitrate<0 || rate_<0){
+    //        printf("update_drainage_land0 [%d,%d,%e]: %e,%e, %d,%d,%d\n",
+    //               patch[0].ID, kk, rate_,
+    //               patch[0].sat_deficit_z, patch[0].sat_deficit,
+    //               sat_def_z_index,patch[0].sat_def_pct_index,patch[0].soil_defaults[0][0].soildepthLen);
+    //    }//debug
+        
     
     /*--------------------------------------------------------------*/
     /*    available sat water  */

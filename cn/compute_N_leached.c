@@ -78,11 +78,6 @@ double	compute_N_leached(
         
         // assume "sat_solutes" are in the sat_zone; and "soil_solutes" are above the sat_zone;
         // "sat_solutes" follows POR profile (related to PARTICLE_DENSITY profile) while "soil_solutes" follows the soil_solutes_decay
-        //
-        // with the explicit soil information (current version; Oct 2019),
-        // @ soil_construction, default_object_list[i].NO3decayRate = -default_object_list[i].active_zone_z/log(1.0-0.99); //m
-        // ==> totalmass(0.99) = totalmass*(1-exp(-default_object_list[i].active_zone_z/default_object_list[i].NO3decayRate))
-        // ==> 99% totalmass is within "active_zone_z" (top - horizon B)
         
         // from text book: % pore space = porosity = (1 - BD / density) * 100 %
         // from my note: density = BD / (1 - POR)
@@ -92,7 +87,7 @@ double	compute_N_leached(
 	/*------------------------------------------------------*/
 	/* nitrate export only occurs when Qout > 0.0		*/ 
 	/*------------------------------------------------------*/
-        soil_water = patch[0].available_soil_water; //patch[0].soil_defaults[0][0].soil_water_cap-max(patch[0].sat_deficit, 0.0);
+    soil_water = patch[0].available_soil_water; //patch[0].soil_defaults[0][0].soil_water_cap-max(patch[0].sat_deficit, 0.0);
         
     if (Qout > 0 && total_nitrate>0 && soil_water>0) {
         
@@ -137,10 +132,12 @@ double	compute_N_leached(
                 }
             }
         }else{
-            // no absorption
+            // no absorption but yes resources
             nleached = total_nitrate * Qout_frac;
+            //
         }
     }else{
+        // no resources
         nleached = 0.0;
     }//end of Qout > ZERO
         

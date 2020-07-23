@@ -85,6 +85,7 @@ int resolve_sminn_competition(
     patch[0].rtzNH4 = max(0.0, ns_soil->sminn*patch[0].soil_defaults[0][0].rtz2NH4prop[patch[0].rtz2_index]);
     patch[0].rtzSatNH4 = 0.0;
     if(patch[0].available_soil_water>0){
+        //change the sat solute profile
         patch[0].rtzSatNH4 = patch[0].sat_NH4 * max(patch[0].rootzone.potential_sat-patch[0].sat_deficit,0.0)/patch[0].available_soil_water;
     }//if
     patch[0].rtzNO3 = max(0.0, ns_soil->nitrate*patch[0].soil_defaults[0][0].rtz2NO3prop[patch[0].rtz2_index]);

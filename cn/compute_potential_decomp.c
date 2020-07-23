@@ -81,7 +81,7 @@ int compute_potential_decomp(double tsoil,
     double w_scalar2;
 	int nlimit, i;
 	#define NUM_NORMAL  10 	/* resolution of normal distribution */
-	double NORMAL[10]= {0,0,0.253,0.524,0.842,1.283,-0.253,-0.524,-0.842,-1.283};
+	double NORMAL[10]= {0.0, 0.0,0.253,0.524,0.842,1.283,-0.253,-0.524,-0.842,-1.283};
 
 	ok = 0;
 	/* calculate the rate constant scalar for soil temperature,

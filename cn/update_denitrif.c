@@ -84,7 +84,7 @@ int update_denitrif(
 	double fnitrate, fCO2;
 	double hr, total_nitrate_ratio, soil_nitrate_ratio;
     double perc_sat;
-	double NORMAL[10]= { -1.283,-0.842,-0.524,-0.253, 0, 0, 0.253,0.524,0.842,1.283};
+	double NORMAL[10]= { 0.0, -1.283,-0.842,-0.524,-0.253, 0.0, 0.253,0.524,0.842,1.283};
 	double resource_soilNO3, resource_satNO3;
     
  
@@ -116,6 +116,7 @@ int update_denitrif(
             theta = (patch[0].rz_storage + patch[0].unsat_storage + patch[0].soil_defaults[0][0].active_zone_sat_0z - patch[0].sat_deficit) * patch[0].soil_defaults[0][0].active_zone_sat_0z_1;
             
             perc_sat = max(0.0,min(1.0,(patch[0].soil_defaults[0][0].active_zone_sat_0z - patch[0].sat_deficit)/patch[0].available_soil_water));
+            // change here
             
         }else if(patch[0].soil_defaults[0][0].active_zone_z > patch[0].rootzone.depth){
             theta = (patch[0].rz_storage+patch[0].unsat_storage) / patch[0].sat_deficit; // approximate

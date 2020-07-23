@@ -50,7 +50,7 @@
 //#define	 MAX_PERC		0.1	/* fraction of amonium that goes to nitrate */
 //#define  MAX_RATE		120    /* mgN/kg/day twice groffman values for ag soils */
 #define NUM_NORMAL  10 	/* resolution of normal distribution */
-double NORMAL[10]= {0,0,0.253,0.524,0.842,1.283,-0.253,-0.524,-0.842,-1.283};
+double NORMAL[10]= { 0.0, -1.283,-0.842,-0.524,-0.253, 0.0, 0.253,0.524,0.842,1.283};
 
 
 int update_nitrif(
