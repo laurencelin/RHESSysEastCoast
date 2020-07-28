@@ -94,20 +94,15 @@ struct soil_default *construct_soil_defaults(
     int starting_index;
     double zzz;
     double www;
-    double por_numintegrated, x_numintegrated, x_numintegrated2, inverse_value1, inverse_value2;
+    double por_numintegrated, x_numintegrated, x_numintegrated2, x_numintegrated3, inverse_value1, inverse_value2;
+    double x_numintegrated4;
     double correct_ratio;
     double max_sat_def;
 // this throws error for no reason
     double layer_por[maxSoilDepthIndex];
     double layer_numintegrated[maxSoilDepthIndex];
     double layer_numintegrated2[maxSoilDepthIndex];
-    
-//    double *layer_por;
-//    double *layer_numintegrated;
-//    double *layer_numintegrated2;
-//    layer_por = (double*)calloc(10000, sizeof(double));
-//    layer_numintegrated = (double*)calloc(10000, sizeof(double));
-//    layer_numintegrated2 = (double*)calloc(10000, sizeof(double));
+    double layer_numintegrated3[maxSoilDepthIndex];
     
     
     
@@ -389,6 +384,7 @@ struct soil_default *construct_soil_defaults(
             layer_por[jj] = 0.0;
             layer_numintegrated[jj] = 0.0;
             layer_numintegrated2[jj] = 0.0;
+            layer_numintegrated3[jj] = 0.0;
         }// for loop
 
         // using the decay and x0 to calculate the following
@@ -443,6 +439,13 @@ struct soil_default *construct_soil_defaults(
         p4 = default_object_list[i].p4;
         max_sat_def = p0*p_decay*(1-exp(p_decay_1*soildepth));
         
+        // ------------------- solute profiles in sat zone
+        // postive with porosity profile and horizontial ksat profile
+        double satSolute_decayRate_1 = hksat_decay_1 + p_decay_1; // -1/meter
+        double satSolute_decayRate = -1.0 / satSolute_decayRate_1;
+        // .. if we assume sat solute profile is different from porosity, then the solute transmissivity is different from water transmissivity
+        
+        
         default_object_list[i].max_sat_def_1 = 1.0/( max_sat_def );
         default_object_list[i].exfiltration_wilting_point = exp(-PSI*log(2.5/PAE));
         default_object_list[i].exfiltration_S_pow = (1/(2*PSI))+2;
@@ -478,7 +481,7 @@ struct soil_default *construct_soil_defaults(
             
             default_object_list[i].vksat_z[ii] = vksat0*exp(vksat_decay_1*default_object_list[i].sat_def_z[ii]);
             
-            default_object_list[i].exfiltration_coef[ii] = default_object_list[i].sat_def_z[ii]>PAE? sqrt( (8*default_object_list[i].sat_def_0zm[ii] * default_object_list[i].vksat_0zm[ii] * PAE) / (3 * (1 + 3*PSI) * (1 + 4*PSI))) : 0.0;
+            default_object_list[i].exfiltration_coef[ii] = default_object_list[i].sat_def_z[ii]>PAE? sqrt( (8*default_object_list[i].sat_def_0zm[ii] * default_object_list[i].vksat_0zm[ii] * PAE) / (3.0 * (1.0 + 3.0*PSI) * (1.0 + 4*PSI))) : 0.0;
             
             // ii=0=top=surface; ii=1000=bottom
             // loop from z to 0 surface
@@ -780,9 +783,10 @@ struct soil_default *construct_soil_defaults(
                 for( jj = 0; jj<=len; jj++ ){
                     zzz = soildepth - jj*step;
                     www = soildepth - zzz;
-                    layer_numintegrated[jj] = jj>0? p0*exp(p_decay_1*zzz) * ( 1.0-min(1.0,exp(PSI*log(PAE/www))) ) : 0.0;
-                    layer_numintegrated2[jj] = min(hksat0*exp(hksat_decay_1*zzz), layer_numintegrated[jj]);
-                    layer_por[jj] = p0*exp(p_decay_1*zzz);
+                    layer_numintegrated[jj] = jj>0? p0*exp(p_decay_1*zzz) * ( 1.0-min(1.0,exp(PSI*log(PAE/www))) ) : 0.0; // movable water in pores
+                    layer_numintegrated2[jj] = min(hksat0*exp(hksat_decay_1*zzz), layer_numintegrated[jj]); // conductivity vs. movable water in pores
+                    layer_numintegrated3[jj] = exp(satSolute_decayRate_1*zzz); // mass of the layer solute; n0 = satSolute/(1.0-exp(satSolute_decayRate_1*soildepth))
+                    layer_por[jj] = p0*exp(p_decay_1*zzz); // volumn of the layer water
                 }// for loop jj
                 // when jj=0 --> zzz=soil_depth & www=0
             }else{
@@ -791,9 +795,11 @@ struct soil_default *construct_soil_defaults(
                 // when sat_def_z=soildepth -> len=1 & step=0
                 layer_numintegrated[0] = 0.0;
                 layer_numintegrated2[0] = 0.0;
+                layer_numintegrated3[0] = 0.0;
                 layer_por[0] = p0*exp(p_decay_1*soildepth);
                 layer_numintegrated[1] = 0.0;
                 layer_numintegrated2[1] = 0.0;
+                layer_numintegrated3[1] = 0.0;
                 layer_por[1] = p0*exp(p_decay_1*soildepth);
             }
             
@@ -803,25 +809,32 @@ struct soil_default *construct_soil_defaults(
             por_numintegrated = 0.0;
             x_numintegrated = 0.0;
             x_numintegrated2 = 0.0;
+            x_numintegrated3 = 0.0;
+            x_numintegrated4 = 0.0;
             for( jj = starting_index; jj<=len; jj++ ){
                 por_numintegrated += layer_por[jj];
                 x_numintegrated += layer_numintegrated[jj];
                 x_numintegrated2 += layer_numintegrated2[jj];
+                x_numintegrated4 += layer_numintegrated3[jj];
+                x_numintegrated3 += (layer_numintegrated[jj]>0? layer_numintegrated3[jj] * layer_numintegrated2[jj]/layer_numintegrated[jj] : 0.0);
             }// for loop jj
             if(len >= starting_index+2) for( jj = starting_index+1; jj<=len-1; jj++ ){
                 por_numintegrated += layer_por[jj];
                 x_numintegrated += layer_numintegrated[jj];
                 x_numintegrated2 += layer_numintegrated2[jj];
+                x_numintegrated4 += layer_numintegrated3[jj];
+                x_numintegrated3 += (layer_numintegrated[jj]>0? layer_numintegrated3[jj] * layer_numintegrated2[jj]/layer_numintegrated[jj] : 0.0);
             }// for loop jj
             correct_ratio = (step>0) ? p0*p_decay*(exp(p_decay_1*default_object_list[i].sat_def_z[ii])-exp(p_decay_1*soildepth) ) /(0.5*por_numintegrated*step) : 1.0;
-            default_object_list[i].transmissivity_maxdailyflux[ii] = (0.5*x_numintegrated*step) * correct_ratio;//volumn constraint
-            default_object_list[i].transmissivity_dailyflux[ii] = (0.5*x_numintegrated2*step) * correct_ratio;//volumn and ksat constraint
+            default_object_list[i].transmissivity_maxdailyflux[ii] = (0.5*x_numintegrated*step) * correct_ratio;//volumn constraint; from wtz to soildepth
+            default_object_list[i].transmissivity_dailyflux[ii] = (0.5*x_numintegrated2*step) * correct_ratio;//volumn and ksat constraint; from wtz to soildepth
             //transmissivity_dailyflux[ii] last one is -inf / nan sometimes
-            
+            default_object_list[i].transmissivity_dailyfluxSoluteProp[ii] = (x_numintegrated4>0? x_numintegrated3 / x_numintegrated4 : 0.0);
             
         }// for loop ii 0.1% loop
         
  
+        
         rt_len = (int)(soildepth*1000) + 1; //(int)(default_object_list[i].maxrootdepth*1000)+1;
         default_object_list[i].soildepthLen = rt_len;
         default_object_list[i].rtz2sat_def_0z = (double*)calloc(rt_len, sizeof(double));
@@ -830,14 +843,14 @@ struct soil_default *construct_soil_defaults(
         default_object_list[i].rtz2NH4prop = (double*)calloc(rt_len, sizeof(double));
         default_object_list[i].rtz2DOMprop = (double*)calloc(rt_len, sizeof(double));
         
-        
-        // ------------------- solute profiles
+
+        // ------------------- solute profiles in soil column
         // assume most (95%) solutes and OM are bounded in between 0 - maxrootdepth (horizon C)
         // maxrootdepth (horizon C) >= active_zone_z (horizon B)
         
         // ... assume the profile is inverse of vKsat profile below the maxrootdepth zone
-        double rtz_soil_vdeay = 1.0/default_object_list[i].mz_v; // inverse vKsat profile
-        double rtz_soil_coef = exp(rtz_soil_vdeay*default_object_list[i].maxrootdepth); 
+        double rtz_soil_vdeay_1 = 1.0/default_object_list[i].mz_v; // inverse vKsat profile (vksat_decay_1)
+        double rtz_soil_coef = exp(rtz_soil_vdeay_1*default_object_list[i].maxrootdepth);
         
         // ... estimate the om% deeper than maxrootdepth
         double rtz_soil_om;
@@ -845,7 +858,7 @@ struct soil_default *construct_soil_defaults(
                            exp(-default_object_list[i].maxrootdepth/soilcDecay)) / (1.0 - exp(-default_object_list[i].maxrootdepth/soilcDecay));
                            // 10% of OM in between active_zone_z and maxrootdepth
         else rtz_soil_om = 0.05;
-        double solute_0_rtz_soil = rtz_soil_om/(rtz_soil_coef-exp(rtz_soil_vdeay*soildepth));// negative when rtz_soil_vdeay>0
+        double solute_0_rtz_soil = rtz_soil_om/(rtz_soil_coef-exp(rtz_soil_vdeay_1*soildepth));// negative when rtz_soil_vdeay_1>0
         
         // ... profile decay rates
         if(fabs(soilcDecay)>0){
@@ -902,9 +915,9 @@ struct soil_default *construct_soil_defaults(
             
             if( zzz > default_object_list[i].maxrootdepth){
                 // (1-rtz_soil_om) is the om% in between 0 and maxrootdepth
-                default_object_list[i].rtz2NO3prop[ii] = (1-rtz_soil_om)+(rtz_soil_coef-exp(rtz_soil_vdeay*zzz)) * solute_0_rtz_soil;
-                default_object_list[i].rtz2NH4prop[ii] = (1-rtz_soil_om)+(rtz_soil_coef-exp(rtz_soil_vdeay*zzz)) * solute_0_rtz_soil;
-                default_object_list[i].rtz2DOMprop[ii] = (1-rtz_soil_om)+(rtz_soil_coef-exp(rtz_soil_vdeay*zzz)) * solute_0_rtz_soil;
+                default_object_list[i].rtz2NO3prop[ii] = (1-rtz_soil_om)+(rtz_soil_coef-exp(rtz_soil_vdeay_1*zzz)) * solute_0_rtz_soil;
+                default_object_list[i].rtz2NH4prop[ii] = (1-rtz_soil_om)+(rtz_soil_coef-exp(rtz_soil_vdeay_1*zzz)) * solute_0_rtz_soil;
+                default_object_list[i].rtz2DOMprop[ii] = (1-rtz_soil_om)+(rtz_soil_coef-exp(rtz_soil_vdeay_1*zzz)) * solute_0_rtz_soil;
             }else{
                 default_object_list[i].rtz2NO3prop[ii] = (1.0-exp(default_object_list[i].NO3decayRate_1*zzz)) * NO3_0 * (1-rtz_soil_om);
                 default_object_list[i].rtz2NH4prop[ii] = (1.0-exp(default_object_list[i].NH4decayRate_1*zzz)) * NH4_0 * (1-rtz_soil_om);
