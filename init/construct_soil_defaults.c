@@ -418,7 +418,8 @@ struct soil_default *construct_soil_defaults(
         
         default_object_list[i].transmissivity_maxdailyflux = (double*)calloc(1002, sizeof(double));
         default_object_list[i].transmissivity_dailyflux = (double*)calloc(1002, sizeof(double));
-	
+        default_object_list[i].transmissivity_dailyfluxSoluteProp = (double*)calloc(1002, sizeof(double));
+        
         p0 = default_object_list[i].porosity_0;
         p_decay = default_object_list[i].porosity_decay;
         p_decay_1 = -1.0/default_object_list[i].porosity_decay;
@@ -957,6 +958,7 @@ struct soil_default *construct_soil_defaults(
         
         default_object_list[i].transmissivity_maxdailyflux[1001] = default_object_list[i].transmissivity_maxdailyflux[1000];
         default_object_list[i].transmissivity_dailyflux[1001] = default_object_list[i].transmissivity_dailyflux[1000];
+        default_object_list[i].transmissivity_dailyfluxSoluteProp[1001] = default_object_list[i].transmissivity_dailyfluxSoluteProp[1000];
         printf("soil,%d,%f,%f,%f\n",default_object_list[i].ID, soildepth, default_object_list[i].vksat_z[1000], p0*exp(p_decay_1* soildepth) );
         
         
