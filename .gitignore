@@ -9,3 +9,4 @@ main_new.c
 *.o
 hydro/update_drainage_land copy.c
 rhessysEC.7.2_keep
+cn/compute_farq_psn_backup.c

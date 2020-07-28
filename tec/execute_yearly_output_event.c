@@ -214,6 +214,11 @@ void	execute_yearly_output_event(
                     world[0].basins[b]->hillslopes[h]->zones[z]->patches[p]->acc_year.satChance = 0.0;
                     world[0].basins[b]->hillslopes[h]->zones[z]->patches[p]->acc_year.plantlimitN = 0.0;
                     world[0].basins[b]->hillslopes[h]->zones[z]->patches[p]->acc_year.plantlimitQ = 0.0;
+                    world[0].basins[b]->hillslopes[h]->zones[z]->patches[p]->acc_year.activeS = 0.0;
+                    world[0].basins[b]->hillslopes[h]->zones[z]->patches[p]->acc_year.denitrifaspQs = 0.0;
+                    world[0].basins[b]->hillslopes[h]->zones[z]->patches[p]->acc_year.denitrifspQs = 0.0;
+                    world[0].basins[b]->hillslopes[h]->zones[z]->patches[p]->acc_year.nitrifaspQs = 0.0;
+                    world[0].basins[b]->hillslopes[h]->zones[z]->patches[p]->acc_year.nitrifspQs = 0.0;
                     world[0].basins[b]->hillslopes[h]->zones[z]->patches[p]->acc_year.denitrif = 0.0;
                     world[0].basins[b]->hillslopes[h]->zones[z]->patches[p]->acc_year.mineralization = 0.0;
                     world[0].basins[b]->hillslopes[h]->zones[z]->patches[p]->acc_year.uptake = 0.0;
@@ -221,7 +226,9 @@ void	execute_yearly_output_event(
                     world[0].basins[b]->hillslopes[h]->zones[z]->patches[p]->acc_year.subNO3vnet = 0.0;
                     world[0].basins[b]->hillslopes[h]->zones[z]->patches[p]->acc_year.subDOCnet = 0.0;
                     world[0].basins[b]->hillslopes[h]->zones[z]->patches[p]->acc_year.no3drain2gw = 0.0;
-                    //world[0].basins[b]->hillslopes[h]->zones[z]->patches[p]->acc_year.no3diffuse2gw = 0.0;
+                    
+                    
+                    
                     } /* end patch (p) for loop */
                 } /* end zone (z) for  loop*/
             } /* end hillslope (h) for loop */
