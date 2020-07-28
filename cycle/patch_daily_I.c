@@ -333,21 +333,6 @@ void		patch_daily_I(
     patch[0].theta_std += patch[0].soil_defaults[0][0].theta_mean_std_p1 * (patch[0].soil_defaults[0][0].active_zone_sat_0z*theta);
     patch[0].theta_std = max(0.0, patch[0].theta_std);
     
-//    if( patch[0].drainage_type>0 && patch[0].drainage_type % actionRIPARIAN==0 ){
-//        // "theta" below in the equation is water vol / soil vol
-//        patch[0].theta_std = patch[0].soil_defaults[0][0].active_zone_sat_0z*theta;
-//        patch[0].theta_std *= -1.483 * patch[0].theta_std;
-//        patch[0].theta_std += 0.9229 * patch[0].soil_defaults[0][0].active_zone_sat_0z*theta;
-//        patch[0].theta_std = max(0.0, patch[0].theta_std);
-//        //patch[0].theta_std = (-1.483*theta*theta + 0.9229*theta);
-//    }else{
-//        //patch[0].theta_std = (patch[0].soil_defaults[0][0].theta_mean_std_p2*theta*theta + patch[0].soil_defaults[0][0].theta_mean_std_p1*theta);
-//        patch[0].theta_std = patch[0].soil_defaults[0][0].active_zone_sat_0z*theta;
-//        patch[0].theta_std *= patch[0].soil_defaults[0][0].theta_mean_std_p2 * patch[0].theta_std;
-//        patch[0].theta_std += patch[0].soil_defaults[0][0].theta_mean_std_p1 * (patch[0].soil_defaults[0][0].active_zone_sat_0z*theta);
-//        patch[0].theta_std = max(0.0, patch[0].theta_std);
-//    }
-    
     
     
     //for biochemical mode accounting for basement;

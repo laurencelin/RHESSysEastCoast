@@ -1678,6 +1678,23 @@ void		patch_daily_F(
         patch[0].stored_fertilizer_NH4 *= 1.0 - patch[0].landuse_defaults[0][0].fertilizer_decay_rate; // remaining
     }// fertilizer_flag
 		
+	/*--------------------------------------------------------------*/
+	/* adjust PH using data patch level inputs			*/
+	/*--------------------------------------------------------------*/
+	if (patch[0].base_stations != NULL) {
+		inx = patch[0].base_stations[0][0].dated_input[0].PH.inx;
+		if (inx > -999) {
+			clim_event = patch[0].base_stations[0][0].dated_input[0].PH.seq[inx];
+			while (julday(clim_event.edate) < julday(current_date)) {
+				patch[0].base_stations[0][0].dated_input[0].PH.inx += 1;
+				inx = patch[0].base_stations[0][0].dated_input[0].PH.inx;
+				clim_event = patch[0].base_stations[0][0].dated_input[0].PH.seq[inx];
+            }//while
+			if ((clim_event.edate.year != 0) && ( julday(clim_event.edate) == julday(current_date)) ) {
+				patch[0].PH = clim_event.value;
+            }//if
+        }//if
+    }//if
 
 	
 	/*	Add rain throughfall to detention store for infiltration	*/
@@ -2746,21 +2763,6 @@ void		patch_daily_F(
     patch[0].theta_std *= patch[0].soil_defaults[0][0].theta_mean_std_p2 * patch[0].theta_std;
     patch[0].theta_std += patch[0].soil_defaults[0][0].theta_mean_std_p1 * (patch[0].soil_defaults[0][0].active_zone_sat_0z*theta);
     patch[0].theta_std = max(0.0, patch[0].theta_std);
-    
-//    if( patch[0].drainage_type>0 && patch[0].drainage_type % actionRIPARIAN==0 ){
-//        // "theta" below in the equation is water vol / soil vol
-//        patch[0].theta_std = patch[0].soil_defaults[0][0].active_zone_sat_0z*theta;
-//        patch[0].theta_std *= -1.483 * patch[0].theta_std;
-//        patch[0].theta_std += 0.9229 * patch[0].soil_defaults[0][0].active_zone_sat_0z*theta;
-//        patch[0].theta_std = max(0.0, patch[0].theta_std);
-//        //patch[0].theta_std = (-1.483*theta*theta + 0.9229*theta);
-//    }else{
-//        //patch[0].theta_std = (patch[0].soil_defaults[0][0].theta_mean_std_p2*theta*theta + patch[0].soil_defaults[0][0].theta_mean_std_p1*theta);
-//        patch[0].theta_std = patch[0].soil_defaults[0][0].active_zone_sat_0z*theta;
-//        patch[0].theta_std *= -0.4381 * patch[0].theta_std;
-//        patch[0].theta_std += 0.2736 * patch[0].soil_defaults[0][0].active_zone_sat_0z*theta;
-//        patch[0].theta_std = max(0.0, patch[0].theta_std);
-//    }
     
     
     
