@@ -76,7 +76,7 @@ int zero_stratum_daily_flux(
 	cdf->deadstemc_store_to_deadstemc_transfer = 0.0;
 	cdf->livecrootc_store_to_livecrootc_transfer = 0.0;
 	cdf->deadcrootc_store_to_deadcrootc_transfer = 0.0;
-	cdf->gresp_store_to_gresp_transfer = 0.0;
+	//cdf->gresp_store_to_gresp_transfer = 0.0;
 
 	/* autotroph  maintenance respiration fluxes */
 	cdf->leaf_day_mr = 0.0;

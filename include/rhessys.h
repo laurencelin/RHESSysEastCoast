@@ -2217,7 +2217,7 @@ struct cstate_struct
     double livecrootc_transfer;/* (kgC/m2) live coarse root C to be allocated from last season */
     double deadcrootc_transfer;/* (kgC/m2) dead coarse root C to be allocated from last season */
     double frootc_transfer;     /* (kgC/m2) leaf C to be allocated from last season */
-    //double gresp_transfer;    /* (kgC/m2) growth respiration C to be allocated from last season*/
+    double gresp_transfer;    /* (kgC/m2) growth respiration C to be allocated from last season*/
 
     double leafc_store;     /* (kgC/m2) stored leaf C stored from year's growth */
     double livestemc_store; /* (kgC/m2) live stemwood C stored from this years growth */
@@ -2226,7 +2226,7 @@ struct cstate_struct
     double deadcrootc_store;/* (kgC/m2) dead coarse root C  stored from this years growth*/
     double frootc_store;    /* (kgC/m2) fine root C  stored from this years growth */ 
 
-    //double gresp_store;    /* (kgC/m2) growth respiration C stored from this years growth */
+    double gresp_store;    /* (kgC/m2) growth respiration C stored from this years growth */
     double cwdc;           /* (kgC/m2) coarse woody debris C*/
     
 /* sink for respiration and fire losses */
@@ -2368,7 +2368,7 @@ struct epvar_struct
         double cpool_to_livecrootc_store;  /* (kgC/m2/d) */
         double cpool_to_deadcrootc;          /* (kgC/m2/d) */
         double cpool_to_deadcrootc_store;  /* (kgC/m2/d) */
-        //double cpool_to_gresp_store;       /* (kgC/m2/d) */
+        double cpool_to_gresp_store;       /* (kgC/m2/d) */
 
         /* annual turnover of storage to transfer pools */
         double leafc_store_to_leafc_transfer;           /* (kgC/m2/d) */
