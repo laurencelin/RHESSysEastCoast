@@ -502,14 +502,21 @@ int allocate_annual_growth(				int id,
     /*  push store to transfer  */
     /*--------------------------------------------------------------*/
     epv->prev_leafcalloc = cs->leafc + cs->leafc_transfer;
+    
+    cdf->gresp_store_to_gresp_transfer = cs->gresp_store * storage_transfer_prop;
+    cs->gresp_transfer    += cdf->gresp_store_to_gresp_transfer;
+        cs->cpool += cs->gresp_store * (1.0-storage_transfer_prop);
+        cs->gresp_store = 0.0;
+    
     cdf->leafc_store_to_leafc_transfer = cs->leafc_store * epc.storage_transfer_prop; // first time
     ndf->leafn_store_to_leafn_transfer = ns->leafn_store * epc.storage_transfer_prop;
     cs->leafc_transfer    += cdf->leafc_store_to_leafc_transfer;
     ns->leafn_transfer    += ndf->leafn_store_to_leafn_transfer;
-        cs->cpool += cs->leafc_store * (1.0-epc.storage_transfer_prop);
+        cs->cpool += cs->leafc_store * (1.0-epc.storage_transfer_prop);// if not going to Xtransfer, it goes to the pool
         ns->npool += ns->leafn_store * (1.0-epc.storage_transfer_prop);
-        cs->leafc_store = 0.0;
+        cs->leafc_store = 0.0; // always empty out Xstore
         ns->leafn_store = 0.0;
+        
     cdf->frootc_store_to_frootc_transfer = cs->frootc_store* epc.storage_transfer_prop;
     ndf->frootn_store_to_frootn_transfer = ns->frootn_store* epc.storage_transfer_prop;
     cs->frootc_transfer   += cdf->frootc_store_to_frootc_transfer;
@@ -518,6 +525,7 @@ int allocate_annual_growth(				int id,
         ns->npool += ns->frootn_store * (1.0-epc.storage_transfer_prop);
         cs->frootc_store = 0.0;
         ns->frootn_store = 0.0;
+    
     if (epc.veg_type == TREE){
         cdf->livestemc_store_to_livestemc_transfer = cs->livestemc_store * epc.storage_transfer_prop;
         ndf->livestemn_store_to_livestemn_transfer = ns->livestemn_store * epc.storage_transfer_prop;

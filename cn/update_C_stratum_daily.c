@@ -59,33 +59,7 @@ int update_C_stratum_daily(struct epconst_struct epc,
 		cs->livecroot_mr_snk += cdf->livecroot_mr;
 	}
 	cs->net_psn = cdf->psn_to_cpool - cdf->total_mr - cdf->total_gr;
-//    if(cs->net_psn < -0.02) printf("problem[%d] %e %e, %e[%e+%e+%e+%e+%e], %e[%e+%e+%e+%e+%e+%e+%e+%e+%e+%e+%e+%e], %e[(%e+%e+%e+%e+%e+%e)*%e], %e\n",
-//        stratum[0].ID,
-//        cs->net_psn,
-//        cdf->psn_to_cpool,
-//        //--------
-//        cdf->total_mr,
-//        cdf->leaf_day_mr, cdf->leaf_night_mr,//
-//        cdf->livestem_mr,//
-//        cdf->livecroot_mr,//
-//        cdf->froot_mr,// 6
-//        //--------
-//        cdf->total_gr, // cost to turn into flesh (error?)
-//        cdf->cpool_leaf_gr, cdf->transfer_leaf_gr,
-//        cdf->cpool_livestem_gr, cdf->transfer_livestem_gr,
-//        cdf->cpool_livecroot_gr, cdf->transfer_livecroot_gr,
-//        cdf->cpool_deadcroot_gr, cdf->transfer_deadcroot_gr,
-//        cdf->cpool_deadstem_gr, cdf->transfer_deadstem_gr,
-//        cdf->cpool_froot_gr, cdf->transfer_froot_gr,//13
-//        //--------
-//        cdf->cpool_to_gresp_store, // cost to build storage (error?)
-//        cdf->cpool_to_leafc_store,
-//        cdf->cpool_to_frootc_store,
-//        cdf->cpool_to_livestemc_store, cdf->cpool_to_deadstemc_store,
-//        cdf->cpool_to_livecrootc_store, cdf->cpool_to_deadcrootc_store,
-//        epc.gr_perc,//8
-//        //---------
-//        cs->availc);
+
       
     
     
@@ -124,14 +98,14 @@ int update_C_stratum_daily(struct epconst_struct epc,
 		cs->cpool              -= cdf->cpool_to_deadcrootc_store;
 	}
 	/* Daily allocation for transfer growth respiration */
-    cs->gresp_store  = 0.0; //+= cdf->cpool_to_gresp_store;//<<----------------------------------------------
-	cs->cpool          -= cdf->cpool_to_gresp_store;
+    cs->gresp_store  += cdf->cpool_to_gresp_store;
+	cs->cpool        -= cdf->cpool_to_gresp_store;
 	/* Daily growth respiration fluxes */
 	/* Leaf growth respiration */
-	cs->leaf_gr_snk     += cdf->cpool_leaf_gr;
-	cs->cpool           -= cdf->cpool_leaf_gr;
-	cs->leaf_gr_snk     += cdf->transfer_leaf_gr;
-	cs->gresp_transfer  -= cdf->transfer_leaf_gr;
+	cs->leaf_gr_snk     += cdf->cpool_leaf_gr; // tracking
+	cs->cpool           -= cdf->cpool_leaf_gr; // first growth respiration
+	cs->leaf_gr_snk     += cdf->transfer_leaf_gr; // tracking
+	cs->gresp_transfer  -= cdf->transfer_leaf_gr; // second growth respiration
 	/* Fine root growth respiration */
 	cs->froot_gr_snk    += cdf->cpool_froot_gr;
 	cs->cpool           -= cdf->cpool_froot_gr;
@@ -160,13 +134,10 @@ int update_C_stratum_daily(struct epconst_struct epc,
 		cs->gresp_transfer   -= cdf->transfer_deadcroot_gr;
 	}
 
-    
-    // catching negative "cs->gresp_transfer" bug:
-    if(cs->gresp_transfer<0){
+    if( cs->gresp_transfer < 0.0){
         cs->cpool += cs->gresp_transfer;
         cs->gresp_transfer = 0.0;
-    }//debug
-    
+    }
     
 //    if(stratum[0].phen.gwseasonday > epc.ndays_expand && cs->cpool>0)
 //        cs_soil->DOC += cs->cpool*0.05; cs->cpool*=0.95;

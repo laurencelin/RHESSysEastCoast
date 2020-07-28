@@ -74,7 +74,7 @@ int allocate_daily_growth(int nlimit,
 	double cndw;        /* RATIO   dead wood C:N */
 	//double nlc;         /* actual new leaf C, minimum of C and N limits   */
 	double amt_fix, cost_fix, closs;
-	double gresp_store, total_wood;
+	double total_wood;
 	double mean_cn;
 	double sum_plant_nsupply, soil_nsupply;
 	double plant_nalloc=0.0;
@@ -330,24 +330,17 @@ int allocate_daily_growth(int nlimit,
     }
 
 	 
-	// growth respiration for storages
+	// prepare for the second growth respiration
 	if (epc.veg_type == TREE){
-		gresp_store = (cdf->cpool_to_leafc_store + cdf->cpool_to_frootc_store
+		cdf->cpool_to_gresp_store = (cdf->cpool_to_leafc_store + cdf->cpool_to_frootc_store
 			+ cdf->cpool_to_livestemc_store + cdf->cpool_to_deadstemc_store
 			+ cdf->cpool_to_livecrootc_store + cdf->cpool_to_deadcrootc_store)
 			* g1;
 	}
 	else{
-		gresp_store = (cdf->cpool_to_leafc_store+cdf->cpool_to_frootc_store) * g1;
+		cdf->cpool_to_gresp_store = (cdf->cpool_to_leafc_store+cdf->cpool_to_frootc_store) * g1;
 	}
-	cdf->cpool_to_gresp_store = gresp_store;
-    // Laurence, Nov 14, 2018
-    // I see this resp. as a cost to build store.
-    // it should be an instantaneous cost rather than deposit and do it later.
-    // so I made this a) "cdf->cpool_to_gresp_store" substract to cs->cpool in "update_C_stratum_daily"
-    // b) keep "cs->gresp_store" zero the whole time @ "update_C_stratum_daily"
-    // c) take out the "cs->gresp_store" and "cs->gresp_transfer" process in "allocate_annual_growth"
-    
+	
 	/*---------------------------------------------------------------------------	*/
 	/*	create a maximum lai							*/
 	/*---------------------------------------------------------------------------	*/
