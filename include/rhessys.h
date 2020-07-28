@@ -887,7 +887,7 @@ struct  landuse_default
         int fertilizer_freq;
         double fertilizer_decay_rate; // no unit
         double  irrigation;                                     /* m/day        */
-        double  PH;                                     /* DIM  */
+        //double  PH;                                     /* DIM  */
         double  septic_NO3_load;                                        /* kg/m2/day */
         double  septic_water_load;                                      /* m/m2/day */
         double  detention_store_size;                   /* m/impFrac */
@@ -1011,6 +1011,7 @@ struct	soil_default
         
         double *transmissivity_maxdailyflux;
         double *transmissivity_dailyflux;
+        double *transmissivity_dailyfluxSoluteProp;
         
         int soildepthLen;
         double *rtz2sat_def_0z;
@@ -1025,6 +1026,10 @@ struct	soil_default
         double *rtz2NH4prop;
         double *rtz2DOMprop;
         double PH;
+        //double active_zone_soilNO3;
+        //double active_zone_soilNH4;
+        //double active_zone_soilDOM;
+        //double *rtz2sat_def_pct_indexM;
     // from text book: % pore space = porosity = (1 - BD / PD) * 100 %
 	};
 
@@ -1156,8 +1161,8 @@ struct  cdayflux_patch_struct
     double m_deadcrootc_transfer_to_litr1c; /* (kgC/m2/d) dead coarse root transfer to labile */
 
 
-    double m_gresp_store_to_litr1c;      /* (kgC/m2/d) */
-    double m_gresp_transfer_to_litr1c;     /* (kgC/m2/d) */
+    //double m_gresp_store_to_litr1c;      /* (kgC/m2/d) */
+    //double m_gresp_transfer_to_litr1c;     /* (kgC/m2/d) */
 
 
         };
@@ -1424,7 +1429,12 @@ struct accumulate_patch_object
     double satChance;
     double plantlimitN;
     double plantlimitQ;
+    double activeS;
+    double denitrifaspQs;
+    double denitrifspQs;
     double denitrif;
+    double nitrifaspQs;
+    double nitrifspQs;
     double mineralization;
     double uptake;
     double subNO3net;
@@ -1541,6 +1551,7 @@ struct patch_object
         double  PAR_diffuse;            /* umol/(m^2*day)       */
         double  PAR_direct_final;       /* umol/(m^2*day)       */
         double  PAR_diffuse_final;      /* umol(m^2*day)        */
+        double  PH;                     /* DIM */
         double  potential_cap_rise;     /* m water/ day */
         double  potential_exfiltration; /* m water/ day */
         double  potential_evaporation;  /* m water/ day */
@@ -2206,7 +2217,7 @@ struct cstate_struct
     double livecrootc_transfer;/* (kgC/m2) live coarse root C to be allocated from last season */
     double deadcrootc_transfer;/* (kgC/m2) dead coarse root C to be allocated from last season */
     double frootc_transfer;     /* (kgC/m2) leaf C to be allocated from last season */
-    double gresp_transfer;    /* (kgC/m2) growth respiration C to be allocated from last season*/ 
+    //double gresp_transfer;    /* (kgC/m2) growth respiration C to be allocated from last season*/
 
     double leafc_store;     /* (kgC/m2) stored leaf C stored from year's growth */
     double livestemc_store; /* (kgC/m2) live stemwood C stored from this years growth */
@@ -2215,7 +2226,7 @@ struct cstate_struct
     double deadcrootc_store;/* (kgC/m2) dead coarse root C  stored from this years growth*/
     double frootc_store;    /* (kgC/m2) fine root C  stored from this years growth */ 
 
-    double gresp_store;    /* (kgC/m2) growth respiration C stored from this years growth */ 
+    //double gresp_store;    /* (kgC/m2) growth respiration C stored from this years growth */
     double cwdc;           /* (kgC/m2) coarse woody debris C*/
     
 /* sink for respiration and fire losses */
@@ -2357,7 +2368,7 @@ struct epvar_struct
         double cpool_to_livecrootc_store;  /* (kgC/m2/d) */
         double cpool_to_deadcrootc;          /* (kgC/m2/d) */
         double cpool_to_deadcrootc_store;  /* (kgC/m2/d) */
-        double cpool_to_gresp_store;       /* (kgC/m2/d) */
+        //double cpool_to_gresp_store;       /* (kgC/m2/d) */
 
         /* annual turnover of storage to transfer pools */
         double leafc_store_to_leafc_transfer;           /* (kgC/m2/d) */
@@ -2366,7 +2377,7 @@ struct epvar_struct
         double deadstemc_store_to_deadstemc_transfer;    /* (kgC/m2/d) */
         double livecrootc_store_to_livecrootc_transfer; /* (kgC/m2/d) */
         double deadcrootc_store_to_deadcrootc_transfer; /* (kgC/m2/d) */
-        double gresp_store_to_gresp_transfer;           /* (kgC/m2/d) */
+        //double gresp_store_to_gresp_transfer;           /* (kgC/m2/d) */
 
         /* turnover of live wood to dead wood */
         double livestemc_to_deadstemc;        /* (kgC/m2/d) */

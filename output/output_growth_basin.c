@@ -218,8 +218,8 @@ void	output_growth_basin(
 							+ strata->cdf.cpool_livestem_gr + strata->cdf.livecroot_mr
 							+ strata->cdf.cpool_livecroot_gr
 							+ strata->cdf.cpool_deadcroot_gr
-							+ strata->cdf.froot_mr + strata->cdf.cpool_froot_gr
-							+ strata->cdf.cpool_to_gresp_store)	* patch[0].area;
+							+ strata->cdf.froot_mr + strata->cdf.cpool_froot_gr)
+                            * patch[0].area;
 						aleafn += strata->cover_fraction	* (strata->ns.leafn
 							+ strata->ns.leafn_store + strata->ns.leafn_transfer)
 							* patch[0].area;

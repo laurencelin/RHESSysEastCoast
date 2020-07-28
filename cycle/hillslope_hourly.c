@@ -121,61 +121,12 @@ void		hillslope_hourly(
 	hillslope[0].hourly_streamflow_DOC = 0.0;
 	hillslope[0].hourly_streamflow_DON = 0.0;
 
-	if ((command_line[0].gw_flag > 0) && (hillslope[0].gw.storage > ZERO) && (command_line[0].gwtoriparian_flag==0)) {
-        
-        // this section is not yet updated
-	    if (hillslope[0].defaults[0][0].gw_loss_fast_threshold < ZERO) {	
-		      hillslope[0].gw.hourly_Qout = hillslope[0].gw.storage * hillslope[0].slope * hillslope[0].defaults[0][0].gw_loss_coeff;
-	    }else{
-            slow_store = min(hillslope[0].defaults[0][0].gw_loss_fast_threshold, hillslope[0].gw.storage);
-                hillslope[0].gw.hourly_Qout = slow_store * hillslope[0].slope * hillslope[0].defaults[0][0].gw_loss_coeff;
-            fast_store = max(0.0,hillslope[0].gw.storage - hillslope[0].defaults[0][0].gw_loss_fast_threshold);
-            hillslope[0].gw.hourly_Qout += fast_store * hillslope[0].slope * hillslope[0].defaults[0][0].gw_loss_fast_coeff;
-	    }
-
-		hillslope[0].hourly_base_flow += hillslope[0].gw.hourly_Qout;
-		hillslope[0].gw.storage -= hillslope[0].gw.hourly_Qout;
-
-		hillslope[0].gw.hourly_NH4out = hillslope[0].gw.hourly_Qout * hillslope[0].gw.NH4 / hillslope[0].gw.storage;
-		hillslope[0].gw.hourly_NO3out = hillslope[0].gw.hourly_Qout * hillslope[0].gw.NO3 / hillslope[0].gw.storage;
-		hillslope[0].gw.hourly_DONout = hillslope[0].gw.hourly_Qout * hillslope[0].gw.DON / hillslope[0].gw.storage;
-		hillslope[0].gw.hourly_DOCout = hillslope[0].gw.hourly_Qout * hillslope[0].gw.DOC / hillslope[0].gw.storage;
-
-        hillslope[0].gw.NO3out += hillslope[0].gw.hourly_NO3out;
-		hillslope[0].gw.NH4out += hillslope[0].gw.hourly_NH4out;
-		hillslope[0].gw.DOCout += hillslope[0].gw.hourly_DOCout;
-		hillslope[0].gw.DONout += hillslope[0].gw.hourly_DONout;
-
-
-		hillslope[0].hourly_streamflow_NO3 += hillslope[0].gw.hourly_NO3out;
-		hillslope[0].hourly_streamflow_NH4 += hillslope[0].gw.hourly_NH4out;
-		hillslope[0].hourly_streamflow_DON += hillslope[0].gw.hourly_DONout;
-		hillslope[0].hourly_streamflow_DOC += hillslope[0].gw.hourly_DOCout;
-		hillslope[0].gw.NH4 -= hillslope[0].gw.hourly_NH4out;
-		hillslope[0].gw.NO3 -= hillslope[0].gw.hourly_NO3out;
-		hillslope[0].gw.DON -= hillslope[0].gw.hourly_DONout;
-		hillslope[0].gw.DOC -= hillslope[0].gw.hourly_DOCout;
-
-		hillslope[0].streamflow_NO3 +=hillslope[0].hourly_streamflow_NO3;
-		hillslope[0].streamflow_NH4 +=hillslope[0].hourly_streamflow_NH4;
-		hillslope[0].streamflow_DOC +=hillslope[0].hourly_streamflow_DOC;
-		hillslope[0].streamflow_DON +=hillslope[0].hourly_streamflow_DON;
-	}//gwtoriparian_flag==0
-	
-	if ((command_line[0].gw_flag > 0) && (hillslope[0].gw.storage > ZERO) && (command_line[0].gwtoriparian_flag == 1)) {
-		
-//        if (hillslope[0].defaults[0][0].gw_loss_fast_threshold < ZERO) {
-//            // default and repeated
-//			hillslope[0].gw.hourly_Qout = hillslope[0].gw.storage * hillslope[0].slope * hillslope[0].defaults[0][0].gw_loss_coeff;
-//		} else {
-//            // seperate GW into two pools
-//			slow_store = min(hillslope[0].defaults[0][0].gw_loss_fast_threshold, hillslope[0].gw.storage);
-//			hillslope[0].gw.hourly_Qout = slow_store * hillslope[0].slope * hillslope[0].defaults[0][0].gw_loss_coeff;
-//			fast_store = max(0.0,hillslope[0].gw.storage - hillslope[0].defaults[0][0].gw_loss_fast_threshold);
-//			hillslope[0].gw.hourly_Qout += fast_store * hillslope[0].slope * hillslope[0].defaults[0][0].gw_loss_fast_coeff;
-//            // use "gw_loss_fast_threshold" to set "fast" pool
-//        }// end of if
-        
+    
+    
+    
+    
+    
+    if ((command_line[0].gw_flag > 0) && (hillslope[0].gw.storage > ZERO)){
         double gw_loss_coeff_ksat0;
         if(hillslope[0].defaults[0][0].gw_storage_capacity>0 && hillslope[0].gw.storage > hillslope[0].defaults[0][0].gw_storage_capacity){
             // pumping water out when exceed capacity
@@ -185,8 +136,9 @@ void		hillslope_hourly(
             hillslope[0].gw.hourly_Qout = hillslope[0].gw.storage - hillslope[0].defaults[0][0].gw_storage_capacity;
             gw_loss_coeff_ksat0 = hillslope[0].gw.hourly_Qout / hillslope[0].defaults[0][0].gw_loss_coeff_decay;
             gw_loss_coeff_ksat0 /= 1.0 - exp(-hillslope[0].gw.storage/hillslope[0].defaults[0][0].gw_loss_coeff_decay);
-        }else{
             
+        }else{
+            // not over flow
             gw_loss_coeff_ksat0 = hillslope[0].slope * hillslope[0].defaults[0][0].gw_loss_coeff;
             hillslope[0].gw.hourly_Qout = gw_loss_coeff_ksat0;
             if(fabs(hillslope[0].defaults[0][0].gw_loss_coeff_decay)>0){
@@ -204,6 +156,17 @@ void		hillslope_hourly(
                 //printf("gw_loss_coeff_decay %f <0\n",hillslope[0].defaults[0][0].gw_loss_coeff_decay);
             }// end of if else
         }// end of if else
+        
+        
+        // this line here is testing
+        //stratum[0].phen.gwseasonday
+        // hillslope[0].gw.storage < 0.01 &&
+//        if( (current_date.year==2002 && current_date.month>=5 && current_date.month<=10)){
+//            //hillslope[0].gw.hourly_Qout = hillslope[0].gw.storage * 0.001;
+//            printf("%d %d %d %d %e %e %e %e %e\n",
+//                   current_date.year, current_date.month, current_date.day, hillslope[0].ID,
+//                   hillslope[0].gw.storage, hillslope[0].gw.hourly_Qout, hillslope[0].area, hillslope[0].gw.Qout, hillslope[0].riparian_area);
+//        }// end of if
         
         if(hillslope[0].gw.hourly_Qout >= hillslope[0].gw.storage){
             // all out
@@ -235,60 +198,64 @@ void		hillslope_hourly(
             hillslope[0].gw.hourly_DONout = hillslope[0].gw.hourly_Qout * hillslope[0].gw.DON / hillslope[0].gw.storage;
             hillslope[0].gw.hourly_DOCout = hillslope[0].gw.hourly_Qout * hillslope[0].gw.DOC / hillslope[0].gw.storage;
         }
-        
-        
-		if (hillslope[0].riparian_area > ZERO){
-            gw_Qout_ratio = hillslope[0].area / hillslope[0].riparian_area;
-			hourly_gw_Qout = hillslope[0].gw.hourly_Qout * gw_Qout_ratio;
-            
-            for( i=0 ; i<hillslope[0].num_zones ; i++ ){
-                for(j =0; j < hillslope[0].zones[i][0].num_patches ; j++) {
-                    patch = hillslope[0].zones[i][0].patches[j];
-                    if(patch[0].drainage_type>0 && patch[0].drainage_type % actionRIPARIAN==0){
-                        patch[0].sat_deficit -= hourly_gw_Qout;
-                        patch[0].soil_ns.sminn += gw_Qout_ratio * hillslope[0].gw.hourly_NH4out;
-                        patch[0].soil_ns.nitrate += gw_Qout_ratio * hillslope[0].gw.hourly_NO3out;
-                        patch[0].soil_ns.DON += gw_Qout_ratio * hillslope[0].gw.hourly_DONout;
-                        patch[0].soil_cs.DOC += gw_Qout_ratio * hillslope[0].gw.hourly_DOCout;
-                        //if(hourly_gw_Qout * hillslope[0].gw.DON<0 | hourly_gw_Qout * gw_Qout_ratio * hillslope[0].gw.DOC<0) printf("hillslope_hourly:(%e,%e)\n",hourly_gw_Qout * gw_Qout_ratio * hillslope[0].gw.DON,hourly_gw_Qout * gw_Qout_ratio * hillslope[0].gw.DOC);
-                    }// if
-                }// for j
-            }// for i
-            
-		}else {
-            // because riparian area is zero, treated as gwtoriparian_flag==0
-			hillslope[0].hourly_streamflow_NO3 += hillslope[0].gw.hourly_NO3out;
-			hillslope[0].hourly_streamflow_NH4 += hillslope[0].gw.hourly_NH4out;
-			hillslope[0].hourly_streamflow_DON += hillslope[0].gw.hourly_DONout;
-			hillslope[0].hourly_streamflow_DOC += hillslope[0].gw.hourly_DOCout;
-			
-			hillslope[0].hourly_base_flow += hillslope[0].gw.hourly_Qout;
-			hourly_gw_Qout = 0.0;
-            hillslope[0].streamflow_NO3 +=hillslope[0].hourly_streamflow_NO3;
-            hillslope[0].streamflow_NH4 +=hillslope[0].hourly_streamflow_NH4;
-            hillslope[0].streamflow_DOC +=hillslope[0].hourly_streamflow_DOC;
-            hillslope[0].streamflow_DON +=hillslope[0].hourly_streamflow_DON;
-		}// end of if
-
-  		
-
-
-		hillslope[0].gw.storage -= hillslope[0].gw.hourly_Qout;	
-		hillslope[0].gw.NH4 -= hillslope[0].gw.hourly_NH4out;
-		hillslope[0].gw.NO3 -= hillslope[0].gw.hourly_NO3out;
-		hillslope[0].gw.DON -= hillslope[0].gw.hourly_DONout;
-		hillslope[0].gw.DOC -= hillslope[0].gw.hourly_DOCout;
-        
-        hillslope[0].gw.NO3out += hillslope[0].gw.hourly_NO3out;
-		hillslope[0].gw.NH4out += hillslope[0].gw.hourly_NH4out;
-		hillslope[0].gw.DOCout += hillslope[0].gw.hourly_DOCout;
-		hillslope[0].gw.DONout += hillslope[0].gw.hourly_DONout;
-
-		
-	}//gwtoriparian_flag==1
     
+    }//
+    
+    if ((command_line[0].gwtoriparian_flag == 1) && hillslope[0].riparian_area > ZERO){
+        gw_Qout_ratio = hillslope[0].area / hillslope[0].riparian_area; // GW is hillslope scale and import into patch scale
+        hourly_gw_Qout = hillslope[0].gw.hourly_Qout * gw_Qout_ratio;
+        
+        for( i=0 ; i<hillslope[0].num_zones ; i++ ){
+            for(j =0; j < hillslope[0].zones[i][0].num_patches ; j++) {
+                patch = hillslope[0].zones[i][0].patches[j];
+                
+                if(patch[0].drainage_type>0 && patch[0].drainage_type % actionRIPARIAN==0){
+//                        patch[0].sat_deficit -= hourly_gw_Qout;
+//                        patch[0].soil_ns.sminn += gw_Qout_ratio * hillslope[0].gw.hourly_NH4out;
+//                        patch[0].soil_ns.nitrate += gw_Qout_ratio * hillslope[0].gw.hourly_NO3out;
+//                        patch[0].soil_ns.DON += gw_Qout_ratio * hillslope[0].gw.hourly_DONout;
+//                        patch[0].soil_cs.DOC += gw_Qout_ratio * hillslope[0].gw.hourly_DOCout;
+                    // let the infiltration settle this
+                    patch[0].detention_store += hourly_gw_Qout;
+                    patch[0].surface_NO3 += gw_Qout_ratio * hillslope[0].gw.hourly_NO3out;
+                    patch[0].surface_NH4 += gw_Qout_ratio * hillslope[0].gw.hourly_NH4out;
+                    patch[0].surface_DON += gw_Qout_ratio * hillslope[0].gw.hourly_DONout;
+                    patch[0].surface_DOC += gw_Qout_ratio * hillslope[0].gw.hourly_DOCout;
+                    
+                    //if(hourly_gw_Qout * hillslope[0].gw.DON<0 | hourly_gw_Qout * gw_Qout_ratio * hillslope[0].gw.DOC<0) printf("hillslope_hourly:(%e,%e)\n",hourly_gw_Qout * gw_Qout_ratio * hillslope[0].gw.DON,hourly_gw_Qout * gw_Qout_ratio * hillslope[0].gw.DOC);
+                }// if
+            }// for j
+        }// for i
+        
+    }else {
+        // because riparian area is zero, treated as gwtoriparian_flag==0
+        hillslope[0].hourly_streamflow_NO3 += hillslope[0].gw.hourly_NO3out;
+        hillslope[0].hourly_streamflow_NH4 += hillslope[0].gw.hourly_NH4out;
+        hillslope[0].hourly_streamflow_DON += hillslope[0].gw.hourly_DONout;
+        hillslope[0].hourly_streamflow_DOC += hillslope[0].gw.hourly_DOCout;
+        
+        hillslope[0].hourly_base_flow = hillslope[0].gw.hourly_Qout;
+        hourly_gw_Qout = 0.0;
+        hillslope[0].streamflow_NO3 +=hillslope[0].hourly_streamflow_NO3;
+        hillslope[0].streamflow_NH4 +=hillslope[0].hourly_streamflow_NH4;
+        hillslope[0].streamflow_DOC +=hillslope[0].hourly_streamflow_DOC;
+        hillslope[0].streamflow_DON +=hillslope[0].hourly_streamflow_DON;
+    }// end of if
+    
+	// update stage variable
+    hillslope[0].gw.storage -= hillslope[0].gw.hourly_Qout;
+    hillslope[0].gw.NH4 -= hillslope[0].gw.hourly_NH4out;
+    hillslope[0].gw.NO3 -= hillslope[0].gw.hourly_NO3out;
+    hillslope[0].gw.DON -= hillslope[0].gw.hourly_DONout;
+    hillslope[0].gw.DOC -= hillslope[0].gw.hourly_DOCout;
+    
+    // update gwOut fluxes
+    hillslope[0].gw.NO3out += hillslope[0].gw.hourly_NO3out;
+    hillslope[0].gw.NH4out += hillslope[0].gw.hourly_NH4out;
+    hillslope[0].gw.DOCout += hillslope[0].gw.hourly_DOCout;
+    hillslope[0].gw.DONout += hillslope[0].gw.hourly_DONout;
 	hillslope[0].gw.Qout += hillslope[0].gw.hourly_Qout; // this is the daily gw.Qout, used in hillslop_daily_F
-	hillslope[0].base_flow += hillslope[0].hourly_base_flow; // daily base_flow
+	hillslope[0].base_flow += hillslope[0].hourly_base_flow; // daily base_flow 
  
 
 

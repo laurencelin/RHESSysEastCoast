@@ -369,6 +369,7 @@ struct basin_object *construct_basin(
 	/*	Construct the hillslopes for this basin.					*/
 	/*--------------------------------------------------------------*/
 	for (i=0; i<basin[0].num_hillslopes; i++){
+        // hillslope before drainage type is read in
 		basin[0].hillslopes[i] = construct_hillslope(
 			command_line, world_file, num_world_base_stations,
 			world_base_stations, defaults, base_station_ncheader, world);
@@ -450,7 +451,22 @@ struct basin_object *construct_basin(
 						construct_routing_topology( command_line->routing_filename, basin,
 								command_line, true);
 			}
-		}
+		}// done with reading flow table
+        
+        for (i=0; i<basin[0].num_hillslopes; i++){
+            // fix riparian zone in hillslopes
+            for (z = 0; z < basin[0].hillslopes[i][0].num_zones; z++) {
+                for (j=0; j < basin[0].hillslopes[i][0].zones[z][0].num_patches; j++) {
+
+                    if (basin[0].hillslopes[i][0].zones[z][0].patches[j][0].drainage_type>0 && basin[0].hillslopes[i][0].zones[z][0].patches[j][0].drainage_type % actionRIPARIAN==0)
+                    basin[0].hillslopes[i][0].riparian_area += basin[0].hillslopes[i][0].zones[z][0].patches[j][0].area;
+
+                }// end of for loop j
+            }// end of for loop z
+            printf("hillslope riparian: %d %lf\n",basin[0].hillslopes[i][0].ID,basin[0].hillslopes[i][0].riparian_area);
+        }// end of for loop i
+        
+        
 	} else { // command_line[0].routing_flag != 1
 		// For TOPMODEL mode, make a dummy route list consisting of all patches
 		// in the basin, in no particular order.
