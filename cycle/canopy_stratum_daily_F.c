@@ -1742,7 +1742,7 @@ void	canopy_stratum_daily_F(
 				stratum[0].defaults[0][0].lai_stomatal_fraction * 1000 / 1.6;
 			if ((psnin.lnc > ZERO) && (psnin.irad > ZERO)){
 				compute_farq_psn(&psnin, &psnout, stratum[0].defaults[0][0].epc, 1);
-				assim_sunlit = psnout.A * (command_line[0].grow_flag>0? 1.0+stratum[0].defaults[0][0].epc.gr_perc: 1.0);
+                assim_sunlit = psnout.A;// * (command_line[0].grow_flag>0? 1.0+stratum[0].defaults[0][0].epc.gr_perc: 1.0);
 			}else{
 				psnout.A = 0.0;
 				assim_sunlit = 0.0;
@@ -1765,7 +1765,7 @@ void	canopy_stratum_daily_F(
 
 			if ((psnin.lnc > ZERO) && (psnin.irad > ZERO)){
 				compute_farq_psn(&psnin, &psnout, stratum[0].defaults[0][0].epc, 1);
-				assim_shade = psnout.A * (command_line[0].grow_flag>0? 1.0+stratum[0].defaults[0][0].epc.gr_perc: 1.0);
+                assim_shade = psnout.A;// * (command_line[0].grow_flag>0? 1.0+stratum[0].defaults[0][0].epc.gr_perc: 1.0);
 			}else{
 				psnout.A = 0.0;
 				assim_shade = 0.0;
@@ -1813,7 +1813,7 @@ void	canopy_stratum_daily_F(
 						"FATAL ERROR: in canopy_stratum_daily_F error in farquhar");
 					exit(EXIT_FAILURE);
 				}
-				assim_sunlit = psnout.A * (command_line[0].grow_flag>0? 1.0+stratum[0].defaults[0][0].epc.gr_perc: 1.0);
+                assim_sunlit = psnout.A;// * (command_line[0].grow_flag>0? 1.0+stratum[0].defaults[0][0].epc.gr_perc: 1.0);
             } else {
 				psnout.A = 0.0;
 				assim_sunlit = 0.0;
@@ -1851,7 +1851,7 @@ void	canopy_stratum_daily_F(
 						"FATAL ERROR: in canopy_stratum_daily_F error in farquhar");
 					exit(EXIT_FAILURE);
 				}
-				assim_shade = psnout.A * (command_line[0].grow_flag>0? 1.0+stratum[0].defaults[0][0].epc.gr_perc: 1.0);
+                assim_shade = psnout.A;// * (command_line[0].grow_flag>0? 1.0+stratum[0].defaults[0][0].epc.gr_perc: 1.0);
             } else {
                 psnout.A = 0.0;
                 assim_shade = 0.0;

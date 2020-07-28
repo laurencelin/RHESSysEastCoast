@@ -168,8 +168,8 @@ int update_C_stratum_daily(struct epconst_struct epc,
     }//debug
     
     
-    if(stratum[0].phen.gwseasonday > epc.ndays_expand && cs->cpool>0)
-        cs_soil->DOC += cs->cpool*0.05; cs->cpool*=0.95;
+//    if(stratum[0].phen.gwseasonday > epc.ndays_expand && cs->cpool>0)
+//        cs_soil->DOC += cs->cpool*0.05; cs->cpool*=0.95;
     // postive CPOOL --> DOC
     
     

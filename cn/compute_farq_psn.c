@@ -155,10 +155,10 @@ Farquhar photosynthesis routine
 	static double pabs = 0.85;    /* (DIM) fPAR effectively absorbed by
 					PSII */
 
-    int kk;
-    for(kk=0; kk<10; kk++){
+    //int kk;
+    //for(kk=0; kk<10; kk++){
         /* local variables  */
-        Rd = in->Rd + Rd_grow;
+        Rd = in->Rd;// + Rd_grow;
         t = in->t;
         tk = t + 273.15;
         /* convert conductance from m/s * 10**3 --> umol/m2/s/Pa */
@@ -300,8 +300,8 @@ Farquhar photosynthesis routine
         out->Aj = Aj;
         
         //Rd_grow = A * fleaf_gr_perc;
-        Rd_grow = A * epc.gr_perc;
-    }//kk for loop .... this is for putting grow respiration back into dark respiration.
+        //Rd_grow = A * epc.gr_perc;
+   // }//kk for loop .... this is for putting grow respiration back into dark respiration.
     
     
     

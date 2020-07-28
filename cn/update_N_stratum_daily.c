@@ -115,9 +115,9 @@ int update_N_stratum_daily(struct epconst_struct epc,
 	}
     if(ns->npool < -ZERO) printf("update_N_stratum_daily %e\n",ns->npool);
 
-    if(stratum[0].phen.gwseasonday > epc.ndays_expand && ns->npool>0)
-        ns_soil->DON += ns->npool*0.05; ns->npool*=0.95;
-    // postive CPOOL --> DOC
+//    if(stratum[0].phen.gwseasonday > epc.ndays_expand && ns->npool>0)
+//        ns_soil->DON += ns->npool*0.05; ns->npool*=0.95;
+//    // postive CPOOL --> DOC
     
     
 	return (!ok);

@@ -159,8 +159,9 @@ double compute_potential_N_uptake_Dickenson(
     cdf->fcroot = fcroot;
     
 	/* add in nitrogen for plants and for nitrogen deficit in pool */
-    plant_ndemand = cs->availc / (1.0+epc.gr_perc) / mean_cn;// - max(ns->retransn,0.0);
-    plant_ndemand *= (fleaf+froot+fwood);
+    plant_ndemand = cs->availc * (fleaf+froot+fwood); // calculate how much C for "growth" that need N
+    plant_ndemand /= (1.0+epc.gr_perc); // count for the reversed C for "first" growth respiration
+    plant_ndemand /= mean_cn;
 //    printf("plant uptake (dickenson): %f,%f,%f,%f,%f\n",cdf->psn_to_cpool,cdf->total_mr,cs->cpool,cs->availc,plant_ndemand);
 	return(plant_ndemand);
 } /* 	end compute_potential_N_uptake */
