@@ -503,9 +503,9 @@ int allocate_annual_growth(				int id,
     /*--------------------------------------------------------------*/
     epv->prev_leafcalloc = cs->leafc + cs->leafc_transfer;
     
-    cdf->gresp_store_to_gresp_transfer = cs->gresp_store * storage_transfer_prop;
+    cdf->gresp_store_to_gresp_transfer = cs->gresp_store * epc.storage_transfer_prop;
     cs->gresp_transfer    += cdf->gresp_store_to_gresp_transfer;
-        cs->cpool += cs->gresp_store * (1.0-storage_transfer_prop);
+        cs->cpool += cs->gresp_store * (1.0-epc.storage_transfer_prop);
         cs->gresp_store = 0.0;
     
     cdf->leafc_store_to_leafc_transfer = cs->leafc_store * epc.storage_transfer_prop; // first time
