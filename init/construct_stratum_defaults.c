@@ -51,7 +51,7 @@ struct stratum_default *construct_stratum_defaults(
 	/*--------------------------------------------------------------*/
 	/*	Local variable definition.				*/
 	/*--------------------------------------------------------------*/
-	int		i, itmp;
+	int		i, itmp, j;
         int strbufLen = 256;
         int filenameLen = 1024;
         int paramCnt = 0;
@@ -306,6 +306,8 @@ struct stratum_default *construct_stratum_defaults(
 		if (epc->veg_type != TREE)
 			default_object_list[i].epc.crown_ratio = 1.0;
 		
+        default_object_list[i].epc.expCoef = getDoubleParam(&paramCnt, &paramPtr, "epc.expCoef", "%lf", 0.4, 1);
+        default_object_list[i].epc.fallCoef = getDoubleParam(&paramCnt, &paramPtr, "epc.fallCoef", "%lf", 0.4, 1);
 		/*--------------------------------------------------------------*/
 		/* default values for phenology (leaf onset/offset) model parameters */
 		/* are set based on Jolly et al., 2005, Global Change Biology   */
@@ -380,6 +382,59 @@ struct stratum_default *construct_stratum_defaults(
 			default_object_list[i].epc.shade_sla_mult *= command_line[0].veg_sen2;
 		}
 
+        
+        /*--------------------------------------------------------------*/
+        /*    leaf out and leaf off patterns        */
+        /*--------------------------------------------------------------*/
+        // need to calculate differently; the base is shirking by days
+        double *tmp = (double*)calloc(default_object_list[i].epc.ndays_expand, sizeof(double));
+        default_object_list[i].leafONfrac = (double*)calloc(default_object_list[i].epc.ndays_expand, sizeof(double));
+        for(j=0; j<default_object_list[i].epc.ndays_expand; j++){
+            default_object_list[i].leafONfrac[j] = 1.0/(1.0+exp(-default_object_list[i].epc.expCoef*(0.0+1.0*j-0.5*default_object_list[i].epc.ndays_expand)));
+        }// end of for loop j
+        for(j=1; j<default_object_list[i].epc.ndays_expand; j++){
+            default_object_list[i].leafONfrac[j] -= default_object_list[i].leafONfrac[j-1];
+        }// end of for loop j
+        double total_ = 0.0;
+        for(j=0; j<default_object_list[i].epc.ndays_expand; j++){
+            total_ += default_object_list[i].leafONfrac[j];
+        }// end of for loop j
+        total_ = 1.0/total_;
+        default_object_list[i].leafONfrac[0] *= total_;
+        tmp[0] = default_object_list[i].leafONfrac[0];
+        printf("stratum lofrac %d %lf,", default_object_list[i].ID, default_object_list[i].leafONfrac[0]);
+        for(j=1; j<default_object_list[i].epc.ndays_expand; j++){
+            default_object_list[i].leafONfrac[j] *= total_;
+            tmp[j] = tmp[j-1] + default_object_list[i].leafONfrac[j];
+            default_object_list[i].leafONfrac[j] /= (1.0 - tmp[j-1]);
+            printf("%lf,", default_object_list[i].leafONfrac[j]);
+        }// end of for loop j
+        printf("\n");
+        
+        // need to calculate differently; the base is shirking by days
+        default_object_list[i].leafOFFfrac = (double*)calloc(default_object_list[i].epc.ndays_litfall, sizeof(double));
+        for(j=0; j<default_object_list[i].epc.ndays_litfall; j++){
+            default_object_list[i].leafOFFfrac[j] = 1.0/(1.0+exp(-default_object_list[i].epc.fallCoef*(0.0+1.0*j-0.5*default_object_list[i].epc.ndays_litfall)));
+        }// end of for loop j
+        for(j=1; j<default_object_list[i].epc.ndays_litfall; j++){
+            default_object_list[i].leafOFFfrac[j] -= default_object_list[i].leafOFFfrac[j-1];
+        }// end of for loop j
+        total_ = 0.0;
+        for(j=0; j<default_object_list[i].epc.ndays_litfall; j++){
+            total_ += default_object_list[i].leafOFFfrac[j];
+        }// end of for loop j
+        total_ = 1.0/total_;
+        default_object_list[i].leafOFFfrac[0] *= total_;
+        tmp[0] = default_object_list[i].leafOFFfrac[0];
+        printf("stratum lffrac %d %lf,", default_object_list[i].ID, default_object_list[i].leafOFFfrac[0]);
+        for(j=1; j<default_object_list[i].epc.ndays_litfall; j++){
+            default_object_list[i].leafOFFfrac[j] *= total_;
+            tmp[j] = tmp[j-1] + default_object_list[i].leafOFFfrac[j];
+            default_object_list[i].leafOFFfrac[j] /= (1.0 - tmp[j-1]);
+            printf("%lf,", default_object_list[i].leafOFFfrac[j]);
+        }// end of for loop j
+        printf("\n");
+        
 		/*--------------------------------------------------------------*/
 		/*		Close the ith default file.								*/
 		/*--------------------------------------------------------------*/

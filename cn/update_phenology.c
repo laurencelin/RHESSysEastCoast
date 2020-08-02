@@ -172,37 +172,29 @@ void update_phenology(struct zone_object  *zone,
 	int expand_flag, litfall_flag;
 
 
-	expand_flag = 0; 
-	leaflitfallc = 0.0;
-	frootlitfallc = 0.0;
-	litfall_flag = 0;
-	day = yearday(current_date);
 
 
  /*--------------------------------------------------------------*/
- /* static phenology                      */  
- /*--------------------------------------------------------------*/
 
-	
+    expand_flag = 0;
+    leaflitfallc = 0.0;
+    frootlitfallc = 0.0;
+    litfall_flag = 0;
+    day = yearday(current_date);
+    
   if (epc.phenology_flag == STATIC) {
-
+      // static phenology
         if (day == phen->expand_startday){
             expand_flag = 1;
-            phen->gwseasonday = 1;
+            phen->gwseasonday = 1; // tracking number of days in gwseason
             phen->lfseasonday = -1;
-        }
-
-        else if (day == phen->litfall_startday){
+        } else if (day == phen->litfall_startday){
             litfall_flag = 1;
-            phen->lfseasonday = 1;
+            phen->lfseasonday = 1; // tracking number of days in lfseason
             phen->gwseasonday = -1;
-        }
-
-        else if (phen->gwseasonday > -1 && phen->gwseasonday <= epc.ndays_expand){
+        } else if (phen->gwseasonday > -1 && phen->gwseasonday <= epc.ndays_expand){
             expand_flag = 1;
-        }
-
-        else if (phen->lfseasonday > -1 && phen->lfseasonday <= epc.ndays_litfall){
+        } else if (phen->lfseasonday > -1 && phen->lfseasonday <= epc.ndays_litfall){
             litfall_flag = 1;
         }
 
@@ -293,7 +285,7 @@ void update_phenology(struct zone_object  *zone,
                   phen->expand_stopday = day + epc.ndays_expand; //<<----- what's the use of this?
               }   
 
-    /* now determine if we are before the last possible date of leaf drop */
+      /* now determine if we are before the last possible date of leaf drop */
          
           /* are we already in a leaf offset */
           if (phen->lfseasonday > -1 ) { 
@@ -315,7 +307,6 @@ void update_phenology(struct zone_object  *zone,
           }   
 
       
-
   } /* end dynamic phenology set up */
     
 
@@ -332,40 +323,33 @@ void update_phenology(struct zone_object  *zone,
 	/*--------------------------------------------------------------*/
 
 	if (expand_flag == 1) {
-		remdays_transfer = max(1.0,(epc.ndays_expand + 1 - phen->gwseasonday)); ///<<-------- this is what Larry was talking about
-        cdf->leafc_transfer_to_leafc = 2.0*cs->leafc_transfer / remdays_transfer;
-        ndf->leafn_transfer_to_leafn = 2.0*ns->leafn_transfer / remdays_transfer;
-        cdf->frootc_transfer_to_frootc=2.0*cs->frootc_transfer / remdays_transfer;
-        ndf->frootn_transfer_to_frootn=2.0*ns->frootn_transfer / remdays_transfer;
+        // expand_flag is a local variable, reset to zero at the beinging of this function call
+        // expand_flag = 1 when "day == phen->litfall_startday"  OR  "phen->gwseasonday > -1 && phen->gwseasonday <= epc.ndays_expand"
+        // phen->gwseasonday starts as 1 on "day == phen->expand_startday" and goes on until "day == phen->litfall_startday-1", then set to "-1"
         
-//        double expRate;
-//        double coef;
-//        coef = 0.08333333 * epc.ndays_expand;
-//        expRate = 1.0/(1.0 + exp(-coef*phen->gwseasonday+0.5*coef*epc.ndays_expand));
-//        cdf->leafc_transfer_to_leafc = 2.0*cs->leafc_transfer * expRate;
-//        ndf->leafn_transfer_to_leafn = 2.0*ns->leafn_transfer * expRate;
-//        cdf->frootc_transfer_to_frootc=2.0*cs->frootc_transfer * expRate;
-//        ndf->frootn_transfer_to_frootn=2.0*ns->frootn_transfer * expRate;
-		
-		if (epc.veg_type == TREE) {
+        cdf->leafc_transfer_to_leafc = cs->leafc_transfer * stratum[0].defaults[0][0].leafONfrac[phen->gwseasonday];
+        ndf->leafn_transfer_to_leafn = ns->leafn_transfer * stratum[0].defaults[0][0].leafONfrac[phen->gwseasonday];
+        cdf->frootc_transfer_to_frootc = cs->frootc_transfer * stratum[0].defaults[0][0].leafONfrac[phen->gwseasonday];
+        ndf->frootn_transfer_to_frootn = ns->frootn_transfer * stratum[0].defaults[0][0].leafONfrac[phen->gwseasonday];
+        if (epc.veg_type == TREE) {
 			cdf->livestemc_transfer_to_livestemc
-				= 2.0*cs->livestemc_transfer / remdays_transfer;
+				= cs->livestemc_transfer * stratum[0].defaults[0][0].leafONfrac[phen->gwseasonday];
 			ndf->livestemn_transfer_to_livestemn
-				= 2.0*ns->livestemn_transfer / remdays_transfer;
+				= ns->livestemn_transfer * stratum[0].defaults[0][0].leafONfrac[phen->gwseasonday];
 			cdf->deadstemc_transfer_to_deadstemc
-				= 2.0*cs->deadstemc_transfer / remdays_transfer;
+				= cs->deadstemc_transfer * stratum[0].defaults[0][0].leafONfrac[phen->gwseasonday];
 			ndf->deadstemn_transfer_to_deadstemn
-				= 2.0*ns->deadstemn_transfer / remdays_transfer;
+				= ns->deadstemn_transfer * stratum[0].defaults[0][0].leafONfrac[phen->gwseasonday];
 			cdf->livecrootc_transfer_to_livecrootc
-				= 2.0*cs->livecrootc_transfer / remdays_transfer;
+				= cs->livecrootc_transfer * stratum[0].defaults[0][0].leafONfrac[phen->gwseasonday];
 			ndf->livecrootn_transfer_to_livecrootn
-				= 2.0*ns->livecrootn_transfer / remdays_transfer;
+				= ns->livecrootn_transfer * stratum[0].defaults[0][0].leafONfrac[phen->gwseasonday];
 			cdf->deadcrootc_transfer_to_deadcrootc
-				= 2.0*cs->deadcrootc_transfer / remdays_transfer;
+				= cs->deadcrootc_transfer * stratum[0].defaults[0][0].leafONfrac[phen->gwseasonday];
 			ndf->deadcrootn_transfer_to_deadcrootn
-				= 2.0*ns->deadcrootn_transfer / remdays_transfer;
-
-		}
+				= ns->deadcrootn_transfer * stratum[0].defaults[0][0].leafONfrac[phen->gwseasonday];
+		}// end of if
+        
     }else{
         cdf->leafc_transfer_to_leafc = 0.0;
         ndf->leafn_transfer_to_leafn = 0.0;
@@ -389,22 +373,22 @@ void update_phenology(struct zone_object  *zone,
 	/* at beginning of litter fall figure out how much to drop */
 	/*--------------------------------------------------------------*/
 	if (phen->lfseasonday == 1)  {
+        // this function determine the "phen->leaflitfallc"; that's why it is called once.
 		ok = compute_annual_litfall(epc, phen, cs, grow_flag);
 	}
 
 	/*--------------------------------------------------------------*/
-	/*	compute daily litter fall				*/
+	/*	compute daily litter fall	(live leafc to ... ) 			*/
 	/*--------------------------------------------------------------*/
 	if (litfall_flag == 1) {
-		remdays_transfer = max(1.0,(epc.ndays_litfall + 1 - phen->lfseasonday));
-
-		leaflitfallc = 2.0*phen->leaflitfallc / remdays_transfer;
-		if (leaflitfallc > cs->leafc)
-			leaflitfallc = cs->leafc;
-		frootlitfallc = 2.0*phen->frootlitfallc / remdays_transfer;
-		if (frootlitfallc > cs->frootc)
-			frootlitfallc = cs->frootc;
-	}
+        // litfall_flag is a local variable, reset to zero at the beinging of this function call
+        // litfall_flag = 1 when "day == phen->litfall_startday"  OR  "phen->lfseasonday > -1 && phen->lfseasonday <= epc.ndays_litfall"
+        // phen->lfseasonday starts as 1 on "day == phen->litfall_startday" and goes on until "day == phen->expand_startday-1", then set to "-1"
+        
+        leaflitfallc = phen->leaflitfallc * stratum[0].defaults[0][0].leafOFFfrac[phen->lfseasonday];
+        frootlitfallc = phen->frootlitfallc * stratum[0].defaults[0][0].leafOFFfrac[phen->lfseasonday];
+	}// end of if
+    
 	/*--------------------------------------------------------------*/
 	/*	on the last day of litterfall make sure that deciduous no longer */
 	/*	have any leaves left					*/
@@ -415,9 +399,9 @@ void update_phenology(struct zone_object  *zone,
 		if (epc.phenology_type == DECID) {
 			leaflitfallc = cs->leafc;
 			phen->daily_allocation = 0;
-			}
+        }
 		phen->annual_allocation = 1;
-	}
+	}// end of if
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	/*--------------------------------------------------------------*/
