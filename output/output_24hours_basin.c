@@ -349,16 +349,14 @@ void	output_24hours_basin(			int routing_flag,
 						amortality_fract += patch[0].canopy_strata[(patch[0].layers[layer].strata[c])][0].cover_fraction
 							* patch[0].canopy_strata[(patch[0].layers[layer].strata[c])][0].cs.mortality_fract
 							* patch[0].area;
+                        //
 						agpsn += patch[0].canopy_strata[(patch[0].layers[layer].strata[c])][0].cover_fraction * patch[0].canopy_strata[(patch[0].layers[layer].strata[c])][0].cdf.psn_to_cpool
 							* patch[0].area;
 						aresp += patch[0].canopy_strata[(patch[0].layers[layer].strata[c])][0].cover_fraction
-							* (patch[0].canopy_strata[(patch[0].layers[layer].strata[c])][0].cdf.leaf_day_mr + patch[0].canopy_strata[(patch[0].layers[layer].strata[c])][0].cdf.cpool_leaf_gr
-						   + patch[0].canopy_strata[(patch[0].layers[layer].strata[c])][0].cdf.leaf_night_mr +	patch[0].canopy_strata[(patch[0].layers[layer].strata[c])][0].cdf.livestem_mr
-						   + patch[0].canopy_strata[(patch[0].layers[layer].strata[c])][0].cdf.cpool_livestem_gr + patch[0].canopy_strata[(patch[0].layers[layer].strata[c])][0].cdf.livecroot_mr
-						   + patch[0].canopy_strata[(patch[0].layers[layer].strata[c])][0].cdf.cpool_livecroot_gr
-						   + patch[0].canopy_strata[(patch[0].layers[layer].strata[c])][0].cdf.cpool_deadcroot_gr
-						   + patch[0].canopy_strata[(patch[0].layers[layer].strata[c])][0].cdf.froot_mr + patch[0].canopy_strata[(patch[0].layers[layer].strata[c])][0].cdf.cpool_froot_gr
-						   + patch[0].canopy_strata[(patch[0].layers[layer].strata[c])][0].cdf.cpool_to_gresp_store)	* patch[0].area;
+                        * (patch[0].canopy_strata[(patch[0].layers[layer].strata[c])][0].cdf.total_mr
+                            + patch[0].canopy_strata[(patch[0].layers[layer].strata[c])][0].cdf.total_gr)
+                            * patch[0].area;
+                        
 						ags += patch[0].canopy_strata[(patch[0].layers[layer].strata[c])][0].cover_fraction 
 							* patch[0].canopy_strata[(patch[0].layers[layer].strata[c])][0].gs * patch[0].area;
 						arootdepth += patch[0].canopy_strata[(patch[0].layers[layer].strata[c])][0].cover_fraction 

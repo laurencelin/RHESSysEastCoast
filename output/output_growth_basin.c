@@ -204,7 +204,7 @@ void	output_growth_basin(
 				for ( layer=0 ; layer<patch[0].num_layers; layer++ ){
 					for ( c=0 ; c<patch[0].layers[layer].count; c++ ){
 						strata = patch[0].canopy_strata[(patch[0].layers[layer].strata[c])];
-						agpsn += strata->cover_fraction * strata->cdf.psn_to_cpool
+                        agpsn += strata->cover_fraction * strata->cs.availc
 							* patch[0].area;
 						/*---------------------------
 						agpsn += strata->cover_fraction
@@ -213,45 +213,56 @@ void	output_growth_basin(
 						------------------------------*/
                         astratumNO3stored += strata->cover_fraction * (strata->NO3_stored)* patch[0].area;
 						aresp += strata->cover_fraction
-							* (strata->cdf.leaf_day_mr + strata->cdf.cpool_leaf_gr
-							+ strata->cdf.leaf_night_mr +	strata->cdf.livestem_mr
-							+ strata->cdf.cpool_livestem_gr + strata->cdf.livecroot_mr
-							+ strata->cdf.cpool_livecroot_gr
-							+ strata->cdf.cpool_deadcroot_gr
-							+ strata->cdf.froot_mr + strata->cdf.cpool_froot_gr)
+							* (strata->cdf.total_gr)
                             * patch[0].area;
-						aleafn += strata->cover_fraction	* (strata->ns.leafn
-							+ strata->ns.leafn_store + strata->ns.leafn_transfer)
-							* patch[0].area;
-						afrootn += strata->cover_fraction * (strata->ns.frootn
-							+ strata->ns.frootn_store + strata->ns.frootn_transfer)
-							* patch[0].area;
-						awoodn += strata->cover_fraction	* (strata->ns.live_crootn
-							+ strata->ns.live_stemn + strata->ns.dead_crootn
-							+ strata->ns.dead_stemn + strata->ns.livecrootn_store
-							+ strata->ns.livestemn_store + strata->ns.deadcrootn_store
-							+ strata->ns.deadstemn_store
-							+ strata->ns.livecrootn_transfer
-							+ strata->ns.livestemn_transfer
-							+ strata->ns.deadcrootn_transfer
-							+ strata->ns.deadstemn_transfer
-							+ strata->ns.retransn + strata->ns.npool ) * patch[0].area;
-						aleafc += strata->cover_fraction	* (strata->cs.leafc
-							+ strata->cs.leafc_store + strata->cs.leafc_transfer )
-							* patch[0].area;
-						afrootc += strata->cover_fraction * (strata->cs.frootc
-							+ strata->cs.frootc_store + strata->cs.frootc_transfer)
-							* patch[0].area;
-						awoodc += strata->cover_fraction	* (strata->cs.live_crootc
-							+ strata->cs.live_stemc + strata->cs.dead_crootc
-							+ strata->cs.dead_stemc + strata->cs.livecrootc_store
-							+ strata->cs.livestemc_store + strata->cs.deadcrootc_store
-							+ strata->cs.deadstemc_store
-							+ strata->cs.livecrootc_transfer
-							+ strata->cs.livestemc_transfer
-							+ strata->cs.deadcrootc_transfer
-							+ strata->cs.deadstemc_transfer
-							+ strata->cs.cpool)* patch[0].area;
+//						aleafn += strata->cover_fraction	* (strata->ns.leafn
+//							+ strata->ns.leafn_store + strata->ns.leafn_transfer)
+//							* patch[0].area;
+//						afrootn += strata->cover_fraction * (strata->ns.frootn
+//							+ strata->ns.frootn_store + strata->ns.frootn_transfer)
+//							* patch[0].area;
+//						awoodn += strata->cover_fraction	* (strata->ns.live_crootn
+//							+ strata->ns.live_stemn + strata->ns.dead_crootn
+//							+ strata->ns.dead_stemn + strata->ns.livecrootn_store
+//							+ strata->ns.livestemn_store + strata->ns.deadcrootn_store
+//							+ strata->ns.deadstemn_store
+//							+ strata->ns.livecrootn_transfer
+//							+ strata->ns.livestemn_transfer
+//							+ strata->ns.deadcrootn_transfer
+//							+ strata->ns.deadstemn_transfer
+//							+ strata->ns.retransn + strata->ns.npool ) * patch[0].area;
+                        aleafn += strata->cover_fraction  * (strata->ns.leafn_store)
+                            * patch[0].area;
+                        afrootn += strata->cover_fraction * (strata->ns.frootn_store)
+                            * patch[0].area;
+                        awoodn += strata->cover_fraction  * (strata->ns.livecrootn_store
+                            + strata->ns.livestemn_store + strata->ns.deadcrootn_store
+                            + strata->ns.deadstemn_store) * patch[0].area;
+//						aleafc += strata->cover_fraction	* (strata->cs.leafc
+//							+ strata->cs.leafc_store + strata->cs.leafc_transfer )
+//							* patch[0].area;
+//						afrootc += strata->cover_fraction * (strata->cs.frootc
+//							+ strata->cs.frootc_store + strata->cs.frootc_transfer)
+//							* patch[0].area;
+//						awoodc += strata->cover_fraction	* (strata->cs.live_crootc
+//							+ strata->cs.live_stemc + strata->cs.dead_crootc
+//							+ strata->cs.dead_stemc + strata->cs.livecrootc_store
+//							+ strata->cs.livestemc_store + strata->cs.deadcrootc_store
+//							+ strata->cs.deadstemc_store
+//							+ strata->cs.livecrootc_transfer
+//							+ strata->cs.livestemc_transfer
+//							+ strata->cs.deadcrootc_transfer
+//							+ strata->cs.deadstemc_transfer
+//							+ strata->cs.cpool)* patch[0].area;
+                        aleafc += strata->cover_fraction * (strata->cs.leafc_store)
+                            * patch[0].area;
+                        afrootc += strata->cover_fraction * (strata->cs.frootc_store)
+                            * patch[0].area;
+                        awoodc += strata->cover_fraction  * (strata->cs.livecrootc_store
+                            + strata->cs.livestemc_store + strata->cs.deadcrootc_store
+                            + strata->cs.deadstemc_store)* patch[0].area;
+                        
+                        
 						arootdepth += strata->cover_fraction * (strata->rootzone.depth)
 							* patch[0].area;
 						alai += strata->cover_fraction * (strata->epv.proj_lai)
