@@ -65,6 +65,7 @@ double compute_potential_N_uptake_Dickenson(
 	double mean_cn, transfer;
 	double plant_ndemand;
     double croot_stem;
+    double growthAdjust;
 	/*---------------------------------------------------------------
 	Assess the carbon availability on the basis of this day's
 	gross production and maintenance respiration costs
@@ -87,6 +88,11 @@ double compute_potential_N_uptake_Dickenson(
                              cdf->psn_to_cpool,
                              cdf->total_mr,
                              cs->availc);
+    // count for the second gresp (1.0+(pnow+2*(1-pnow))*epc.gr_perc) = (1.0+(2.0-pnow)*epc.gr_perc), pnow = stratum[0].phen.daily_allocation * stratum[0].defaults[0][0].epc.storage_transfer_prop;
+    // (pnow) cpool->X and (1.0-pnow) cpool->Xstore => 1.0+epc.gr_perc
+    // cdf->cpool_to_gresp_store
+    growthAdjust = 1.0/(1.0+(2.0-stratum[0].phen.daily_allocation * stratum[0].defaults[0][0].epc.storage_transfer_prop)*epc.gr_perc);
+    
     
 	/* assign local values for the allocation control parameters */
     flive = epc.alloc_livewoodc_woodc;
@@ -160,7 +166,7 @@ double compute_potential_N_uptake_Dickenson(
     
 	/* add in nitrogen for plants and for nitrogen deficit in pool */
     plant_ndemand = cs->availc * (fleaf+froot+fwood); // calculate how much C for "growth" that need N
-    plant_ndemand /= (1.0+epc.gr_perc); // count for the reversed C for "first" growth respiration
+    plant_ndemand *= growthAdjust; // count for the reversed C for "first" growth respiration
     plant_ndemand /= mean_cn;
 //    printf("plant uptake (dickenson): %f,%f,%f,%f,%f\n",cdf->psn_to_cpool,cdf->total_mr,cs->cpool,cs->availc,plant_ndemand);
 	return(plant_ndemand);

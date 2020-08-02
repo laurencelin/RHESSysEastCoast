@@ -68,6 +68,7 @@ double compute_potential_N_uptake_Waring(
 	double c_allometry, n_allometry, mean_cn, transfer;
 	double plant_ndemand;
 	double k2, c; /* working variables */
+    double growthAdjust;
 	/*---------------------------------------------------------------
 	Assess the carbon availability on the basis of this day's
 	gross production and maintenance respiration costs
@@ -96,6 +97,8 @@ double compute_potential_N_uptake_Waring(
                              cdf->psn_to_cpool,
                              cdf->total_mr,
                              cs->availc);
+    
+    growthAdjust = 1.0/(1.0+(2.0-stratum[0].phen.daily_allocation * stratum[0].defaults[0][0].epc.storage_transfer_prop)*epc.gr_perc);
     
 	/* assign local values for the allocation control parameters */
 	f2 = epc.alloc_crootc_stemc;
@@ -158,11 +161,11 @@ double compute_potential_N_uptake_Waring(
         if ( (fleaf + froot + fwood)>0 ) {
             if (epc.veg_type == TREE){
                 mean_cn = (fleaf+froot+fwood) / (fleaf/cnl + froot/cnfr + f4*fwood/cnlw + fwood*(1.0-f4)/cndw);
-                plant_ndemand = cs->availc / (1.0+epc.gr_perc) / mean_cn;// - max(ns->retransn,0.0);
+                plant_ndemand = cs->availc * growthAdjust / mean_cn;// - max(ns->retransn,0.0);
                 plant_ndemand *= (fleaf+froot+fwood);
             }else{
                 mean_cn = (fleaf+froot) / (fleaf / cnl + froot / cnfr);
-                plant_ndemand = cs->availc / (1.0+epc.gr_perc) / mean_cn;// - max(ns->retransn,0.0);
+                plant_ndemand = cs->availc * growthAdjust / mean_cn;// - max(ns->retransn,0.0);
                 plant_ndemand *= (fleaf+froot);
             }
         } else {

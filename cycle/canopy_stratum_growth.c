@@ -45,9 +45,12 @@ void	canopy_stratum_growth(
 	int 	update_C_stratum_daily(
 		struct epconst_struct,
 		struct cstate_struct *,
+        struct nstate_struct *,
 		struct cdayflux_struct *,
         struct soil_c_object *,
-        struct canopy_strata_object *stratum
+        struct canopy_strata_object *stratum,
+        struct date current_date,
+        struct patch_object *patch
         );
     
 	int 	update_N_stratum_daily(
@@ -191,9 +194,12 @@ void	canopy_stratum_growth(
         if (update_C_stratum_daily(
             stratum[0].defaults[0][0].epc,
             &(stratum[0].cs),
+            &(stratum[0].ns),
             &(stratum[0].cdf),
             &(patch[0].soil_cs),
-            stratum)!= 0){
+            stratum,
+            current_date,
+            patch)!= 0){
             fprintf(stderr,"FATAL ERROR: in update_C_stratum_daily");
             exit(EXIT_FAILURE);
         }

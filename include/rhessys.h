@@ -2602,6 +2602,8 @@ struct epconst_struct
         int day_leafoff;       /* (DIM) yearday leaves off - set to 0 for no leaf drop cond.  */
         int ndays_expand;      /* (DIM) number of transition days leaf on to/from off  */
         int ndays_litfall;  /* (DIM) number of transition days for full leaf drop  */
+        double expCoef;
+        double fallCoef;
         int phenology_flag;     /* (DIM) set as 1 for dynamic phenology */
         int allocation_flag;    /* (DIM) set as 1 for dynamic allocation */
         int veg_type;           /* (DIM) set as 1 for tree; 0 for grass */
@@ -2705,6 +2707,8 @@ struct  stratum_default
         double  ustar_overu;                    /* DIM  */
         struct  epconst_struct  epc;
         struct  mrconst_struct  mrc;
+        double *leafONfrac;
+        double *leafOFFfrac;
         double liter1_soil1_ratio;
         double liter2_soil2_ratio;
         double liter4_soil3_ratio;
@@ -2719,10 +2723,6 @@ struct  stratum_default
               double total_stemc;
               int    met;
        };
-/*----------------------------------------------------------*/
-/*      Define accumulator object                           */
-/*----------------------------------------------------------*/
-
 
 
 /*----------------------------------------------------------*/

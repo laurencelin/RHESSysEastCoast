@@ -218,14 +218,16 @@ void	canopy_stratum_daily_F(
 		struct	epvar_struct *,
 		struct cstate_struct *cs,
 		struct nstate_struct *ns,
-		struct cdayflux_struct *);
+		struct cdayflux_struct *,
+        struct canopy_strata_object     *stratum);
 
 	double	compute_potential_N_uptake(
 		struct	epconst_struct,
 		struct	epvar_struct *,
 		struct cstate_struct *cs,
 		struct nstate_struct *ns,
-		struct cdayflux_struct *);
+		struct cdayflux_struct *,
+        struct canopy_strata_object     *stratum);
 
     void    update_mortality(
          struct epconst_struct,
@@ -1962,7 +1964,7 @@ void	canopy_stratum_daily_F(
                     &(stratum[0].epv),
                     &(stratum[0].cs),
                     &(stratum[0].ns),
-                    &(stratum[0].cdf));
+                    &(stratum[0].cdf), stratum);
                 break;
             case DICKENSON:
                 stratum[0].ndf.potential_N_uptake =compute_potential_N_uptake_Dickenson(
@@ -1986,7 +1988,7 @@ void	canopy_stratum_daily_F(
                     &(stratum[0].epv),
                     &(stratum[0].cs),
                     &(stratum[0].ns),
-                    &(stratum[0].cdf));
+                    &(stratum[0].cdf), stratum);
                 break;
 		} /* end switch */
 	}

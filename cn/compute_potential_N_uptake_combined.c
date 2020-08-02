@@ -45,7 +45,8 @@ double compute_potential_N_uptake_combined(
 								  struct	epvar_struct *epv,
 								  struct cstate_struct *cs,
 								  struct nstate_struct *ns,
-								  struct cdayflux_struct *cdf)
+								  struct cdayflux_struct *cdf,
+                                  struct canopy_strata_object     *stratum)
 {
 	/*------------------------------------------------------*/
 	/*	Local Function Declarations.						*/
@@ -70,6 +71,7 @@ double compute_potential_N_uptake_combined(
 	double plant_calloc, plant_ndemand;
 	double k2, c; /* working variables */
 	double dickenson_k; /* working variable for LAI exponential decay constant */
+    double growthAdjust;
 	/*---------------------------------------------------------------
 	Assess the carbon availability on the basis of this day's
 	gross production and maintenance respiration costs
@@ -98,6 +100,9 @@ double compute_potential_N_uptake_combined(
                              cdf->psn_to_cpool,
                              cdf->total_mr,
                              cs->availc);
+    
+    growthAdjust = 1.0/(1.0+(2.0-stratum[0].phen.daily_allocation * stratum[0].defaults[0][0].epc.storage_transfer_prop)*epc.gr_perc);
+    
     
 	/* assign local values for the allocation control parameters */
 	f2 = epc.alloc_crootc_stemc;
@@ -168,7 +173,7 @@ double compute_potential_N_uptake_combined(
         }
 
         if (c_allometry > ZERO)
-            plant_ndemand = cs->availc / (1.0+epc.gr_perc) *(fleaf+froot+fwood) / mean_cn;// -  max(ns->retransn,0.0);
+            plant_ndemand = cs->availc * growthAdjust *(fleaf+froot+fwood) / mean_cn;// -  max(ns->retransn,0.0);
         else
             plant_ndemand = 0.0;
 

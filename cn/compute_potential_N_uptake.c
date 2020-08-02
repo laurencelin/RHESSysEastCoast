@@ -42,7 +42,8 @@ double compute_potential_N_uptake(
 								  struct	epvar_struct *epv,
 								  struct cstate_struct *cs,
 								  struct nstate_struct *ns,
-								  struct cdayflux_struct *cdf)
+								  struct cdayflux_struct *cdf,
+                                  struct canopy_strata_object     *stratum)
 {
 	/*------------------------------------------------------*/
 	/*	Local Function Declarations.						*/
@@ -65,6 +66,7 @@ double compute_potential_N_uptake(
 	//double cnmax;       /* RATIO   max of root and leaf C:N      */
 	double c_allometry, n_allometry;
 	double plant_ndemand, transfer;
+    double growthAdjust;
 	/*---------------------------------------------------------------
 	Assess the carbon availability on the basis of this day's
 	gross production and maintenance respiration costs
@@ -89,6 +91,7 @@ double compute_potential_N_uptake(
                              cdf->total_mr,
                              cs->availc);
     
+    growthAdjust = (1.0+(2.0-stratum[0].phen.daily_allocation * stratum[0].defaults[0][0].epc.storage_transfer_prop)*epc.gr_perc);
     
 	/* assign local values for the allocation control parameters */
 	f1 = epc.alloc_frootc_leafc; //2
@@ -110,14 +113,14 @@ double compute_potential_N_uptake(
     
     
 	if (epc.veg_type == TREE){
-		c_allometry = (1.0+g1)*(1.0 + f1 + f3 + f3*f2); //<<------------ correct
+		c_allometry = growthAdjust*(1.0 + f1 + f3 + f3*f2); //<<------------ correct
 		n_allometry = (1.0/cnl + f1/cnfr + (f3*f4*(1.0+f2))/cnlw
 			+ (f3*(1.0-f4)*(1.0+f2))/cndw); //<<------------ correct
 	}
 	else{
 //        c_allometry = (1.0 + g1 + f1 + f1*g1);
 //        n_allometry = (1.0/cnl + f1/cnfr);
-        c_allometry = (1.0+g1)*(1.0 + f1); //<<------------ correct
+        c_allometry = growthAdjust*(1.0 + f1); //<<------------ correct
         n_allometry = (1.0/cnl + f1/cnfr); //<<------------ correct
 	}
     plant_ndemand = cs->availc * (n_allometry / c_allometry);// - max(ns->retransn,0.0);
