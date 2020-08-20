@@ -152,16 +152,7 @@ struct soil_default *construct_soil_defaults(
 		default_object_list[i].soil_depth = 		getDoubleParam(&paramCnt, &paramPtr, "soil_depth", "%lf", 200.0, 1);
 		
 		default_object_list[i].deltaz = 		getDoubleParam(&paramCnt, &paramPtr, "deltaZ", "%lf", 1.0, 1); // param name contains uppercase "Z" in param file
-		default_object_list[i].active_zone_z = 		getDoubleParam(&paramCnt, &paramPtr, "active_zone_z", "%lf", 5.0, 1);
-		if(default_object_list[i].active_zone_z > default_object_list[i].soil_depth){
-		    default_object_list[i].active_zone_z = default_object_list[i].soil_depth;
-		}
-
-//		if (fabs(default_object_list[i].active_zone_z - default_object_list[i].soil_depth) > 0.5) {
-//			printf("\nNote that soil depth used for biogeochem cycling (active zone z)");
-// 			printf("\nis more than 0.5 meter different from hydrologic soil depth");
-// 			printf("\nfor soil default file: %s\n", default_files[i] );
-//			}
+		
 
 		default_object_list[i].maximum_snow_energy_deficit = 	getDoubleParam(&paramCnt, &paramPtr, "maximum_snow_energy_deficit", "%lf", -10.0, 1);
 		default_object_list[i].snow_water_capacity = 		getDoubleParam(&paramCnt, &paramPtr, "snow_water_capacity", "%lf", 0.0, 1);
@@ -176,6 +167,12 @@ struct soil_default *construct_soil_defaults(
         if(default_object_list[i].maxrootdepth > default_object_list[i].soil_depth){
             default_object_list[i].maxrootdepth = default_object_list[i].soil_depth;
         }
+        
+        default_object_list[i].active_zone_z =         getDoubleParam(&paramCnt, &paramPtr, "active_zone_z", "%lf", 5.0, 1);
+        if(default_object_list[i].active_zone_z > default_object_list[i].maxrootdepth){
+            default_object_list[i].active_zone_z = default_object_list[i].maxrootdepth;
+        }
+        
         default_object_list[i].particledensity =         getDoubleParam(&paramCnt, &paramPtr, "particledensity", "%lf", 2.65, 1); // g/cm3 (Dingman); replacing PARTICLE_DENSITY in the codes in denitrification, nitrification, leaching, and phys_constants
         
         default_object_list[i].snow_melt_Tcoef *= command_line[0].snowT_scaler;
@@ -313,11 +310,11 @@ struct soil_default *construct_soil_defaults(
             default_object_list[i].ID, default_object_list[i].porosity_0, default_object_list[i].porosity_0*exp(default_object_list[i].soil_depth/default_object_list[i].porosity_decay), default_object_list[i].soil_depth, default_object_list[i].porosity_decay
             );
             
-            double proposed_soildepth = -default_object_list[i].porosity_decay * log(0.8/default_object_list[i].porosity_0);
+            double proposed_soildepth = -default_object_list[i].porosity_decay * log(0.65/default_object_list[i].porosity_0);
             
             if(proposed_soildepth<default_object_list[i].maxrootdepth){
                 proposed_soildepth = default_object_list[i].maxrootdepth;
-                double trouble_term = log(0.8/default_object_list[i].porosity_0);
+                double trouble_term = log(0.65/default_object_list[i].porosity_0);
                 if(trouble_term>0){
                     default_object_list[i].porosity_decay = -proposed_soildepth/trouble_term;
                 }else{
