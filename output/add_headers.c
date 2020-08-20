@@ -493,7 +493,7 @@ void add_headers(struct world_output_file_object *world_output_files,
 	/*--------------------------------------------------------------*/
 	outfile = world_output_files[0].patch[0].monthly;
 	check = fprintf(outfile,
-        "%s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s\n",
+        "%s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s\n",
 		"year",
         "month",
 		"patchID",
@@ -516,12 +516,18 @@ void add_headers(struct world_output_file_object *world_output_files,
         "no3drain2gw",//20
         "satChance",
         "plantlimitN",
-        "plantlimitQ");
+        "plantlimitQ",
+        "rtzS",
+        "activeS", // 25
+        "denitrifaspQs",
+        "denitrifspQs",
+        "nitrifaspQs",
+        "nitrifspQs");
 	/*--------------------------------------------------------------*/
 	/*	Yearly							*/
 	/*--------------------------------------------------------------*/
 	outfile = world_output_files[0].patch[0].yearly;
-	fprintf(outfile, "%s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s\n" ,
+	fprintf(outfile, "%s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s\n" ,
             "year",
             "patchID",
             "subQnet",
@@ -543,7 +549,13 @@ void add_headers(struct world_output_file_object *world_output_files,
             "no3drain2gw",
             "satChance",//20
             "plantlimitN",
-            "plantlimitQ");
+            "plantlimitQ",
+            "rtzS",
+            "activeS",
+            "denitrifaspQs",// 25
+            "denitrifspQs",
+            "nitrifaspQs",
+            "nitrifspQs");
 	}
 
 	/*--------------------------------------------------------------*/

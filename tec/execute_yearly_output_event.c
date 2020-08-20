@@ -214,6 +214,7 @@ void	execute_yearly_output_event(
                     world[0].basins[b]->hillslopes[h]->zones[z]->patches[p]->acc_year.satChance = 0.0;
                     world[0].basins[b]->hillslopes[h]->zones[z]->patches[p]->acc_year.plantlimitN = 0.0;
                     world[0].basins[b]->hillslopes[h]->zones[z]->patches[p]->acc_year.plantlimitQ = 0.0;
+                    world[0].basins[b]->hillslopes[h]->zones[z]->patches[p]->acc_year.rtzS = 0.0;
                     world[0].basins[b]->hillslopes[h]->zones[z]->patches[p]->acc_year.activeS = 0.0;
                     world[0].basins[b]->hillslopes[h]->zones[z]->patches[p]->acc_year.denitrifaspQs = 0.0;
                     world[0].basins[b]->hillslopes[h]->zones[z]->patches[p]->acc_year.denitrifspQs = 0.0;

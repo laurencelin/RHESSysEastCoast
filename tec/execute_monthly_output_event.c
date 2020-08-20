@@ -230,6 +230,7 @@ void	execute_monthly_output_event(
                                     world[0].basins[b]->hillslopes[h]->zones[z]->patches[p]->acc_month.satChance = 0.0;
                                     world[0].basins[b]->hillslopes[h]->zones[z]->patches[p]->acc_month.plantlimitN = 0.0;
                                     world[0].basins[b]->hillslopes[h]->zones[z]->patches[p]->acc_month.plantlimitQ = 0.0;
+                                    world[0].basins[b]->hillslopes[h]->zones[z]->patches[p]->acc_month.rtzS = 0.0;
                                     world[0].basins[b]->hillslopes[h]->zones[z]->patches[p]->acc_month.activeS = 0.0;
                                     world[0].basins[b]->hillslopes[h]->zones[z]->patches[p]->acc_month.denitrifaspQs = 0.0;
                                     world[0].basins[b]->hillslopes[h]->zones[z]->patches[p]->acc_month.denitrifspQs = 0.0;

@@ -36,7 +36,7 @@ void	output_yearly_patch(
 				FILE *outfile)
 {
     int check;
-	check = fprintf(outfile,"%d %d %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf\n",
+	check = fprintf(outfile,"%d %d %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf\n",
     
     current_date.year,
     patch[0].ID,
@@ -56,10 +56,16 @@ void	output_yearly_patch(
     patch[0].acc_year.subNO3net*1000.0,
     patch[0].acc_year.subNO3vnet*1000.0,
     patch[0].acc_year.subDOCnet*1000.0,
-    patch[0].acc_year.no3drain2gw*1000.0,
+    patch[0].acc_year.no3drain2gw/ patch[0].acc_year.days,//*1000.0,
     patch[0].acc_year.satChance/ patch[0].acc_year.days,//20
     patch[0].acc_year.plantlimitN/ patch[0].acc_year.days,
-    patch[0].acc_year.plantlimitQ/ patch[0].acc_year.days
+    patch[0].acc_year.plantlimitQ/ patch[0].acc_year.days,
+    patch[0].acc_year.rtzS/ patch[0].acc_year.days,
+    patch[0].acc_year.activeS/ patch[0].acc_year.days,
+    patch[0].acc_year.denitrifaspQs/ patch[0].acc_year.days,//25
+    patch[0].acc_year.denitrifspQs/ patch[0].acc_year.days,
+    patch[0].acc_year.nitrifaspQs/ patch[0].acc_year.days,
+    patch[0].acc_year.nitrifspQs/ patch[0].acc_year.days
     );
     
 	return;

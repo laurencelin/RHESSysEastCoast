@@ -1429,6 +1429,7 @@ struct accumulate_patch_object
     double satChance;
     double plantlimitN;
     double plantlimitQ;
+    double rtzS;
     double activeS;
     double denitrifaspQs;
     double denitrifspQs;
