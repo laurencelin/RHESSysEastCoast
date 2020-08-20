@@ -108,13 +108,13 @@ int compute_potential_decomp(double tsoil,
 	a=0.68; b=2.5; c=0.0012; d=2.84;
 	w_scalar = 0.0;
 	if (std > 0.0) {
-		for (i=0; i<NUM_NORMAL; i++) {
+		for (i=1; i<10; i++) {
 			thetai = theta + NORMAL[i]*std;
 			thetai = min(1.0, thetai);
 			thetai = max(0.1, thetai);
 			w_scalar  += exp(d*(b-a)/(a-c)*log((thetai -b)/(a-b))) * exp(d*log((thetai-c)/(a-c)));
 			}//end of for i
-        w_scalar *= 1.0/NUM_NORMAL;
+        w_scalar *= 0.1111111; // 1/9
 	} else {
 		if ((theta <= 0.0) || (theta > 1.0))
 			theta = 1.0;

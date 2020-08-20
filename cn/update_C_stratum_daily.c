@@ -183,7 +183,7 @@ int update_C_stratum_daily(struct epconst_struct epc,
     // self regulating, maint. resp. is too high
     // this mess up things
     if(cs->cpool<0 && cdf->total_mr>0){
-        double reduction = -cs->cpool/cdf->total_mr;
+        double reduction = max(0.0, min(1.0, -cs->cpool/cdf->total_mr));
         double reduced = 0.0;
         double leafred = min(cs->leafc_store*0.5, reduction*(cdf->leaf_day_mr + cdf->leaf_night_mr));
         reduced += leafred;
@@ -260,16 +260,16 @@ int update_C_stratum_daily(struct epconst_struct epc,
     }// end of self regulating
     
     // checking
-    if(cs->cpool<0 && checkCpool>0 ){ //&& current_date.year>1950
-        printf("update C stratum daily %d %d %d %d %d %d %e = %e +%e -%e -%e -%e -%e -%e\n",
-               patch[0].ID,
-               current_date.day, current_date.month, current_date.year,
-               stratum[0].ID,
-               stratum->defaults[0][0].ID,
-               cs->cpool,
-               checkCpool, cdf->psn_to_cpool,
-               cdf->total_gr, cdf->total_mr, cdf->cpool_to_gresp_store, TOtotal_store, TOtotal_X);
-    }
+//    if(cs->cpool<0 && checkCpool>0 ){ //&& current_date.year>1950
+//        printf("update C stratum daily %d %d %d %d %d %d %e = %e +%e -%e -%e -%e -%e -%e\n",
+//               patch[0].ID,
+//               current_date.day, current_date.month, current_date.year,
+//               stratum[0].ID,
+//               stratum->defaults[0][0].ID,
+//               cs->cpool,
+//               checkCpool, cdf->psn_to_cpool,
+//               cdf->total_gr, cdf->total_mr, cdf->cpool_to_gresp_store, TOtotal_store, TOtotal_X);
+//    }
     
     // drain out excessive cpool, cap at 80% of stores
     if(stratum[0].phen.gwseasonday > epc.ndays_expand && cs->cpool-total_store*0.8>0){

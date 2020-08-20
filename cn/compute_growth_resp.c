@@ -51,14 +51,16 @@ int compute_growth_resp(int alloc, struct epconst_struct epc,
 	/* woody tissue growth respiration only for trees */
 	if (epc.veg_type == TREE){
 		cdf->cpool_livestem_gr     = cdf->cpool_to_livestemc * g1; // first growth resp.
-		cdf->cpool_deadstem_gr     = cdf->cpool_to_deadstemc * g1;
+        cdf->cpool_deadstem_gr     = cdf->cpool_to_deadstemc * g1;
 		cdf->cpool_livecroot_gr    = cdf->cpool_to_livecrootc * g1;
-		cdf->cpool_deadcroot_gr    = cdf->cpool_to_deadcrootc * g1;
-		cdf->transfer_livestem_gr  = cdf->livestemc_transfer_to_livestemc * g1; //second growth resp.
-		cdf->transfer_deadstem_gr  = cdf->deadstemc_transfer_to_deadstemc * g1;
+        cdf->cpool_deadcroot_gr    = cdf->cpool_to_deadcrootc * g1;
+		
+        cdf->transfer_livestem_gr  = cdf->livestemc_transfer_to_livestemc * g1; //second growth resp.
+        cdf->transfer_deadstem_gr  = cdf->deadstemc_transfer_to_deadstemc * g1;
 		cdf->transfer_livecroot_gr = cdf->livecrootc_transfer_to_livecrootc * g1;
-		cdf->transfer_deadcroot_gr = cdf->deadcrootc_transfer_to_deadcrootc * g1;
+        cdf->transfer_deadcroot_gr = cdf->deadcrootc_transfer_to_deadcrootc * g1;
         
+        // no gresp for cpool_Xstore
 		cdf->total_gr += cdf->cpool_livestem_gr + cdf->cpool_deadstem_gr
 			+ cdf->cpool_livecroot_gr + cdf->cpool_deadcroot_gr
 			+ cdf->transfer_livecroot_gr + cdf->transfer_deadcroot_gr

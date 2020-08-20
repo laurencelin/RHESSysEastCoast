@@ -247,6 +247,7 @@ void update_mortality(
         // I would rather think these store and transfer would go to DOC instead; (Laurence Nov 1, 2018)
 		m_livestemc_store_to_litr1c  = mort.mort_cpool * cs->livestemc_store;
         cs->livestemc_transfer = max(0.0, cs->livestemc_transfer); m_livestemc_transfer_to_litr1c = mort.mort_cpool * cs->livestemc_transfer;
+        
         if(cs->livestemc_transfer<0) printf("update mortality m_livestemc_transfer_to_litr1c [%d,%d: %d,%d,%d]BGC_flag[%d], %e %e %e\n",
                                             patch[0].ID,stratum->defaults[0][0].ID, current_date.day, current_date.month, current_date.year, BGC_flag,
                                             m_livestemc_transfer_to_litr1c, mort.mort_cpool, cs->livestemc_transfer);
@@ -256,6 +257,7 @@ void update_mortality(
         
         m_livecrootc_store_to_litr1c  = mort.mort_cpool * cs->livecrootc_store;
         cs->livecrootc_transfer = max(0.0, cs->livecrootc_transfer); m_livecrootc_transfer_to_litr1c = mort.mort_cpool * cs->livecrootc_transfer;
+        
         if(cs->livecrootc_transfer<0) printf("update mortality m_livecrootc_transfer_to_litr1c [%d,%d: %d,%d,%d]BGC_flag[%d], %e %e %e\n",
                                              patch[0].ID,stratum->defaults[0][0].ID, current_date.day, current_date.month, current_date.year, BGC_flag,
                                              m_livecrootc_transfer_to_litr1c, mort.mort_cpool, cs->livecrootc_transfer);
@@ -364,7 +366,7 @@ void update_mortality(
             //BGC_flag is ON
             m_livestemn_to_cwdn = m_livestemc_to_cwdc / epc.deadwood_cn;
             if( mort.mort_livestemc*ns->live_stemn > m_livestemn_to_cwdn){
-                m_livestemn_to_litr1n = (mort.mort_livestemc * ns->live_stemn) - m_livestemn_to_cwdn;
+                m_livestemn_to_litr1n = (mort.mort_livestemc * ns->live_stemn) - m_livestemn_to_cwdn; 
             }else{
                 m_livestemn_to_cwdn = mort.mort_livestemc*ns->live_stemn;
                 m_livestemn_to_litr1n = 0.0;
@@ -382,6 +384,7 @@ void update_mortality(
 		
         m_deadstemn_to_cwdn = mort.mort_deadstemc * ns->dead_stemn;
         m_deadcrootn_to_cwdn = mort.mort_deadcrootc * ns->dead_crootn;
+        
         
         // I would rather think these store and transfer would go to DOC instead; (Laurence Nov 1, 2018)
         m_livestemn_store_to_litr1n  = mort.mort_cpool * ns->livestemn_store; //

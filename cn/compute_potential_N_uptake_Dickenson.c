@@ -88,10 +88,9 @@ double compute_potential_N_uptake_Dickenson(
                              cdf->psn_to_cpool,
                              cdf->total_mr,
                              cs->availc);
-    // count for the second gresp (1.0+(pnow+2*(1-pnow))*epc.gr_perc) = (1.0+(2.0-pnow)*epc.gr_perc), pnow = stratum[0].phen.daily_allocation * stratum[0].defaults[0][0].epc.storage_transfer_prop;
-    // (pnow) cpool->X and (1.0-pnow) cpool->Xstore => 1.0+epc.gr_perc
-    // cdf->cpool_to_gresp_store
-    growthAdjust = 1.0/(1.0+(2.0-stratum[0].phen.daily_allocation * stratum[0].defaults[0][0].epc.storage_transfer_prop)*epc.gr_perc);
+    
+    //growthAdjust = 1.0/(1.0+(2.0-stratum[0].phen.daily_allocation * stratum[0].defaults[0][0].epc.storage_transfer_prop)*epc.gr_perc);
+    growthAdjust = 1.0/(1.0+epc.gr_perc);
     
     
 	/* assign local values for the allocation control parameters */

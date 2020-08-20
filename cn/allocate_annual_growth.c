@@ -58,7 +58,23 @@ int allocate_annual_growth(				int id,
 	/*------------------------------------------------------*/
 	/*	Local function declarations.						*/
 	/*------------------------------------------------------*/
-
+    void    update_mortality(
+        struct epconst_struct,
+        struct cstate_struct *,
+        struct cdayflux_struct *,
+        struct cdayflux_patch_struct *,
+        struct nstate_struct *,
+        struct ndayflux_struct *,
+        struct ndayflux_patch_struct *,
+        struct litter_c_object *,
+        struct litter_n_object *,
+        struct date,
+        struct patch_object *,
+        struct canopy_strata_object *stratum,
+        int,
+        struct mortality_struct,
+        int,
+        int);
 	
 	/*------------------------------------------------------*/
 	/*	Local Variable Definition. 							*/
@@ -98,14 +114,10 @@ int allocate_annual_growth(				int id,
     
     /* for deciduous system, force leafc and frootc to exactly 0.0 on the last day */
     if (epc.phenology_type != EVERGREEN){
-        if (ns->leafn < 1e-10)  {
-            ns->leafn = 0.0;
-            cs->leafc = 0.0;
-        }
-        if (ns->frootn < 1e-10) {
-            ns->frootn = 0.0;
-            cs->frootc = 0.0;
-        }
+        ns->leafn = 0.0;
+        cs->leafc = 0.0;
+        ns->frootn = 0.0;
+        cs->frootc = 0.0;
     }// count for slight negative in leaffall process
     
     
@@ -135,10 +147,12 @@ int allocate_annual_growth(				int id,
     double potReduceCrootCarbon = evaluate>0? 0.0 : -evaluate*ns->live_crootn*totalResp;
     double potReduceStemCarbon = evaluate>0? 0.0 : -evaluate*ns->live_stemn*totalResp;
     double potReduceFrootCarbon = evaluate>0? 0.0 : -evaluate*ns->frootn*totalResp;
-    potReduceLeafCarbon = max(existingLeafCarbon - max(MAX_LAI/epc.proj_sla, minLeafCarbon), potReduceLeafCarbon);//issue?
-    //for debug
+    potReduceLeafCarbon = max(existingLeafCarbon - MAX_LAI/epc.proj_sla, potReduceLeafCarbon);
+    
+//    //for debug
 //    if(potReduceLeafCarbon>0 && epc.phenology_type==DECID){
-//        printf("annual allocation %d,%d,%f,%f,%f,%f,%f\n",patch[0].ID, stratum->defaults[0][0].ID,
+//        printf("annual allocation %d,%d,%f,%f,%f,%f,%f\n",
+//               patch[0].ID, stratum->defaults[0][0].ID,
 //               existingLeafCarbon, minLeafCarbon, MAX_LAI, epc.proj_sla, potReduceLeafCarbon);
 //    }//end of if
     
@@ -603,34 +617,54 @@ int allocate_annual_growth(				int id,
         // report,patch,vegid,day,month,year,gday,nfactor,wfactor,lfactor,gfactor,basement,cover,cpool,gwPSN,gwMresp,gwAPAR,gwLWP,gwVPD,wtz,perivnss,,num_resprout,redLeafC,redCrootc,redStemC,redFrootC,leafc,rootc,stemc,frootc
         cs->num_resprout += 1;
         
-        if (cs->num_resprout > 5 ) {
-            // SLB whole basin grass 0.307539*1.5=0.4613085 LAI; tree 0.406821*4.5=1.830694 LAI
-            // SLB subbain grass 0.257967*1.5=0.3869505 basin LAI; tree 0.368434*4.5=1.657953 basin LAI
-//            printf("Resprouting stratum [%d,%d: %d,%d,%d]{%e,%e} (%e,%e[%e,%e,%e]:%e:%e:%e)->(%e,%e,%e);[%e,%e,%e,%e][%e,%e,%e,%e]\n",
-//                   patch[0].ID,stratum->defaults[0][0].ID, current_date.day, current_date.month, current_date.year,
-//                   patch[0].Ksat_vertical,stratum[0].cover_fraction,
-//                   0.1*minLeafCarbon, existingLeafCarbon, cs->leafc, cs->leafc_store, cs->leafc_transfer,
-//                   existingFrootCarbon, existingLiveStemCarbon, existingLiveCrootCarbon,
-//                   miss_Leafcarbon, miss_Frootcarbon, miss_Woodcarbon,
-//                   patch[0].sat_deficit_z, patch[0].rootzone.S, patch[0].soil_ns.nitrate, patch[0].soil_ns.sminn,
-//                   patch[0].soil_cs.soil1c,patch[0].soil_cs.soil2c,patch[0].soil_cs.soil3c,patch[0].soil_cs.soil4c
-//                   //stratum->mult_conductance.APAR, stratum->mult_conductance.LWP, stratum->mult_conductance.vpd
-//                   );
+        if (cs->num_resprout > 5 || (stratum[0].cs.leafc + stratum[0].cs.leafc_store + stratum[0].cs.leafc_transfer)*epc.proj_sla-1.0<0) {
+
+            struct mortality_struct mort;
+            mort.mort_cpool = 1.0; // to DOM for Xstore and transfer
+            mort.mort_leafc = 1.0; // to liters
+            mort.mort_deadleafc = 1.0; // to liters
+            mort.mort_livestemc = 1.0;// to cwd
+            mort.mort_deadstemc = 1.0;// to cwd
+            mort.mort_livecrootc = 1.0; // to cwd
+            mort.mort_deadcrootc = 1.0; // to cwd
+            mort.mort_frootc = 1.0; // to liters
+            
+            update_mortality(
+                stratum[0].defaults[0][0].epc,
+                &(stratum[0].cs),
+                &(stratum[0].cdf),
+                &(patch[0].cdf),
+                &(stratum[0].ns),
+                &(stratum[0].ndf),
+                &(patch[0].ndf),
+                &(patch[0].litter_cs),
+                &(patch[0].litter_ns),
+                current_date,
+                patch,
+                stratum,
+                1,
+                mort,
+                1,
+                stratum[0].defaults[0][0].ID
+                );
             
             // no litter or OM for decay!
-            
+            // check below!
             cs->num_resprout += 1;
             cs->age = 0;
             cs->cpool = 0.0;
             ns->npool = 0.0;
-            cs->leafc_store = epc.resprout_leaf_carbon;
+            
+            cs->leafc_store = epc.resprout_leaf_carbon;// 1 LAI leaf carbon
             cs->frootc_store = cs->leafc_store * epc.alloc_frootc_leafc;
             cdf->leafc_store_to_leafc_transfer = cs->leafc_store;
             cdf->frootc_store_to_frootc_transfer = cs->frootc_store;
+            
             ns->leafn_store = cs->leafc_store / epc.leaf_cn;
             ns->frootn_store = cs->frootc_store / epc.froot_cn;
             ndf->leafn_store_to_leafn_transfer = ns->leafn_store;
             ndf->frootn_store_to_frootn_transfer = ns->frootn_store;
+            
             cs->leafc_transfer = 0.0;
             cs->leafc = 0.0;
             cs->frootc_transfer = 0.0;

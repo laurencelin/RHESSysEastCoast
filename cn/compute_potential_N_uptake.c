@@ -91,7 +91,8 @@ double compute_potential_N_uptake(
                              cdf->total_mr,
                              cs->availc);
     
-    growthAdjust = (1.0+(2.0-stratum[0].phen.daily_allocation * stratum[0].defaults[0][0].epc.storage_transfer_prop)*epc.gr_perc);
+    //growthAdjust = 1.0/(1.0+(2.0-stratum[0].phen.daily_allocation * stratum[0].defaults[0][0].epc.storage_transfer_prop)*epc.gr_perc);
+    growthAdjust = 1.0/(1.0+epc.gr_perc);
     
 	/* assign local values for the allocation control parameters */
 	f1 = epc.alloc_frootc_leafc; //2

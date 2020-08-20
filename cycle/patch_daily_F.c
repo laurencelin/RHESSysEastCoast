@@ -2503,11 +2503,16 @@ void		patch_daily_F(
 			   	if (transpiration_reduction_percent < 1.0) {
                     // strata->cdf.psn_to_cpool is updated by water availability
                     // strata->cs.availc = cdf.psn_to_cpool - cdf.total_mr + ifelse(cpool<0, cpool, 0); and "cpool" has be modified
-                    double correction = strata->cdf.psn_to_cpool * (1.0-transpiration_reduction_percent);
-                    double correction2 = (strata->cs.availc>0? max(strata->cs.availc-correction,0.0)/strata->cs.availc : 0.0);
-                    strata->ndf.potential_N_uptake *= correction2;
+                    //
+                    
+                    double diff_psn_to_cpool = strata->cdf.psn_to_cpool * (1.0-transpiration_reduction_percent);
+                    double ratio_availcNew_availc = (strata->cs.availc>0? max(strata->cs.availc-diff_psn_to_cpool,0.0)/strata->cs.availc : 0.0);
+//                    if(ratio_availcNew_availc>1.0) printf("patchDF ratio %e; (%e - %e*(1-%e))/%e",ratio_availcNew_availc,
+//                                                          strata->cs.availc, strata->cdf.psn_to_cpool, transpiration_reduction_percent,strata->cs.availc);
+                        
+                    strata->ndf.potential_N_uptake *= ratio_availcNew_availc;
                     strata->cdf.psn_to_cpool = strata->cdf.psn_to_cpool * transpiration_reduction_percent;
-                    strata->cs.availc -= correction;
+                    strata->cs.availc -= max(0.0, diff_psn_to_cpool); // seems correct
                     if(strata->cs.availc<0) strata->cs.availc = 0.0;
                     
                     // does not seem to affect a thing for these variables below.
