@@ -1,5 +1,5 @@
-PGM  = rhessysEC.7.2
-VERSION = 7.2.0.EC
+VERSION = 7.2
+PGM  = rhessysEC.$(VERSION)-$(shell date +%Y-%m-%d-%H-%M-%S)
 CC = gcc 
 CFLAGS =-Wall -g -std=c99
 RHESSYS_BIN = /usr/local/bin
@@ -914,6 +914,7 @@ $(OBJ)/reconstruct_hourly_clim.o: init/reconstruct_hourly_clim.c
 $(OBJ)/main.o: main.c setversion
 	$(CC) -c $(CFLAGS) -I include main.c -o $(OBJ)/main.o
 
+
 setversion:
 ifeq ($(OS), Darwin)
 	sed -e 's/<<RHESSYS_VERSION>>/$(VERSION)/g' -i '' ./main.c	
@@ -927,10 +928,10 @@ install:
 	cp $(PGM) $(RHESSYS_BIN)
 
 clean:
-	rm -f $(OBJECTS)
+	rm -rf $(OBJECTS)
 
 clobber:
-	rm -f $(OBJECTS) $(PGM)
+	rm -rf $(OBJECTS) $(PGM)
 
 functest: rhessys
 	# Run Python-based functional testing
