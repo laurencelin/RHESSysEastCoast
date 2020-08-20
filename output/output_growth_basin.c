@@ -370,14 +370,14 @@ void	output_growth_basin(
 		current_date.year,
 		basin[0].ID,
 		alai,
-		agpsn * 1000,
-		aresp * 1000,
+		agpsn * 1000,//availc
+		aresp * 1000,//plant_Gresp = growth resp.
 		asoilhr * 1000,
 		anitrate * 1000,
 		asminn * 1000,
 		asurfaceN * 1000,
-		(aleafc + awoodc + afrootc),
-		(aleafn + awoodn + afrootn),
+		(aleafc + awoodc + afrootc), // their stores
+		(aleafn + awoodn + afrootn), // their stores
 		acpool,
 		anpool,
 		alitrc, // kgC/m2
