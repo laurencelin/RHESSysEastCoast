@@ -42,7 +42,7 @@
 #include "rhessys.h"
 #include <stdio.h>
 #include <math.h>
-#define NUM_NORMAL  10     /* resolution of normal distribution */
+//#define NUM_NORMAL  10     /* resolution of normal distribution */
 //int    update_denitrif(
 //                       struct  soil_c_object   *,
 //                       struct  soil_n_object   *,
@@ -85,6 +85,9 @@ int update_denitrif(
 	double hr, total_nitrate_ratio, soil_nitrate_ratio;
     double perc_sat;
 	double NORMAL[10]= { 0.0, -1.283,-0.842,-0.524,-0.253, 0.0, 0.253,0.524,0.842,1.283};
+    //double NORMAL_GROWSEASON[50]= { 0.0, -1.9245,-1.8589,-1.6667,-1.3608,-1.263,-1.22,-1.0938,-0.9622,-0.8931,-0.786,-0.7592,-0.6807,-0.6315,-0.5558,-0.4981,-0.393,-0.3795,-0.3666,-0.3287,-0.3269,-0.2683,-0.2034,-0.1897,-0.0982,0.0,0.0982,0.1897,0.2034,0.2683,0.3269,0.3287,0.3666,0.3795,0.393,0.4981,0.5558,0.6315,0.6807,0.7592,0.786,0.8931,0.9622,1.0938,1.22,1.263,1.3608,1.6667,1.8589,1.9245};
+    //double NORMAL_DORMSEASON[50]= { 0.0, -1.283,-1.2393,-1.1111,-0.9072,-0.842,-0.8133,-0.7292,-0.6415,-0.5954,-0.524,-0.5061,-0.4538,-0.421,-0.3705,-0.3321,-0.262,-0.253,-0.2444,-0.2191,-0.2179,-0.1789,-0.1356,-0.1265,-0.0655,0,0.0655,0.1265,0.1356,0.1789,0.2179,0.2191,0.2444,0.253,0.262,0.3321,0.3705,0.421,0.4538,0.5061,0.524,0.5954,0.6415,0.7292,0.8133,0.842,0.9072,1.1111,1.2393,1.283};
+    //double NORMAL_WEIGHT[50] = {0.0, 2.0,4.0,4.0,4.0,2.0,4.0,4.0,4.0,4.0,2.0,4.0,4.0,4.0,4.0,4.0,4.0,2.0,4.0,4.0,4.0,4.0,4.0,4.0,4.0,40.0,4.0,4.0,4.0,4.0,4.0,4.0,4.0,2.0,4.0,4.0,4.0,4.0,4.0,4.0,2.0,4.0,4.0,4.0,4.0,2.0,4.0,4.0,4.0,2};
 	double resource_soilNO3, resource_satNO3;
     
  
@@ -136,19 +139,42 @@ int update_denitrif(
         }
         
         water_scalar = 0.0;
-        if (std > 0) {
-            for (i = 1; i< NUM_NORMAL; i++) {
+        if (std > 0 ) {
+            for (i = 1; i<10; i++) {
                 thetai = theta + std*NORMAL[i];
                 thetai = min(1.0, thetai);
                 thetai = max(0.002, thetai);
                 water_scalari = min( a*exp(-c*exp(-d*thetai*log(b))*log(b)), 1.0);
                 water_scalar += water_scalari;
             }// for i
-            water_scalar *= 1.0/NUM_NORMAL;
+            water_scalar *= 0.1111111; // 1/9
         } else {
             //water_scalar = min(1.0, a / pow(b,  (c / pow(b, (d*theta) )) ) );
             water_scalar = min( a*exp(-c*exp(-d*theta*log(b))*log(b)), 1.0);
         }//if
+        
+//        if (std > 0 && ) {
+//            for (i = 1; i<50; i++) {
+//                thetai = theta + std*NORMAL_GROWSEASON[i];
+//                thetai = min(1.0, thetai);
+//                thetai = max(0.002, thetai);
+//                water_scalari = min( a*exp(-c*exp(-d*thetai*log(b))*log(b)), 1.0);
+//                water_scalar += water_scalari * NORMAL_WEIGHT[i];
+//            }// for i
+//            water_scalar *= 0.00462963; // 1/216
+//        }else if (std > 0) {
+//            for (i = 1; i<50; i++) {
+//                thetai = theta + std*NORMAL_DORMSEASON[i];
+//                thetai = min(1.0, thetai);
+//                thetai = max(0.002, thetai);
+//                water_scalari = min( a*exp(-c*exp(-d*thetai*log(b))*log(b)), 1.0);
+//                water_scalar += water_scalari * NORMAL_WEIGHT[i];
+//            }// for i
+//            water_scalar *= 0.00462963; // 1/216
+//        } else {
+//            //water_scalar = min(1.0, a / pow(b,  (c / pow(b, (d*theta) )) ) );
+//            water_scalar = min( a*exp(-c*exp(-d*theta*log(b))*log(b)), 1.0);
+//        }//if
         
         
         //---------- resource

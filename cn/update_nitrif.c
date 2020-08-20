@@ -121,13 +121,13 @@ int update_nitrif(
         
         //----------- moisture in active_zone (dynamic)
         if (std > ZERO) {
-            for (i=0; i<NUM_NORMAL; i++) {
+            for (i=1; i<10; i++) {
                 thetai = theta + NORMAL[i]*std;
                 thetai = min(1.0, thetai);
                 thetai = max(0.002, thetai);
                 water_scalar  +=  exp(d*(b-a)/(a-c)*log((thetai -b) / (a-b))) * exp(d*log((thetai-c)/ (a-c)));
             }//for
-            water_scalar *= 1.0/NUM_NORMAL;
+            water_scalar *= 0.1111111; // 1/9
         } else {
             if (theta  > c)
                 water_scalar  = exp(d*(b-a)/(a-c)*log((thetai -b) / (a-b))) * exp(d*log((thetai-c)/ (a-c)));
