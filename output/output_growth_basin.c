@@ -213,12 +213,7 @@ void	output_growth_basin(
 						------------------------------*/
                         astratumNO3stored += strata->cover_fraction * (strata->NO3_stored)* patch[0].area;
 						aresp += strata->cover_fraction
-							* (strata->cdf.leaf_day_mr + strata->cdf.cpool_leaf_gr
-							+ strata->cdf.leaf_night_mr +	strata->cdf.livestem_mr
-							+ strata->cdf.cpool_livestem_gr + strata->cdf.livecroot_mr
-							+ strata->cdf.cpool_livecroot_gr
-							+ strata->cdf.cpool_deadcroot_gr
-							+ strata->cdf.froot_mr + strata->cdf.cpool_froot_gr)
+                            * (strata->cdf.total_mr + strata->cdf.total_gr)
                             * patch[0].area;
 						aleafn += strata->cover_fraction	* (strata->ns.leafn
 							+ strata->ns.leafn_store + strata->ns.leafn_transfer)
