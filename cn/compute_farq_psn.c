@@ -115,7 +115,7 @@ Farquhar photosynthesis routine
 	double Rd;     /* (umol/m2/s) dark respiration rate */
 	double Vmax;   /* (umol/m2/s) maximum carboxylation velocity */
 	double Jmax;   /* (umol/m2/s) maximum rate of electron transport */
-	double J;      /* (umol/m2/s) maximum rate of Rubisco regeneration */
+	double J;      /* (umol/m2/s) maximum rate of Rubisco regeneration */ //<<-------
 	double Av;     /* (umol/m2/s) Rubisco limited assimilation rate */
 	double Aj;     /* (umol/m2/s) RuBP regeneration limited assim rate */
 	double A;      /* (umol/m2/s) net assimilation rate */
@@ -200,9 +200,13 @@ Farquhar photosynthesis routine
         /*---------------------------------------------------------------
         kg Nleaf   kg NRub    kg Rub      umol            umol
         -------- X -------  X ------- X ---------   =   --------
-        m2      kg Nleaf   kg NRub   kg RUB * s       m2 * s
+        m2         kg Nleaf   kg NRub   kg RUB * s       m2 * s
         
          (lnc)  X  (flnr)  X  (fnr)  X   (act)     =    (Vmax)
+        // leafN and flnr should be variable; deciduous default flnr is 0.08. then 0.08 of leafn is available for Rub?
+        // wiki: RuBisCO is the most abundant protein in leaves, accounting for 50% of soluble leaf protein in C3 plants (20–30% of total leaf nitrogen) and 30% of soluble leaf protein in C4 plants (5–9% of total leaf nitrogen)
+        // In cyanobacteria, inorganic phosphate (Pi) participates in the co-ordinated regulation of photosynthesis. Pi binds to the RuBisCO active site and to another site on the large chain where it can influence transitions between activated and less active conformations of the enzyme. Activation of bacterial RuBisCO might be particularly sensitive to Pi levels, which can act in the same way as RuBisCO activase in higher plants.
+         
         ---------------------------------------------------------------*/
         Vmax = in->lnc * in->flnr * fnr * act;
         /*-------------------------------------------------------------
