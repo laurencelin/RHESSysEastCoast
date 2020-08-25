@@ -187,7 +187,8 @@ int allocate_daily_growth(int nlimit,
 //                    }
                 }else {
                     // no N-fix
-                    cdf->psn_to_cpool -= excess_c; // if not enough N, it will reduce fraq_psn result.
+                    cdf->psn_to_cpool = max(0.0,cdf->psn_to_cpool-excess_c); // if not enough N, it will reduce fraq_psn result.
+                    
                     ns->nlimit = 1;
                 }// N fixer
             }//ns->retransn
@@ -452,7 +453,7 @@ int allocate_daily_growth(int nlimit,
     }//debug
 
     excess_c = max(cs->availc - (totalc_used*(1+epc.gr_perc)),0.0); // adjust to cdf->psn_to_cpool
-    cdf->psn_to_cpool -= excess_c; // if not enough N, it will reduce fraq_psn result.
+    cdf->psn_to_cpool = max(0.0,cdf->psn_to_cpool-excess_c); // if not enough N, it will reduce fraq_psn result.
 //    if(plant_nalloc>0 && plant_calloc>0){
 //        ///<<----------- bad move?
 //        ndf->retransn_to_npool *= ndf->actual_N_uptake/plant_nalloc;
