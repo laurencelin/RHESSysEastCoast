@@ -42,7 +42,18 @@ int update_C_stratum_daily(struct epconst_struct epc,
 	/*	Local Variable Definition. 							*/
 	/*------------------------------------------------------*/
 	int ok=1;
-	
+    if(cdf->psn_to_cpool<0){
+        printf("updateC problem (%d,%e,%e,%e, %e,%e)\n",
+               stratum[0].ID,
+               cdf->psn_to_cpool,
+               cdf->total_mr,
+               cdf->total_gr,
+               cs->availc,
+               cs->cpool
+               );
+    }//debug
+        
+        
 	/* Daily photosynthesis */
 	cs->gpsn_src	+= cdf->psn_to_cpool;
 	cs->cpool	+= cdf->psn_to_cpool;

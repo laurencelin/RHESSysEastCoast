@@ -206,6 +206,17 @@ void	output_growth_basin(
 						strata = patch[0].canopy_strata[(patch[0].layers[layer].strata[c])];
 						agpsn += strata->cover_fraction * strata->cdf.psn_to_cpool
 							* patch[0].area;
+//                        if(strata->cdf.psn_to_cpool<0 || fabs(strata->cdf.psn_to_cpool-strata->cdf.total_mr - strata->cdf.total_gr - strata->cs.net_psn)>1e-5 ){
+//                            printf("%d,%d,%d,%d,%e = %e - %e - %e\n",
+//                                   current_date.day,
+//                                   current_date.month,
+//                                   current_date.year,
+//                                   strata->ID,
+//                                   strata->cs.net_psn,
+//                                   strata->cdf.psn_to_cpool,
+//                                   strata->cdf.total_mr,
+//                                   strata->cdf.total_gr);
+//                        }// debug
 						/*---------------------------
 						agpsn += strata->cover_fraction
 							* strata->cs.net_psn
