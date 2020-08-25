@@ -271,8 +271,12 @@ int update_C_stratum_daily(struct epconst_struct epc,
 //               cdf->total_gr, cdf->total_mr, cdf->cpool_to_gresp_store, TOtotal_store, TOtotal_X);
 //    }
     
-    // drain out excessive cpool, cap at 80% of stores
-    if(stratum[0].phen.gwseasonday > epc.ndays_expand && cs->cpool-total_store*0.8>0){
+    // Hoch et al. 2003
+    // use "total_store" to hold the plant DM value
+    //2.0*(cs->live_crootc+cs->live_stemc+cs->dead_crootc+cs->dead_stemc)*(0.05+0.15)/2
+    total_store = max(0.0, (cs->live_crootc+cs->live_stemc+cs->dead_crootc+cs->dead_stemc)*0.8 + (cs->leafc+cs->frootc)*0.5 - total_store);
+    // drain out excessive cpool, cap at 80% of stores "total_store*0.8"
+    if(stratum[0].phen.gwseasonday > epc.ndays_expand && cs->cpool-total_store>0){
 //        if(patch[0].ID==42534) printf("update C stratum daily %d %d %d %d %d %d %e %e\n",
 //               patch[0].ID,
 //               current_date.day, current_date.month, current_date.year,
@@ -280,7 +284,7 @@ int update_C_stratum_daily(struct epconst_struct epc,
 //               stratum->defaults[0][0].ID,
 //               cs->cpool,
 //               total_store);
-        total_store *= 0.8;
+        //total_store *= 0.8;
         total_store -= cs->cpool;
         cs_soil->DOC -= total_store*0.01;
         cs->cpool += total_store*0.01;

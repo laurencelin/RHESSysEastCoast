@@ -122,8 +122,11 @@ int update_N_stratum_daily(struct epconst_struct epc,
 	}
     if(ns->npool < -ZERO) printf("update_N_stratum_daily %e\n",ns->npool);
 
-    if(stratum[0].phen.gwseasonday > epc.ndays_expand && ns->npool-total_store*0.8>0){
-        total_store *= 0.8;
+    
+    // parallel to C
+    total_store = max(0.0,(ns->live_crootn+ns->live_stemn+ns->dead_crootn+ns->dead_stemn)*0.8+ (ns->leafn+ns->frootn)*0.5-total_store);
+    if(stratum[0].phen.gwseasonday > epc.ndays_expand && ns->npool-total_store>0){
+        //total_store *= 0.8;
         total_store -= ns->npool;
         ns_soil->DON -= total_store*0.01;
         ns->npool += total_store*0.01;
