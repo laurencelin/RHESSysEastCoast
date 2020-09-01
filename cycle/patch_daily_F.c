@@ -642,7 +642,7 @@ void		patch_daily_F(
         
         if(patch[0].sat_deficit_z < patch[0].landuse_defaults[0][0].sewer_infiltrationSatDefZThreshold){
             // infiltration into the sewer
-            patch[0].sewerdrained += min(min((patch[0].landuse_defaults[0][0].sewer_infiltrationSatDefZThreshold-patch[0].sat_deficit_z)*patch[0].landuse_defaults[0][0].sewer_infiltrationSatDefZHeadSpace,1.0)*patch[0].landuse_defaults[0][0].sewer_infiltrationRate, patch[0].landuse_defaults[0][0].sewer_infiltrationSatDefZThreshold-patch[0].sat_deficit_z);
+            patch[0].sewerdrained += min(min((patch[0].landuse_defaults[0][0].sewer_infiltrationSatDefZThreshold-patch[0].sat_deficit_z)*patch[0].landuse_defaults[0][0].sewer_infiltrationSatDefZHeadSpace,1.0)*patch[0].landuse_defaults[0][0].sewer_infiltrationRate*patch[0].sewerFrac, patch[0].landuse_defaults[0][0].sewer_infiltrationSatDefZThreshold-patch[0].sat_deficit_z);
             // Moore et al. 2015; when water is above the empty header, no solute leaching out
             if(patch[0].sewerdrained>0 && command_line[0].grow_flag > 0){
                 // how? compute_N_leached? here?
@@ -702,7 +702,7 @@ void		patch_daily_F(
             }// growth_flag
         }else{
             // exfiltration out from sewer
-            patch[0].sewerdrained -= min(min((patch[0].sat_deficit_z-patch[0].landuse_defaults[0][0].sewer_infiltrationSatDefZThreshold)*patch[0].landuse_defaults[0][0].sewer_exfiltrationDepthVol,1.0)*patch[0].landuse_defaults[0][0].sewer_exfiltrationRate,
+            patch[0].sewerdrained -= min(min((patch[0].sat_deficit_z-patch[0].landuse_defaults[0][0].sewer_infiltrationSatDefZThreshold)*patch[0].landuse_defaults[0][0].sewer_exfiltrationDepthVol,1.0)*patch[0].landuse_defaults[0][0].sewer_exfiltrationRate*patch[0].sewerFrac,
                 patch[0].sat_deficit_z-patch[0].landuse_defaults[0][0].sewer_infiltrationSatDefZThreshold);
             // use negative value to indicate exfiltration from the pipe.
             // count for the filling up process

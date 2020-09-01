@@ -397,7 +397,7 @@ void  update_drainage_land(
     }// extra water
     
 	/*--------------------------------------------------------------*/
-	/* compute Nitrogen leaching amount				*/
+	/* compute Nitrogen leaching amount		(subsurface)		*/
 	/*--------------------------------------------------------------*/
 	if(command_line[0].grow_flag > 0) {
         

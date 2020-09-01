@@ -1531,6 +1531,7 @@ struct patch_object
         double  Ksat_0;                 /* meteres/day  */ // <<-- what's this for?
         double  Ksat_vertical;          /* unitless   */
         double  waterFrac;
+        double  sewerFrac;
         double  lna;                    /* unitless     */
         double  lai;                    /* unitless     */
         double  Lup_soil;               /* Kj/(m^2*day) */

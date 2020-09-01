@@ -74,7 +74,7 @@ struct routing_list_object *construct_routing_topology(char *routing_filename,
 	int		patch_ID, zone_ID, hill_ID, aggregate_ID, aggregate_index;
 	int		drainage_type;
 	double	gamma, width, wttd;// --> constraintWaterTableTopDepth
-    double waterFrac, holder;
+    double waterFrac, sewerFrac;
 	FILE	*routing_file;
 	struct routing_list_object	*rlist;
 	struct	patch_object	*patch;
@@ -113,7 +113,8 @@ struct routing_list_object *construct_routing_topology(char *routing_filename,
                 &patch_ID,
                 &zone_ID,
                 &hill_ID,
-                &waterFrac,&holder,
+                &waterFrac,
+                &sewerFrac,
                 &fnum_drainIN_septic,
                 &fnum_drainIN_irrigation,
                 &wttd,
@@ -130,7 +131,8 @@ struct routing_list_object *construct_routing_topology(char *routing_filename,
                    &patch_ID,
                    &zone_ID,
                    &hill_ID,
-                   &waterFrac,&holder,
+                   &waterFrac,
+                   &sewerFrac,
                    &fnum_drainIN_septic,
                    &fnum_drainIN_irrigation,
                    &wttd,
@@ -151,6 +153,7 @@ struct routing_list_object *construct_routing_topology(char *routing_filename,
             patch[0].aggregate_ID = aggregate_ID;
             patch[0].aggregate_index = aggregate_index;
             patch[0].waterFrac = (waterFrac>0 && waterFrac<=1? waterFrac : 0.0);
+            patch[0].sewerFrac = (sewerFrac>0 && sewerFrac<=1? sewerFrac : 0.0);
             // basement implementation is disabled
             // 3m basement depth then 3*baseFrac + 0*(1-baseFrac) = wttd --> baseFrac = wttd/3.0;
             //patch[0].constraintWaterTableTopDepth = wttd;
@@ -165,7 +168,6 @@ struct routing_list_object *construct_routing_topology(char *routing_filename,
                 patch[0].sat_def_head = patch[0].soil_defaults[0][0].rtz2sat_def_0z[rtz2_index];
                 //patch[0].rootdepth_index = patch[0].soil_defaults[0][0].rtz2sat_def_pct_index[patch[0].rtz2_index]; // do i need this?
             }
-            
         }// not surface
 		rlist->list[i] = patch;
 
@@ -217,29 +219,31 @@ struct routing_list_object *construct_routing_topology(char *routing_filename,
 //                               num_neighbours,
 //                               innundation_list->num_drainIN_septic,
 //                               innundation_list->num_drainIN_irrigation);
-        
-        if ( !surface ) {
-            // <<----------------- very important: patch[0].drainage_type is defined by subsurface flowtable
-            // "stream_gamma" is no use in the model so far
-			patch[0].stream_gamma = 0.0;
-			patch[0].drainage_type = drainage_type;
-			if ( (patch[0].drainage_type != STREAM) && (patch[0].innundation_list[d].gamma < ZERO) ) {
-				printf(
-						"\n non-stream patches with zero gamma %d switched to stream for now (%d %d %d %lf %lf %lf %lf %lf %d %lf %d)",
-						patch[0].ID,
-                       patch_ID,
-                       zone_ID,
-                       hill_ID,
-                       waterFrac,holder,
-                       fnum_drainIN_septic,
-                       fnum_drainIN_irrigation,
-                       wttd,
-                       drainage_type,
-                       gamma,
-                       num_neighbours);
-				patch[0].drainage_type = STREAM;
-			}//end of if
-		}// end of if
+
+//        // not sure what is below.
+//        if ( !surface ) {
+//            // <<----------------- very important: patch[0].drainage_type is defined by subsurface flowtable
+//            // "stream_gamma" is no use in the model so far
+//			patch[0].stream_gamma = 0.0;
+//			patch[0].drainage_type = drainage_type;
+//			if ( (patch[0].drainage_type != STREAM) && (patch[0].innundation_list[d].gamma < ZERO) ) {
+//				printf(
+//						"\n non-stream patches with zero gamma %d switched to stream for now (%d %d %d %lf %lf %lf %lf %lf %d %lf %d)",
+//						patch[0].ID,
+//                       patch_ID,
+//                       zone_ID,
+//                       hill_ID,
+//                       waterFrac,
+//                       sewerFrac,
+//                       fnum_drainIN_septic,
+//                       fnum_drainIN_irrigation,
+//                       wttd,
+//                       drainage_type,
+//                       gamma,
+//                       num_neighbours);
+//				patch[0].drainage_type = STREAM;
+//			}//end of if
+//		}// end of if
 
         // under patch loop
 		/*--------------------------------------------------------------*/
