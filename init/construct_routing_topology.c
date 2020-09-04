@@ -128,17 +128,17 @@ struct routing_list_object *construct_routing_topology(char *routing_filename,
             aggregateLength = max(aggregateLength,aggregate_index);
         }else{
             fscanf(routing_file,"%d %d %d %lf %lf %lf %lf %lf %d %lf %d",
-                   &patch_ID,
-                   &zone_ID,
-                   &hill_ID,
-                   &waterFrac,
-                   &sewerFrac,
-                   &fnum_drainIN_septic,
-                   &fnum_drainIN_irrigation,
-                   &wttd,
-                   &drainage_type,
-                   &gamma,
-                   &num_neighbours);
+                   &patch_ID, //1
+                   &zone_ID, //2
+                   &hill_ID, //3
+                   &waterFrac, //4
+                   &sewerFrac, //5
+                   &fnum_drainIN_septic, //6
+                   &fnum_drainIN_irrigation, //7
+                   &wttd, //8
+                   &drainage_type, //9
+                   &gamma, //10
+                   &num_neighbours); // 11
             aggregate_ID=0;
             aggregate_index=0;
         }//end of if
@@ -221,11 +221,10 @@ struct routing_list_object *construct_routing_topology(char *routing_filename,
 //                               innundation_list->num_drainIN_irrigation);
 
 //        // not sure what is below.
-//        if ( !surface ) {
-//            // <<----------------- very important: patch[0].drainage_type is defined by subsurface flowtable
-//            // "stream_gamma" is no use in the model so far
-//			patch[0].stream_gamma = 0.0;
-//			patch[0].drainage_type = drainage_type;
+        if ( !surface ) {
+            // <<----------------- very important: patch[0].drainage_type is defined by subsurface flowtable
+            patch[0].stream_gamma = 0.0;
+			patch[0].drainage_type = drainage_type; // "stream_gamma" is no use in the model so far
 //			if ( (patch[0].drainage_type != STREAM) && (patch[0].innundation_list[d].gamma < ZERO) ) {
 //				printf(
 //						"\n non-stream patches with zero gamma %d switched to stream for now (%d %d %d %lf %lf %lf %lf %lf %d %lf %d)",
@@ -243,7 +242,7 @@ struct routing_list_object *construct_routing_topology(char *routing_filename,
 //                       num_neighbours);
 //				patch[0].drainage_type = STREAM;
 //			}//end of if
-//		}// end of if
+		}// end of if
 
         // under patch loop
 		/*--------------------------------------------------------------*/
