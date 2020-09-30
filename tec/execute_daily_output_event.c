@@ -153,10 +153,10 @@ void	execute_daily_output_event(
         aLAI = (float*)calloc(world[0].basins[0][0].aggregateLength, sizeof(float));
         nlimit = (float*)calloc(world[0].basins[0][0].aggregateLength, sizeof(float));
         qlimit = (float*)calloc(world[0].basins[0][0].aggregateLength, sizeof(float));
-//        directPARa = (float*)calloc(world[0].basins[0][0].aggregateLength, sizeof(float));
-//        diffusePARa = (float*)calloc(world[0].basins[0][0].aggregateLength, sizeof(float));
-//        ZONEdirectPARa = (float*)calloc(world[0].basins[0][0].aggregateLength, sizeof(float));
-//        ZONEdiffusePARa = (float*)calloc(world[0].basins[0][0].aggregateLength, sizeof(float));
+        directPARa = (float*)calloc(world[0].basins[0][0].aggregateLength, sizeof(float));
+        diffusePARa = (float*)calloc(world[0].basins[0][0].aggregateLength, sizeof(float));
+        ZONEdirectPARa = (float*)calloc(world[0].basins[0][0].aggregateLength, sizeof(float));
+        ZONEdiffusePARa = (float*)calloc(world[0].basins[0][0].aggregateLength, sizeof(float));
         
         litterLigninN = (float*)calloc(world[0].basins[0][0].aggregateLength, sizeof(float));
         litterCelluloseN = (float*)calloc(world[0].basins[0][0].aggregateLength, sizeof(float));
@@ -205,10 +205,10 @@ void	execute_daily_output_event(
             aLAI[i] = 0.0;
             nlimit[i] = 0.0;
             qlimit[i] = 0.0;
-//            directPARa[i] = 0.0;
-//            diffusePARa[i] = 0.0;
-//            ZONEdirectPARa[i] = 0.0;
-//            ZONEdiffusePARa[i] = 0.0;
+            directPARa[i] = 0.0;
+            diffusePARa[i] = 0.0;
+            ZONEdirectPARa[i] = 0.0;
+            ZONEdiffusePARa[i] = 0.0;
             
             litterLigninN[i] = 0.0;
             litterCelluloseN[i] = 0.0;
@@ -257,31 +257,30 @@ void	execute_daily_output_event(
             PETa[MyPatch->aggregate_index] += MyPatch[0].PET * MyPatch[0].area;
             AETa[MyPatch->aggregate_index] += (MyPatch[0].evaporation + MyPatch[0].evaporation_surf + MyPatch[0].exfiltration_sat_zone + MyPatch[0].exfiltration_unsat_zone + MyPatch[0].transpiration_sat_zone + MyPatch[0].transpiration_unsat_zone)*MyPatch[0].area;
             
-//            directPARa[MyPatch->aggregate_index] += MyPatch[0].area * MyPatch[0].PAR_direct;
-//            diffusePARa[MyPatch->aggregate_index] += MyPatch[0].area * MyPatch[0].PAR_diffuse;
-//
-//            ZONEdirectPARa[MyPatch->aggregate_index] += MyPatch[0].area * MyPatch[0].zone[0].PAR_direct;
-//            ZONEdiffusePARa[MyPatch->aggregate_index] += MyPatch[0].area * MyPatch[0].zone[0].PAR_diffuse;
+            directPARa[MyPatch->aggregate_index] += MyPatch[0].area * MyPatch[0].PAR_direct;
+            diffusePARa[MyPatch->aggregate_index] += MyPatch[0].area * MyPatch[0].PAR_diffuse;
+
+            ZONEdirectPARa[MyPatch->aggregate_index] += MyPatch[0].area * MyPatch[0].zone[0].PAR_direct;
+            ZONEdiffusePARa[MyPatch->aggregate_index] += MyPatch[0].area * MyPatch[0].zone[0].PAR_diffuse;
             
-            // standing litter
-            litterLigninN[MyPatch->aggregate_index] += MyPatch[0].area * MyPatch[0].litter_ns.litr4n;
-            litterCelluloseN[MyPatch->aggregate_index] += MyPatch[0].area * (MyPatch[0].litter_ns.litr2n + MyPatch[0].litter_ns.litr3n);
-            litterLabileN[MyPatch->aggregate_index] += MyPatch[0].area * MyPatch[0].litter_ns.litr1n;
-
-            litterLigninC[MyPatch->aggregate_index] += MyPatch[0].area * MyPatch[0].litter_cs.litr4c;
-            litterCelluloseC[MyPatch->aggregate_index] += MyPatch[0].area * (MyPatch[0].litter_cs.litr2c + MyPatch[0].litter_cs.litr3c);
-            litterLabileC[MyPatch->aggregate_index] += MyPatch[0].area * MyPatch[0].litter_cs.litr1c;
-
-            // leaffall litter
-//            litterLigninN[MyPatch->aggregate_index] += MyPatch[0].area * (MyPatch[0].ndf.leafn_to_litr4n + MyPatch[0].ndf.frootn_to_litr4n);
-//            litterCelluloseN[MyPatch->aggregate_index] += MyPatch[0].area * (MyPatch[0].ndf.leafn_to_litr2n  + MyPatch[0].ndf.leafn_to_litr3n + MyPatch[0].ndf.frootn_to_litr2n  + MyPatch[0].ndf.frootn_to_litr3n);
-//            litterLabileN[MyPatch->aggregate_index] += MyPatch[0].area * (MyPatch[0].ndf.leafn_to_litr1n + MyPatch[0].ndf.frootn_to_litr1n);
+            // standing litter (Terrestrial)
+//            litterLigninN[MyPatch->aggregate_index] += MyPatch[0].area * MyPatch[0].litter_ns.litr4n;
+//            litterCelluloseN[MyPatch->aggregate_index] += MyPatch[0].area * (MyPatch[0].litter_ns.litr2n + MyPatch[0].litter_ns.litr3n);
+//            litterLabileN[MyPatch->aggregate_index] += MyPatch[0].area * MyPatch[0].litter_ns.litr1n;
 //
-//            litterLigninC[MyPatch->aggregate_index] += MyPatch[0].area * (MyPatch[0].cdf.leafc_to_litr4c + MyPatch[0].cdf.frootc_to_litr4c);
-//            litterCelluloseC[MyPatch->aggregate_index] += MyPatch[0].area * (MyPatch[0].cdf.leafc_to_litr2c  + MyPatch[0].cdf.leafc_to_litr3c + MyPatch[0].cdf.frootc_to_litr2c  + MyPatch[0].cdf.frootc_to_litr3c);
-//            litterLabileC[MyPatch->aggregate_index] += MyPatch[0].area * (MyPatch[0].cdf.leafc_to_litr1c + MyPatch[0].cdf.frootc_to_litr1c);
+//            litterLigninC[MyPatch->aggregate_index] += MyPatch[0].area * MyPatch[0].litter_cs.litr4c;
+//            litterCelluloseC[MyPatch->aggregate_index] += MyPatch[0].area * (MyPatch[0].litter_cs.litr2c + MyPatch[0].litter_cs.litr3c);
+//            litterLabileC[MyPatch->aggregate_index] += MyPatch[0].area * MyPatch[0].litter_cs.litr1c;
 
-          
+            // leaffall litter (SSHBS)
+            litterLigninN[MyPatch->aggregate_index] += MyPatch[0].area * (MyPatch[0].ndf.leafn_to_litr4n + MyPatch[0].ndf.frootn_to_litr4n);
+            litterCelluloseN[MyPatch->aggregate_index] += MyPatch[0].area * (MyPatch[0].ndf.leafn_to_litr2n  + MyPatch[0].ndf.leafn_to_litr3n + MyPatch[0].ndf.frootn_to_litr2n  + MyPatch[0].ndf.frootn_to_litr3n);
+            litterLabileN[MyPatch->aggregate_index] += MyPatch[0].area * (MyPatch[0].ndf.leafn_to_litr1n + MyPatch[0].ndf.frootn_to_litr1n);
+
+            litterLigninC[MyPatch->aggregate_index] += MyPatch[0].area * (MyPatch[0].cdf.leafc_to_litr4c + MyPatch[0].cdf.frootc_to_litr4c);
+            litterCelluloseC[MyPatch->aggregate_index] += MyPatch[0].area * (MyPatch[0].cdf.leafc_to_litr2c  + MyPatch[0].cdf.leafc_to_litr3c + MyPatch[0].cdf.frootc_to_litr2c  + MyPatch[0].cdf.frootc_to_litr3c);
+            litterLabileC[MyPatch->aggregate_index] += MyPatch[0].area * (MyPatch[0].cdf.leafc_to_litr1c + MyPatch[0].cdf.frootc_to_litr1c);
+
             
             aroots[MyPatch->aggregate_index] += MyPatch[0].rootzone.SatPct *MyPatch[0].area;
             nlimit[MyPatch->aggregate_index] += MyPatch[0].soil_ns.fract_potential_uptake *MyPatch[0].area;
@@ -296,10 +295,7 @@ void	execute_daily_output_event(
                         * MyPatch[0].area;
                 }//c
             }//layer
-            //MyPatch[0].canopy_strata[0][0].ID != 4;  not correct. it refers to StratumID
-            //MyPatch[0].canopy_strata[0][0].defaults[0][0].epc.veg_type != NON_VEG
-            //if(MyPatch[0].canopy_strata[0][0].defaults[0][0].epc.veg_type != NON_VEG){}// vegetation only
-     
+           
             denitri[MyPatch->aggregate_index] += MyPatch[0].area * MyPatch[0].ndf.denitrif;
             Pot_denitrif_SS[MyPatch->aggregate_index] += MyPatch[0].area * MyPatch[0].ndf.Pot_denitrif_SS;
             Pot_denitrif_CO2[MyPatch->aggregate_index] += MyPatch[0].area * MyPatch[0].ndf.Pot_denitrif_CO2;
@@ -313,23 +309,21 @@ void	execute_daily_output_event(
             wtz[MyPatch->aggregate_index] += MyPatch[0].area * MyPatch[0].sat_deficit_z;
             
             
-            //MyPatch[0].rootzone.potential_sat*1000
-            //MyPatch[0].zone[0].PAR_direct+MyPatch[0].zone[0].PAR_diffuse;
-            
-            // estimate of hyperhric Q
-//            double wtz = max(MyPatch[0].sat_deficit_z, 0.0);
-//            double wtz2m = wtz+2.0;
-//            double p0 = MyPatch[0].soil_defaults[0][0].porosity_0;
-//            double qq = MyPatch[0].soil_defaults[0][0].porosity_decay
-//            sat_q[MyPatch->aggregate_index] += MyPatch[0].area * p0 * qq * (exp(-wtz/qq) - exp(-wtz2m/qq));//m just sample water 2.0 m down from wtz
-            
-            // how much water in sat zone
-             sat_q[MyPatch->aggregate_index] += MyPatch[0].area * MyPatch[0].available_soil_water;//m
+       
+            // estimate of hyperhric Q (SSHBS)
+            int depth1 = (int)(round(MyPatch[0].sat_deficit_z*1000));
+            int depth2 = (int)(round(min(MyPatch[0].sat_deficit_z+2.0, MyPatch[0].soil_defaults[0][0].soil_depth)*1000)); // 2 m deeper
+            double layerWater = max(0.0,MyPatch[0].soil_defaults[0][0].rtz2sat_def_0z[depth2]-MyPatch[0].soil_defaults[0][0].rtz2sat_def_0z[depth1]);
+            double layerFrac = (MyPatch[0].available_soil_water>0? layerWater/MyPatch[0].available_soil_water : 0.0);
+            sat_q[MyPatch->aggregate_index] += MyPatch[0].area * (layerWater);//m
+            satNO3[MyPatch->aggregate_index] += MyPatch[0].area * MyPatch[0].sat_NO3 * layerFrac;//kgN
+            satNH4[MyPatch->aggregate_index] += MyPatch[0].area * MyPatch[0].sat_NH4 * layerFrac;//kgN
             
             
-            
-            satNO3[MyPatch->aggregate_index] += MyPatch[0].area * MyPatch[0].sat_NO3;//kgN
-            satNH4[MyPatch->aggregate_index] += MyPatch[0].area * MyPatch[0].sat_NH4;//kgN
+            // how much water in sat zone (Terrestrial)
+//            sat_q[MyPatch->aggregate_index] += MyPatch[0].area * MyPatch[0].available_soil_water;//m
+//            satNO3[MyPatch->aggregate_index] += MyPatch[0].area * MyPatch[0].sat_NO3;//kgN
+//            satNH4[MyPatch->aggregate_index] += MyPatch[0].area * MyPatch[0].sat_NH4;//kgN
             
             // S in active zone
             if( MyPatch[0].soil_defaults[0][0].active_zone_z > MyPatch[0].sat_deficit_z){
@@ -357,8 +351,11 @@ void	execute_daily_output_event(
         // <----- here print out
         for(i = 0; i < world[0].basins[0][0].aggregateLength; i++){
             area_1 = 1.0/AREAa[i];
-            fprintf(outfile->aggregate->daily,"%d,%d,%d,%d, %e,%e,%e,%e,%e,%e,%e,%e, %e,%e,%e,%e,%e,%e, %e,%e,%e,%e,%e, %e,%e,%e,%e,%e, %e,%e,%e,%e,%e\n",
-                    date.day, date.month, date.year, aggregate_ID[i],
+            fprintf(outfile->aggregate->daily,"%d,%d,%d,%d, %e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e, %e,%e,%e,%e,%e,%e, %e,%e,%e,%e,%e, %e,%e,%e,%e,%e, %e,%e,%e,%e,%e\n",
+                    date.day,
+                    date.month,
+                    date.year,
+                    aggregate_ID[i],
                     
                     AREAa[i], //m2
                     AETa[i]*1000.0*area_1, // mm
@@ -368,10 +365,10 @@ void	execute_daily_output_event(
                     aLAI[i]*area_1,
                     nlimit[i]*area_1,
                     qlimit[i]*area_1,
-//                    directPARa[i]*area_1,
-//                    diffusePARa[i]*area_1,
-//                    ZONEdirectPARa[i]*area_1,
-//                    ZONEdiffusePARa[i]*area_1,//[11]
+                    directPARa[i]*area_1,
+                    diffusePARa[i]*area_1,
+                    ZONEdirectPARa[i]*area_1,
+                    ZONEdiffusePARa[i]*area_1,
                     
                     litterLigninN[i]*1000.0*area_1, // gC/m2
                     litterCelluloseN[i]*1000.0*area_1, // gN/m2

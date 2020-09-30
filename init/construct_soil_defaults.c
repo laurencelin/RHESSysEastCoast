@@ -98,7 +98,6 @@ struct soil_default *construct_soil_defaults(
     double x_numintegrated4;
     double correct_ratio;
     double max_sat_def;
-// this throws error for no reason
     double layer_por[maxSoilDepthIndex];
     double layer_numintegrated[maxSoilDepthIndex];
     double layer_numintegrated2[maxSoilDepthIndex];

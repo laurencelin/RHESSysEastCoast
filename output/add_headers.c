@@ -42,8 +42,11 @@ void add_headers(struct world_output_file_object *world_output_files,
     
     if (command_line[0].aggregate_flag>0) {
         outfile = world_output_files[0].aggregate[0].daily;
-        fprintf(outfile,"%s,%s,%s,%s, %s, %s,%s,%s,%s,%s,%s,%s, %s,%s,%s,%s,%s,%s, %s,%s,%s,%s,%s, %s,%s,%s,%s,%s, %s,%s,%s,%s,%s\n",
-                "day", "month", "year", "aggregateID",//[4]
+        fprintf(outfile,"%s,%s,%s,%s, %s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s, %s,%s,%s,%s,%s,%s, %s,%s,%s,%s,%s, %s,%s,%s,%s,%s, %s,%s,%s,%s,%s\n",
+                "day",
+                "month",
+                "year",
+                "aggregateID",//[4]
                 
                 "area",
                 "ET",
@@ -53,10 +56,10 @@ void add_headers(struct world_output_file_object *world_output_files,
                 "LAI",
                 "nlimit",
                 "qlimit",
-//                "PARdirect",
-//                "PARdiffuse",
-//                "ZONEPARdirect",
-//                "ZONEPARdiffuse",//[11]
+                "PARdirect",
+                "PARdiffuse",
+                "ZONEPARdirect",
+                "ZONEPARdiffuse",
                 
                 "litterLigninN",
                 "litterCelluloseN",
