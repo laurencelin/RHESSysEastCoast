@@ -138,7 +138,9 @@ struct stratum_default *construct_stratum_defaults(
 		default_object_list[i].min_heat_capacity = 	getDoubleParam(&paramCnt, &paramPtr, "min_heat_capacity", "%lf", 0.0, 1);
 		default_object_list[i].max_heat_capacity = 	getDoubleParam(&paramCnt, &paramPtr, "max_heat_capacity", "%lf", 0.0, 1);
 		default_object_list[i].epc.allocation_flag = 	parse_alloc_flag(getStrParam(&paramCnt, &paramPtr, "epc.allocation_flag", "%s", "constant", 1));
-        
+        default_object_list[i].epc.max_height = 		getDoubleParam(&paramCnt, &paramPtr, "epc.max_height", "%lf", 25.0, 1);
+		default_object_list[i].epc.max_root_depth = 	getDoubleParam(&paramCnt, &paramPtr, "epc.max_root_depth", "%lf", 1.0, 1);
+
         default_object_list[i].liter1_soil1_ratio = getDoubleParam(&paramCnt, &paramPtr, "liter1_soil1_ratio", "%lf", 0.58, 1); //0.57
         if(default_object_list[i].liter1_soil1_ratio <= 0 || default_object_list[i].liter1_soil1_ratio > 0.6){ printf("liter1_soil1_ratio has to be positive and less than 0.6"); default_object_list[i].liter1_soil1_ratio=0.6; }
         default_object_list[i].liter2_soil2_ratio = getDoubleParam(&paramCnt, &paramPtr, "liter2_soil2_ratio", "%lf", 0.36, 1); //0.35

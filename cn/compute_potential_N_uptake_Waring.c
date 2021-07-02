@@ -150,8 +150,8 @@ double compute_potential_N_uptake_Waring(
         double rootdepth = 3.0 * pow(2.0*(stratum[0].cs.live_crootc+stratum[0].cs.dead_crootc), epc.root_growth_direction)
         / epc.root_distrib_parm;
         fleaf *= (epv->proj_lai + potentialLAI <epc.max_lai*(1.0+epc.leaf_turnover)? 1.0 : 0.0);
-        fstem *= (epv->height<25? 1.0 : 0.0);
-        fcroot *= (rootdepth<1? 1.0 : 0.0);
+        fstem *= (epv->height<epc.max_height? 1.0 : 0.0);
+        fcroot *= (rootdepth<epc.max_root_depth? 1.0 : 0.0);
         fwood = fcroot + fstem;
             
 

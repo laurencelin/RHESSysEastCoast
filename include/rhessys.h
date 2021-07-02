@@ -2664,6 +2664,9 @@ struct epconst_struct
     double Tacclim_days;  /* num days for temperature acclimation */
     double Tacclim_slp;  /* slope for temperature acclimation adjutment to Q10 */
     double Tacclim_intercpt;  /* intercept for temperature acclimation for temperature acclimation adjustment to Q10 */
+
+    double max_height; /* max stem height of a tree in meters --> carbon allocation in Dickenson */
+    double max_root_depth; /* max root depth of a tree in meters --> carbon allocation in Dickenson */
 } ;
 
 
