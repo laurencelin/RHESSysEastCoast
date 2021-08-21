@@ -25,6 +25,7 @@
 #include<stdlib.h>
 #include "rhessys.h"
 
+long	julday( struct date calendar_date	);
 void reconstruct_hourly_clim(struct world_object * world,
 			      struct base_station_object **base_stations,
 			      struct date *union_date,

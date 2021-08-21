@@ -183,6 +183,11 @@ void	execute_tec(
 		struct date,
 		struct command_line_object *);
 
+	void	execute_hourly_growth_output_event(
+										  struct	world_object	*world,
+										  struct	command_line_object *command_line,
+										  struct	date	date,
+										  struct	world_output_file_object	*outfile);
 	/*--------------------------------------------------------------*/
 	/*	Local Variable Definition. 									*/
 	/*--------------------------------------------------------------*/

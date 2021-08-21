@@ -136,7 +136,10 @@
 #include <math.h>
 #include "rhessys.h"
 #include "phys_constants.h"
-
+double compute_saturation_vapor_pressure(double temperature);
+double compute_vapor_pressure_deficit(double saturation_vapor_pressure,
+		double dewpoint_vapor_pressure);
+		
 void zone_daily_I(
 				  long day,
 				  struct	world_object	*world,

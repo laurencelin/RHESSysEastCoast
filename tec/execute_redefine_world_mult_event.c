@@ -29,6 +29,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "rhessys.h"
+void sort_patch_layers( struct patch_object *patch);
 
 void	execute_redefine_world_mult_event(struct world_object *world,
 									  struct command_line_object *command_line,
