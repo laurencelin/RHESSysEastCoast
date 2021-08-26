@@ -46,6 +46,32 @@ new features / modifications for biochemistry cycle & transport
 
 
 
+------------------------------------------------------------------------
+-dynRtZoff
+https://github.com/laurencelin/RHESSysEastCoast/blob/0a79e1efa1b35b4f20695253c8ccaff4d713ea96/init/construct_command_line.c#L622
+https://github.com/laurencelin/RHESSysEastCoast/search?q=dynRtZoff_flag
+
+It’s a flag to turn off the runtime calculation of root depth. The root biomass or carbon storage grows unbounded over time in the old model. The unbounded root mass is greatly over the empirical relationship, resulting in unreal root depth (over 80 m deep in Coweeta cases in some old simulation). No one noticed because not many people heavily use the growth mode.  
+
+This flag may not need for 7.2+ EC model. I have implemented “improved” carbon allocation in the model under Dickenson and Waring. Usr can set max height and depth for different plant species in the veg.def.  These max heights and depths redistribute the carbon allocation. Clare has tested this implementation with me and gave some great inputs. You may contact her for additional details. This implementation is not just fixing the numerical calculation of carbon allocation, but also imply the age effects on plant carbon sequestration and N uptake. As mature plant stand reaches to max depth or height, carbon sequestration starts to slow down and become more net zero to the respiration. Note this is different from the tree stand density. 
+
+https://github.com/laurencelin/RHESSysEastCoast/blob/master/cn/compute_potential_N_uptake_Dickenson.c#L130
+
+After all, you can always turn this off but not using the flag and set max height and depth to some large numbers.
+
+------------------------------------------------------------------------
+-fracDirectNdep #
+https://github.com/laurencelin/RHESSysEastCoast/search?q=fracDirectNdep
+
+In 100% vegetated patch, all N deposition goes to stratum surface, which is unavailable plant uptake or decomposition. Rain water moves the stratum surface N to ground surface pool.  Option of this flag with a fraction [0-1] allows some fixability of this strong assumption, specially in urbanized area. 
+
+------------------------------------------------------------------------
+-soilCNadaptation_flag
+https://github.com/laurencelin/RHESSysEastCoast/search?q=soilCNadaptation_flag
+
+This is my attempt to improve the old decomposition. The old decomposition assumed fixed C:N ratios on all four soil pools, which is not true. The last soil pool C:N is seemingly fixed around 17.8 from many long term forest decomposition studies, but the first 1-3 soil pools are not fixed at all, which should be related to above-ground vegetation. 
+
+This flag is to allow dynamic C:N ratios in 1-3 soil pools. It’s just my attempt, not official. Maybe someone can work on this part further. This feature has great implication for landuse change simulation, as new vegetation will slowly modify the below-ground soil C:N. 
 
 
 
