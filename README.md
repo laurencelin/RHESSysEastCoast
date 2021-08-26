@@ -57,7 +57,7 @@ This flag may not need for 7.2+ EC model. I have implemented “improved” carb
 
 https://github.com/laurencelin/RHESSysEastCoast/blob/master/cn/compute_potential_N_uptake_Dickenson.c#L130
 
-After all, you can always turn this off but not using the flag and set max height and depth to some large numbers.
+After all, you can always turn this off by not using the flag and set max height and depth to some large numbers.
 
 ------------------------------------------------------------------------
 -fracDirectNdep #
