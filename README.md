@@ -16,6 +16,7 @@ new features / modifications for hydrology and soil moisture
 - break down "Roads" as paved road (high impervious and parallel to the slope surface) and contour road on mountain/steep slope (contour feature can interrept subsurface water on slopes); required RHESSysEC specific flowtable inputs
 - storm drainage point along the paved road network in urban catchment, as well as quick drainage area (e.g., yards, parks, ..etc)
 - streamflow = returnflow + baseflow + stormdrainage + (gw.out) if applied
+- subpatch LULC modeling, i.e., multiple LULC in one patch. In this case, the "old" LULC def becomes useless because a patch cannot be defined by a single LULC def. So in this new version of model, LULC def becomes a parameter file holding fertilizer, septic, sewer, and pond depth information (e.g., https://github.com/laurencelin/GIS2RHESSys/blob/master/lulcCollectionEC.csv). The id "11" is just an id, unrelated to the action code (defined below) in the flow table.
 - patch scale controls on surface-subsurface routing and interaction (use flowtable actionCodes and model commandline flags to replace drinagetype); actionCodes are prime numbers; multiple actions can be implemented on the same patch simply by multiplying the actionCodes; for example, three actions (irrigation, fertilizer, and exess water drainage) could occur in a lawn patch and its actionCode is 741 = 13 X 19 X 3; actionCodes are listed below:
   - 1 = stream drinage
   - 2 = contour road drainage
@@ -46,8 +47,8 @@ new features / modifications for biochemistry cycle & transport
 
 
 
-------------------------------------------------------------------------
--dynRtZoff
+new flags in commandline to control certain model behaviors
+- -dynRtZoff
 https://github.com/laurencelin/RHESSysEastCoast/blob/0a79e1efa1b35b4f20695253c8ccaff4d713ea96/init/construct_command_line.c#L622
 https://github.com/laurencelin/RHESSysEastCoast/search?q=dynRtZoff_flag
 
@@ -59,14 +60,13 @@ https://github.com/laurencelin/RHESSysEastCoast/blob/master/cn/compute_potential
 
 After all, you can always turn this off by not using the flag and set max height and depth to some large numbers.
 
-------------------------------------------------------------------------
--fracDirectNdep #
+- -fracDirectNdep #
 https://github.com/laurencelin/RHESSysEastCoast/search?q=fracDirectNdep
 
 In 100% vegetated patch, all N deposition goes to stratum surface, which is unavailable plant uptake or decomposition. Rain water moves the stratum surface N to ground surface pool.  Option of this flag with a fraction [0-1] allows some fixability of this strong assumption, specially in urbanized area. 
 
-------------------------------------------------------------------------
--soilCNadaptation_flag
+
+- -soilCNadaptation_flag
 https://github.com/laurencelin/RHESSysEastCoast/search?q=soilCNadaptation_flag
 
 This is my attempt to improve the old decomposition. The old decomposition assumed fixed C:N ratios on all four soil pools, which is not true. The last soil pool C:N is seemingly fixed around 17.8 from many long term forest decomposition studies, but the first 1-3 soil pools are not fixed at all, which should be related to above-ground vegetation. 
