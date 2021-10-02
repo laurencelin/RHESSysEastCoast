@@ -12,7 +12,7 @@ Reasons for this branch:
 
 new features / modifications for hydrology and soil moisture
 - fully real-time dynamic subsurface routing, i.e., daily water table topology/elevation derives the subsurface water movements in terms of direction and magnitude; required RHESSysEC specific flowtable inputs (https://github.com/laurencelin/GIS2RHESSys)
-- house basement interreption on subsurface water movement in some urban catchments; required RHESSysEC specific flowtable inputs
+- house basement interreption on subsurface water movement in some urban catchments; required RHESSysEC specific flowtable inputs (disabled in the current version)
 - break down "Roads" as paved road (high impervious and parallel to the slope surface) and contour road on mountain/steep slope (contour feature can interrept subsurface water on slopes); required RHESSysEC specific flowtable inputs
 - storm drainage point along the paved road network in urban catchment, as well as quick drainage area (e.g., yards, parks, ..etc)
 - streamflow = returnflow + baseflow + stormdrainage + (gw.out) if applied
@@ -28,7 +28,7 @@ new features / modifications for hydrology and soil moisture
   - -sewer_flag & actionSEWER (11) = subsurface sewer drinage
   - actionPIPEDRAIN (17) = subsurface pipe (non-sewer) drinage
   - septic source (19)
-
+When GIS2RHESSys sees the LULC cover fractions (https://github.com/laurencelin/GIS2RHESSys), it generates the combination of action codes for the patch. https://github.com/laurencelin/GIS2RHESSys/blob/master/libraries/g2w_cf_RHESSysEC_soil_fullextraction.R#L1627 
 
 new features / modifications for forest ecosystem
 - sun angle and aspect angle fixed 
