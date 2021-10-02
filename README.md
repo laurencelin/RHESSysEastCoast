@@ -24,10 +24,10 @@ new features / modifications for hydrology and soil moisture
   - -gw_flag & -gwtoriparian_flag & actionRIPARIAN (7) = deep groundwater seeping out to subsurface
   - -gw_flag & actionGWDRAIN (5) = drainage to deep groundwater (constrained by surface imperiousness)
   - -grassIrrigation_flag & actionIRRIGRATION (13) & landuse.def [max amount mm/day] (during growth season only; water stress adjustment) 
-  - -fertilizer_flag & actionFERTILIZE (19) & landuse.def [amount (kgN/m2/mo) and freq (30 days)] (during growth season only)
+  - -fertilizer_flag & actionFERTILIZE (13) & landuse.def [amount (kgN/m2/mo) and freq (30 days)] (during growth season only)
   - -sewer_flag & actionSEWER (11) = subsurface sewer drinage
   - actionPIPEDRAIN (17) = subsurface pipe (non-sewer) drinage
-
+  - septic source (19)
 
 
 new features / modifications for forest ecosystem
