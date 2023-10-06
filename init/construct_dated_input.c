@@ -146,8 +146,8 @@ struct	dated_input_object *construct_dated_input(
 		}
 		else if ( strcmp(sequence_name,"inundation" ) == 0){
 			strcpy(file_name, file_prefix);
-			dated_input[0].innundation = construct_dated_clim_sequence(
-				(char *)strcat(file_name,".innundation"),
+			dated_input[0].inundation = construct_dated_clim_sequence(
+				(char *)strcat(file_name,".inundation"),
 				start_date);
 		}
 		else  fprintf(stderr,"WARNING-clim sequence %s not found.\n",
