@@ -512,30 +512,30 @@ struct patch_object *construct_patch(
 	/*    Allocate a list of base stations for this patch.			*/
 	/*--------------------------------------------------------------*/
     patch[0].base_stations = NULL;
-//    patch[0].base_stations = (struct base_station_object **)
-//		alloc(patch[0].num_base_stations *
-//		sizeof(struct base_station_object *),
-//		"base_stations","construct_patch" );
-//	/*--------------------------------------------------------------*/
-//	/*      Read each base_station ID and then point to that base_statio*/
-//	/*--------------------------------------------------------------*/
-//	for (i=0 ; i<patch[0].num_base_stations; i++){
-//		fscanf(world_file,"%d",&(base_stationID));
-//		read_record(world_file, record);
-//		/*--------------------------------------------------------------*/
-//		/*	Point to the appropriate base station in the base       	*/
-//		/*              station list for this world.					*/
-//		/*--------------------------------------------------------------*/
-//		patch[0].base_stations[i] = assign_base_station(
-//			base_stationID,
-//			num_world_base_stations,
-//			world_base_stations);
-//	} /*end for*/
+    patch[0].base_stations = (struct base_station_object **)
+		alloc(patch[0].num_base_stations *
+		sizeof(struct base_station_object *),
+		"base_stations","construct_patch" );
+	/*--------------------------------------------------------------*/
+	/*      Read each base_station ID and then point to that base_statio*/
+	/*--------------------------------------------------------------*/
+	for (i=0 ; i<patch[0].num_base_stations; i++){
+		fscanf(world_file,"%d",&(base_stationID));
+		read_record(world_file, record);
+		/*--------------------------------------------------------------*/
+		/*	Point to the appropriate base station in the base       	*/
+		/*              station list for this world.					*/
+		/*--------------------------------------------------------------*/
+		patch[0].base_stations[i] = assign_base_station(
+			base_stationID,
+			num_world_base_stations,
+			world_base_stations);
+	} /*end for*/
 	/*--------------------------------------------------------------*/
 	/*	Read in number of canopy strata objects in this patch		*/
 	/*--------------------------------------------------------------*/
-//	fscanf(world_file,"%d",&(patch[0].num_canopy_strata));
-//	read_record(world_file, record);
+	fscanf(world_file,"%d",&(patch[0].num_canopy_strata));
+	read_record(world_file, record);
 	patch[0].num_canopy_strata = getIntWorldfile(&paramCnt,&paramPtr,"NUM_of_","%d",0,0);//47
     
 	/*--------------------------------------------------------------*/
