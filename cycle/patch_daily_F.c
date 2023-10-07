@@ -514,7 +514,28 @@ void		patch_daily_F(
 	if ( command_line[0].verbose_flag == -5 ){
         printf("\nPATCH DAILY F:");
 	}
-	
+
+/*--------------------------------------------------------------*/
+	/*	INUNDATION	*/
+	/*--------------------------------------------------------------*/
+
+	if (patch[0].base_stations != NULL) {
+		inx = patch[0].base_stations[0][0].dated_input[0].inundation.inx;
+		if (inx > -999) {
+			clim_event = patch[0].base_stations[0][0].dated_input[0].inundation.seq[inx];
+			while (julday(clim_event.edate) < julday(current_date)) {
+				patch[0].base_stations[0][0].dated_input[0].inundation.inx += 1;
+				inx = patch[0].base_stations[0][0].dated_input[0].inundation.inx;
+				clim_event = patch[0].base_stations[0][0].dated_input[0].inundation.seq[inx];
+            }//while
+			if ((clim_event.edate.year != 0) && ( julday(clim_event.edate) == julday(current_date)) ) {
+				ex_inundation = clim_event.value;
+				patch[0].grassIrrigation_m = ex_inundation;
+            }else ex_inundation = 0.0;
+        }else ex_inundation = 0.0;
+    }else ex_inundation = 0.0;
+
+	patch[0].grassIrrigation_m = ex_inundation;
 	/*--------------------------------------------------------------*/
 	/*	Set the patch rain and snow throughfall equivalent to the	*/
 	/*	rain and snow coming down over the zone.					*/
