@@ -515,27 +515,44 @@ void		patch_daily_F(
         printf("\nPATCH DAILY F:");
 	}
 
-/*--------------------------------------------------------------*/
+	/*--------------------------------------------------------------*/
 	/*	INUNDATION	*/
 	/*--------------------------------------------------------------*/
+	#include <string.h>
 
-	if (patch[0].base_stations != NULL) {
-		inx = patch[0].base_stations[0][0].dated_input[0].inundation.inx;
-		if (inx > -999) {
-			clim_event = patch[0].base_stations[0][0].dated_input[0].inundation.seq[inx];
-			while (julday(clim_event.edate) < julday(current_date)) {
-				patch[0].base_stations[0][0].dated_input[0].inundation.inx += 1;
-				inx = patch[0].base_stations[0][0].dated_input[0].inundation.inx;
-				clim_event = patch[0].base_stations[0][0].dated_input[0].inundation.seq[inx];
-            }//while
-			if ((clim_event.edate.year != 0) && ( julday(clim_event.edate) == julday(current_date)) ) {
-				ex_inundation = clim_event.value;
-				patch[0].grassIrrigation_m = ex_inundation;
-            }else ex_inundation = 0.0;
-        }else ex_inundation = 0.0;
-    }else ex_inundation = 0.0;
+	// Declare variables for the column names
+	// char patchID[50]
+	// char date[50];
+	// char depth[50];
+	// char duration[50];
+	FILE *file;
 
-	patch[0].grassIrrigation_m = ex_inundation;
+	int main() {
+    	// Open the CSV file for reading
+    	file = fopen("https://github.com/hanneborstlap/RHESSysEastCoast_orig/blob/inundation/CobbMill_output_edited.csv", "r");
+	while (fscanf(file, "%20[^,], %20[^,], %20[^,], %20[^\n]", patchID, date, depth, duration) == 4) {
+		printf("PatchID: %s\n", patchID)
+        	printf("Date: %s\n", date);
+        	printf("Depth: %s\n", depth);
+        	printf("Duration: %s\n", duration);
+    	}
+
+	if (patch[0].ID == PatchID) {
+		if (julday(Date) != julday(current_date)) {
+			patch[0].ex_inundation_depth = 0.0; 
+			patch[0].ex_inundation_dur = 0.0; 
+		}
+		if (julday(Date) == julday(current_date)) {
+			patch[0].ex_inundation_depth = depth; 
+			patch[0].ex_inundation_depth = duration; 
+		}
+	} 
+
+    // Close the file when you're done
+    fclose(file);
+    return 0;
+}
+
 	/*--------------------------------------------------------------*/
 	/*	Set the patch rain and snow throughfall equivalent to the	*/
 	/*	rain and snow coming down over the zone.					*/
