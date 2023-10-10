@@ -292,8 +292,6 @@ void add_growth_headers(struct world_output_file_object *world_output_files,
                     "gwAPAR",//27
                     "gwLWP",//28
                     "gwVPD"//29
-		    "ex_inundation_depth" //30
-		    "ex_inundation_dur" //31
                 
                     
 //                    "day",
