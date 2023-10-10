@@ -174,7 +174,7 @@ void	output_patch(
                     top60cm_potential_sat * 1000.0,
 		// Added additional variables for external coastal inundation, by Borstlap H, Oct 8, 2023
 		    patch[0].ex_inundation_depth, 
-		    patch[0].ex_inundation_dur, 
+		    patch[0].ex_inundation_dur
                     );
 
 	if (check <= 0) {
