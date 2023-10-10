@@ -352,17 +352,17 @@ void add_headers(struct world_output_file_object *world_output_files,
 	/*--------------------------------------------------------------*/
 	outfile = world_output_files[0].hillslope[0].yearly;
         
-        fprintf(outfile, "%s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s\n" ,
+        fprintf(outfile, "%s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s\n" ,
         "year",
         "patchID",
         "subQnet",
         "surfQnet",
-        "subQvnet", 
+        "subQvnet", //5
         "precip",
         "pet",
         "et",
         "sat_deficit_z",
-        "peakLAI",
+        "peakLAI", //10
         "meanLAI",
         "psn",
         "denitrif",
