@@ -452,7 +452,7 @@ void add_headers(struct world_output_file_object *world_output_files,
 	outfile = world_output_files[0].patch[0].daily;
 		check = fprintf(outfile,
 //                        "%s-%s-%s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s\n" ,
-                        "%s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s\n", // added 4 extra
+                        "%s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s\n", // added 2 extra
                         
                         // we are looking for hydrology behavoirs
 						"year", //1
@@ -473,19 +473,21 @@ void add_headers(struct world_output_file_object *world_output_files,
                         "ET",
                         "treeLAI",//17
                         "nontreeLAI",//18
-                        "SmartIrrigation",
-                        "rtz_totalvol",
-                        "unsat_fc",
-                        "rtz_fc",
-                        "unsat_storage",
-                        "top12cm_storage",
-                        "top12cm_potential_sat",
-                        "rootdepth",
-                        "soildepth",
-                        "top30cm_storage",
-                        "top30cm_potential_sat",
-                        "top60cm_storage",
-                        "top60cm_potential_sat"
+                        "SmartIrrigation", //19
+                        "rtz_totalvol", //20
+                        "unsat_fc", //21
+                        "rtz_fc", //22
+                        "unsat_storage", //23
+                        "top12cm_storage", //24
+                        "top12cm_potential_sat", //25
+                        "rootdepth", //26
+                        "soildepth", //27
+                        "top30cm_storage", //28
+                        "top30cm_potential_sat", //29
+                        "top60cm_storage", //30
+                        "top60cm_potential_sat", //31
+			"ex_inundation_depth", //32
+			"ex_inundation_dur", //33
 						); 
                         // patch daily
 	/*--------------------------------------------------------------*/
