@@ -509,7 +509,9 @@ void		patch_daily_F(
 	
 	patch[0].T_canopy = zone[0].metv.tavg;
 	patch[0].T_canopy_final = 0.0;
-	
+
+	patch[0].ex_inundation_depth = 0.0
+	patch[0].ex_inundation_dur = 0.0
 
 	if ( command_line[0].verbose_flag == -5 ){
         printf("\nPATCH DAILY F:");
