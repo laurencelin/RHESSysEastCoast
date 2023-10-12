@@ -523,10 +523,10 @@ void		patch_daily_F(
 	#include <string.h>
 
 	// Declare variables for the column names
-	// char patchID[50]
-	// char date[50];
-	// char depth[50];
-	// char duration[50];
+	char PatchID[50]
+	char date[50];
+	char duration[50];
+	char depth[50];
 	FILE *file;
 
     	// Open the CSV file for reading
