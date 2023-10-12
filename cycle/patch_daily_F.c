@@ -530,30 +530,36 @@ void		patch_daily_F(
 	FILE *file;
 
     	// Open the CSV file for reading
-  	 char url[255];
+  	// char url[255];
    	//USER INPUT URL
-   	printf("https://github.com/hanneborstlap/RHESSysEastCoast_orig/blob/inundation/CobbMill_output_edited.csv");
+   	// printf("https://github.com/hanneborstlap/RHESSysEastCoast_orig/blob/inundation/CobbMill_output_edited.csv");
 
 	// scanf("%s", );
    	
     	// file = fopen("https://github.com/hanneborstlap/RHESSysEastCoast_orig/blob/inundation/CobbMill_output_edited.csv", "r");
-	while (scanf(&url, "%20[^,], %20[^,], %20[^,], %20[^\n]", inundation_PatchID, inundation_date, inundation_duration, inundation_depth) == 4) {
-		printf("PatchID: %s\n", inundation_patchID);
-        	printf("Date: %s\n", inundation_date);
-        	printf("Depth: %s\n", inundation_depth);
-        	printf("Duration: %s\n", inundation_duration);
+	file = fopen("/scratch/tpv4jw/RHESSys/5_INUNDATION/CobbMill_output_edited.csv", "r");
+	int count = 0;
+	while (fscanf(file, "%lf, %lf, %lf, %lf", inundation_PatchID[count], inundation_date[count], inundation_duration[count], inundation_depth[count]) == 4) {
+		// printf("PatchID: %s\n", inundation_patchID);
+        	// printf("Date: %s\n", inundation_date);
+        	// printf("Depth: %s\n", inundation_depth);
+        	// printf("Duration: %s\n", inundation_duration);
+		count++
     	}
 
-	if (patch[0].ID == inundation_PatchID) {
-		if (julday(inundation_date) != julday(current_date)) {
+	for (int i = 0; i < count; i++) {
+		if (patch[0].ID == inundation_PatchID[i]) {
+		if (julday(inundation_date[i]) != julday(current_date)) {
 			patch[0].ex_inundation_depth = 0.0; 
 			patch[0].ex_inundation_dur = 0.0; 
 		}
-		if (julday(inundation_date) == julday(current_date)) {
-			patch[0].ex_inundation_depth = depth; 
-			patch[0].ex_inundation_depth = duration; 
+		if (julday(inundation_date[i]) == julday(current_date)) {
+			patch[0].ex_inundation_depth = inundation_depth[i]; 
+			patch[0].ex_inundation_depth = duration[i]; 
 		}
 	} 
+
+    }
 
     // Close the file when you're done
     fclose(file);
