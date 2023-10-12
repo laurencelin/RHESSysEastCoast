@@ -529,7 +529,6 @@ void		patch_daily_F(
 	// char duration[50];
 	FILE *file;
 
-	int main() {
     	// Open the CSV file for reading
     	file = fopen("https://github.com/hanneborstlap/RHESSysEastCoast_orig/blob/inundation/CobbMill_output_edited.csv", "r");
 	while (fscanf(file, "%20[^,], %20[^,], %20[^,], %20[^\n]", PatchID, date, duration, depth) == 4) {
@@ -553,7 +552,6 @@ void		patch_daily_F(
     // Close the file when you're done
     fclose(file);
     return 0;
-}
 
 	/*--------------------------------------------------------------*/
 	/*	Set the patch rain and snow throughfall equivalent to the	*/
