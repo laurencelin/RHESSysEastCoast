@@ -523,27 +523,33 @@ void		patch_daily_F(
 	#include <string.h>
 
 	// Declare variables for the column names
-	char PatchID[50];
-	char date[50];
-	char duration[50];
-	char depth[50];
+	double inundation_PatchID[50];
+	double inundation_date[50];
+	double inundation_duration[50];
+	double inundation_depth[50];
 	FILE *file;
 
     	// Open the CSV file for reading
-    	file = fopen("https://github.com/hanneborstlap/RHESSysEastCoast_orig/blob/inundation/CobbMill_output_edited.csv", "r");
-	while (fscanf(file, "%20[^,], %20[^,], %20[^,], %20[^\n]", PatchID, date, duration, depth) == 4) {
-		printf("PatchID: %s\n", patchID);
-        	printf("Date: %s\n", date);
-        	printf("Depth: %s\n", depth);
-        	printf("Duration: %s\n", duration);
+  	 char url[255];
+   	//USER INPUT URL
+   	printf("https://github.com/hanneborstlap/RHESSysEastCoast_orig/blob/inundation/CobbMill_output_edited.csv");
+
+	// scanf("%s", );
+   	
+    	// file = fopen("https://github.com/hanneborstlap/RHESSysEastCoast_orig/blob/inundation/CobbMill_output_edited.csv", "r");
+	while (scanf(&url, "%20[^,], %20[^,], %20[^,], %20[^\n]", inundation_PatchID, inundation_date, inundation_duration, inundation_depth) == 4) {
+		printf("PatchID: %s\n", inundation_patchID);
+        	printf("Date: %s\n", inundation_date);
+        	printf("Depth: %s\n", inundation_depth);
+        	printf("Duration: %s\n", inundation_duration);
     	}
 
-	if (patch[0].ID == PatchID) {
-		if (julday(Date) != julday(current_date)) {
+	if (patch[0].ID == inundation_PatchID) {
+		if (julday(inundation_date) != julday(current_date)) {
 			patch[0].ex_inundation_depth = 0.0; 
 			patch[0].ex_inundation_dur = 0.0; 
 		}
-		if (julday(Date) == julday(current_date)) {
+		if (julday(inundation_date) == julday(current_date)) {
 			patch[0].ex_inundation_depth = depth; 
 			patch[0].ex_inundation_depth = duration; 
 		}
