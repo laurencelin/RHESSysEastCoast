@@ -532,7 +532,7 @@ void		patch_daily_F(
     	// Open the CSV file for reading
     	file = fopen("https://github.com/hanneborstlap/RHESSysEastCoast_orig/blob/inundation/CobbMill_output_edited.csv", "r");
 	while (fscanf(file, "%20[^,], %20[^,], %20[^,], %20[^\n]", PatchID, date, duration, depth) == 4) {
-		printf("PatchID: %s\n", patchID)
+		printf("PatchID: %s\n", patchID);
         	printf("Date: %s\n", date);
         	printf("Depth: %s\n", depth);
         	printf("Duration: %s\n", duration);
