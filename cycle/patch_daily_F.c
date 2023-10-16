@@ -537,15 +537,33 @@ void		patch_daily_F(
 	// scanf("%s", );
    	
     	// file = fopen("https://github.com/hanneborstlap/RHESSysEastCoast_orig/blob/inundation/CobbMill_output_edited.csv", "r");
+
+	struct date createDateFromDateString(const char* dateString) {
+    	struct date result;
+    	char* token;
+    	char* copy = strdup(dateString); // Make a copy of the input string
+    	// Tokenize the string using "-" as the delimiter
+    	token = strtok(copy, "-");
+    	result.month = atol(token);
+    	token = strtok(NULL, "-");
+    	result.day = atoi(token);
+    	token = strtok(NULL, "-");
+    	result.year = atoi(token);
+    	free(copy); 
+    	return result;
+	}
+
 	file = fopen("/scratch/tpv4jw/RHESSys/5_INUNDATION/CobbMill_output_edited.csv", "r");
 	int count = 0;
-	while (fscanf(file, "%lf, %lf, %lf, %lf", inundation_PatchID[count], inundation_date[count], inundation_duration[count], inundation_depth[count]) == 4) {
+	while (fscanf(file, "%lf, %lf, %lf, %lf", &inundation_PatchID[count], &inundation_date[count], &inundation_duration[count], &inundation_depth[count]) == 4) {
 		// printf("PatchID: %s\n", inundation_patchID);
         	// printf("Date: %s\n", inundation_date);
         	// printf("Depth: %s\n", inundation_depth);
         	// printf("Duration: %s\n", inundation_duration);
-		count++
+		count++;
     	}
+
+	struct date inundation_date = createDateFromDateString(inundation_date);
 
 	for (int i = 0; i < count; i++) {
 		if (patch[0].ID == inundation_PatchID[i]) {
