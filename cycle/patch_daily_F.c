@@ -555,7 +555,7 @@ void		patch_daily_F(
 
 	file = fopen("/scratch/tpv4jw/RHESSys/5_INUNDATION/CobbMill_output_edited.csv", "r");
 	int count = 0;
-	while (fscanf(file, "%lf, %lf, %lf, %lf", &inundation_PatchID[count], &inundation_date[count], &inundation_duration[count], &inundation_depth[count]) == 4) {
+	while (fscanf(file, "%lf, %s, %lf, %lf", &inundation_PatchID[count], &inundation_date[count], &inundation_duration[count], &inundation_depth[count]) == 4) {
 		// printf("PatchID: %s\n", inundation_patchID);
         	// printf("Date: %s\n", inundation_date);
         	// printf("Depth: %s\n", inundation_depth);
