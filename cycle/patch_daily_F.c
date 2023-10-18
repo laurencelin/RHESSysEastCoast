@@ -524,7 +524,7 @@ void		patch_daily_F(
 
 	// Declare variables for the column names
 	double inundation_PatchID[50];
-	double inundation_date[50];
+	char inundation_date[50];
 	double inundation_duration[50];
 	double inundation_depth[50];
 	FILE *file;
