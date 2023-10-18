@@ -563,7 +563,7 @@ void		patch_daily_F(
 		count++;
     	}
 
-	struct date inundation_date_f = createDateFromDateString(inundation_date);
+	struct date inundation_date_f[200] = createDateFromDateString(inundation_date);
 
 	for (int i = 0; i < count; i++) {
 		if (patch[0].ID == inundation_PatchID[i]) {
