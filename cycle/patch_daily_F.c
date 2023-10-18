@@ -572,7 +572,7 @@ void		patch_daily_F(
 		}
 		if (julday(inundation_date_f) == julday(current_date)) {
 			patch[0].ex_inundation_depth = inundation_depth[i]; 
-			patch[0].ex_inundation_depth = duration[i]; 
+			patch[0].ex_inundation_dur = inundation_duration[i]; 
 		}
 	} 
 
