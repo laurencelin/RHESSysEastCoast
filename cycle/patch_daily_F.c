@@ -563,15 +563,15 @@ void		patch_daily_F(
 		count++;
     	}
 
-	struct date inundation_date = createDateFromDateString(inundation_date);
+	struct date inundation_date_f = createDateFromDateString(inundation_date);
 
 	for (int i = 0; i < count; i++) {
 		if (patch[0].ID == inundation_PatchID[i]) {
-		if (julday(inundation_date[i]) != julday(current_date)) {
+		if (julday(inundation_date_f[i]) != julday(current_date)) {
 			patch[0].ex_inundation_depth = 0.0; 
 			patch[0].ex_inundation_dur = 0.0; 
 		}
-		if (julday(inundation_date[i]) == julday(current_date)) {
+		if (julday(inundation_date_f[i]) == julday(current_date)) {
 			patch[0].ex_inundation_depth = inundation_depth[i]; 
 			patch[0].ex_inundation_depth = duration[i]; 
 		}
