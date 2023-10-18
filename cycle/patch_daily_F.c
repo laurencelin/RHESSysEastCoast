@@ -538,7 +538,7 @@ void		patch_daily_F(
    	
     	// file = fopen("https://github.com/hanneborstlap/RHESSysEastCoast_orig/blob/inundation/CobbMill_output_edited.csv", "r");
 
-	struct date createDateFromDateString(const char* dateString) {
+	struct date createDateFromDateString(const char* dateString[20]) {
     	struct date result;
     	char* token;
     	char* copy = strdup(dateString); // Make a copy of the input string
