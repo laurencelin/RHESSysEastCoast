@@ -523,10 +523,10 @@ void		patch_daily_F(
 	#include <string.h>
 
 	// Declare variables for the column names
-	double inundation_PatchID[50];
-	char inundation_date[50];
-	double inundation_duration[50];
-	double inundation_depth[50];
+	double inundation_PatchID[200];
+	char inundation_date[200][20];
+	double inundation_duration[200];
+	double inundation_depth[200];
 	FILE *file;
 
     	// Open the CSV file for reading
@@ -571,7 +571,7 @@ void		patch_daily_F(
 			patch[0].ex_inundation_depth = 0.0; 
 			patch[0].ex_inundation_dur = 0.0; 
 		}
-		if (julday(inundation_date_f[i]) == julday(current_date)) {
+		if (julday(inundation_date_f) == julday(current_date)) {
 			patch[0].ex_inundation_depth = inundation_depth[i]; 
 			patch[0].ex_inundation_depth = duration[i]; 
 		}
