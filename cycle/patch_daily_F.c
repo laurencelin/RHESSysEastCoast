@@ -576,8 +576,8 @@ int main (void)
 		struct date inundation_date_f = createDateFromDateString(inundation_date[i]);
 		if (inundation_PatchID[i] == patch[0].ID) {
 		    if (julday(inundation_date_f) == julday(current_date)) {
-			   patch[0].ex_inundation_depth[i] = inundation_duration[i]; 
-			   patch[0].ex_inundation_dur[i] = inundation_depth[i]; 
+			   patch[0].ex_inundation_depth = inundation_duration[i]; 
+			   patch[0].ex_inundation_dur = inundation_depth[i]; 
 		 }
         else {
             patch[0].ex_inundation_depth[i] = 0.0; 
