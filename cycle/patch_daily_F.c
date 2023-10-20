@@ -561,36 +561,34 @@ int main (void)
     };
 
     
-	file = fopen("/scratch/tpv4jw/RHESSys/5_INUNDATION/CobbMill_output_edited.txt", "r");
+    file = fopen("/scratch/tpv4jw/RHESSys/5_INUNDATION/CobbMill_output_edited.txt", "r");
     if (file == NULL) {
     fprintf(stderr, "Error: Unable to open the input file.\n");
     return 1;
     }
     else { 
         int count = 0;
-        while (fscanf(file, "%lf,%[^,],%lf,%lf", &inundation_PatchID[count], inundation_date[count], &inundation_duration[count],        &inundation_depth[count]) == 4) {
+        while (fscanf(file, "%lf,%[^,],%lf,%lf", &inundation_PatchID[count], inundation_date[count], &inundation_duration[count], &inundation_depth[count]) == 4) {
             count++;
     	}
      
 	for (int i = 0; i < count; i++) {
 		struct date inundation_date_f = createDateFromDateString(inundation_date[i]);
-		if (inundation_PatchID[i] == patch[0].ID) {
-		    if (julday(inundation_date_f) == julday(current_date)) {
-			   patch[0].ex_inundation_depth = inundation_duration[i]; 
-			   patch[0].ex_inundation_dur = inundation_depth[i]; 
+		// if (inundation_PatchID[i] == patch[0].ID) {
+		// if (julday(inundation_date_f) == julday(current_date)) {
+		patch[0].ex_inundation_depth = inundation_duration[i]; 
+		patch[0].ex_inundation_dur = inundation_depth[i]; 
 		 }
-        else {
-            patch[0].ex_inundation_depth = 0.0; 
-	    patch[0].ex_inundation_dur = 0.0; 
-    }
-        }
+       //  else {
+            // patch[0].ex_inundation_depth = 0.0; 
+	    // patch[0].ex_inundation_dur = 0.0; 
     }
 
     fclose(file);
     
     return (0);
-}
-} 
+
+ }
     
 
 	/*--------------------------------------------------------------*/
