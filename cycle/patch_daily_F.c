@@ -520,67 +520,78 @@ void		patch_daily_F(
 	/*--------------------------------------------------------------*/
 	/*	INUNDATION	*/
 	/*--------------------------------------------------------------*/
-	#include <string.h>
+
+	/*--------------------------------------------------------------*/
+	/*	INUNDATION	*/
+	/*--------------------------------------------------------------*/
+    
+struct date createDateFromDateString(const char* dateString) {
+    struct date result;
+    char* token;
+    char* copy = strdup(dateString); // Make a copy of the input string
+
+    // Tokenize the string using "-" as the delimiter
+    token = strtok(copy, "/");
+    result.month = atoi(token);
+    token = strtok(NULL, "/");
+    result.day = atoi(token);
+    token = strtok(NULL, "/");
+    result.year = atoi(token);
+
+    free(copy);
+    return result;
+}
+
+int main (void) 
+{
 
 	// Declare variables for the column names
-	double inundation_PatchID[200];
-	char inundation_date[200][20];
-	double inundation_duration[200];
-	double inundation_depth[200];
+	double inundation_PatchID[1000];
+	char inundation_date[1000][20];
+	double inundation_duration[1000];
+	double inundation_depth[1000];
+	double ex_inundation_depth[1000];
+	double ex_inundation_dur[1000];
 	FILE *file;
+    
+    struct date_ {
+    int month;
+    int day;
+    int year;
+    };
 
-    	// Open the CSV file for reading
-  	// char url[255];
-   	//USER INPUT URL
-   	// printf("https://github.com/hanneborstlap/RHESSysEastCoast_orig/blob/inundation/CobbMill_output_edited.csv");
-
-	// scanf("%s", );
-   	
-    	// file = fopen("https://github.com/hanneborstlap/RHESSysEastCoast_orig/blob/inundation/CobbMill_output_edited.csv", "r");
-
-	struct date createDateFromDateString(const char* dateString[20]) {
-    	struct date result;
-    	char* token;
-    	char* copy = strdup(dateString); // Make a copy of the input string
-    	// Tokenize the string using "-" as the delimiter
-    	token = strtok(copy, "-");
-    	result.month = atol(token);
-    	token = strtok(NULL, "-");
-    	result.day = atoi(token);
-    	token = strtok(NULL, "-");
-    	result.year = atoi(token);
-    	free(copy); 
-    	return result;
-	}
-
-	file = fopen("/scratch/tpv4jw/RHESSys/5_INUNDATION/CobbMill_output_edited.csv", "r");
-	int count = 0;
-	while (fscanf(file, "%lf, %s, %lf, %lf", &inundation_PatchID[count], &inundation_date[count], &inundation_duration[count], &inundation_depth[count]) == 4) {
-		// printf("PatchID: %s\n", inundation_patchID);
-        	// printf("Date: %s\n", inundation_date);
-        	// printf("Depth: %s\n", inundation_depth);
-        	// printf("Duration: %s\n", inundation_duration);
-		count++;
+    
+	file = fopen("/scratch/tpv4jw/RHESSys/5_INUNDATION/CobbMill_output_edited.txt", "r");
+    if (file == NULL) {
+    fprintf(stderr, "Error: Unable to open the input file.\n");
+    return 1;
+    }
+    else { 
+        int count = 0;
+        while (fscanf(file, "%lf,%[^,],%lf,%lf", &inundation_PatchID[count], inundation_date[count], &inundation_duration[count],        &inundation_depth[count]) == 4) {
+            count++;
     	}
-
+     
 	for (int i = 0; i < count; i++) {
 		struct date inundation_date_f = createDateFromDateString(inundation_date[i]);
-		//if (patch[0].ID == inundation_PatchID[i]) {
-		//if (julday(inundation_date_f) != julday(current_date)) {
-			// patch[0].ex_inundation_depth = 0.0; 
-			// patch[0].ex_inundation_dur = 0.0; 
-		// }
-		// if (julday(inundation_date_f) == julday(current_date)) {
-		patch[0].ex_inundation_depth = inundation_depth[i]; 
-		patch[0].ex_inundation_dur = inundation_duration[i]; 
-		// }
-	// } 
-
+		if (inundation_PatchID[i] == patch[0].ID) {
+		    if (julday(inundation_date_f) == julday(current_date)) {
+			   patch[0].ex_inundation_depth[i] = inundation_duration[i]; 
+			   patch[0].ex_inundation_dur[i] = inundation_depth[i]; 
+		 }
+        else {
+            patch[0].ex_inundation_depth[i] = 0.0; 
+			patch[0].ex_inundation_dur[i] = 0.0; 
+    }
+        }
     }
 
-    // Close the file when you're done
     fclose(file);
-    return 0;
+    
+    return (0);
+}
+} 
+    
 
 	/*--------------------------------------------------------------*/
 	/*	Set the patch rain and snow throughfall equivalent to the	*/
