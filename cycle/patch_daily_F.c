@@ -580,8 +580,8 @@ int main (void)
 			   patch[0].ex_inundation_dur = inundation_depth[i]; 
 		 }
         else {
-            patch[0].ex_inundation_depth[i] = 0.0; 
-			patch[0].ex_inundation_dur[i] = 0.0; 
+            patch[0].ex_inundation_depth = 0.0; 
+	    patch[0].ex_inundation_dur = 0.0; 
     }
         }
     }
