@@ -558,6 +558,9 @@ void		patch_daily_F(
     	int year;
     	};
 
+	patch[0].ex_inundation_dur = 5.0;// inundation_duration[i]; 
+	patch[0].ex_inundation_depth = 5.0;// inundation_depth[i]; 
+
     	file = fopen("/scratch/tpv4jw/RHESSys/5_INUNDATION/CobbMill_output_edited.txt", "r");
     	if (file == NULL) {
     	fprintf(stderr, "Error: Unable to open the input file.\n");
