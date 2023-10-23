@@ -548,12 +548,6 @@ void		patch_daily_F(
     	return total_size;
 	}
 
-	struct date {
-    		int month;
-    		int day;
-    		int year;
-	};
-
 	struct date createDateFromDateString(const char* dateString) {
    	struct date result;
     	char* token;
@@ -619,7 +613,7 @@ void		patch_daily_F(
     		// Loop to assign correct variables to each patch and date 
      		for (int i = 0; i < count; i++) {
 			struct date inundation_date_f = createDateFromDateString(inundation_date[i]);
-		if (inundation_PatchID[i] == patchID) {
+		if (inundation_PatchID[i] == patch[0].ID) {
 		    if (julday(inundation_date_f) == julday(current_date)) {
 			   ex_inundation_depth[i] = inundation_depth[i]; 
 			   ex_inundation_dur[i] = inundation_duration[i]; 
