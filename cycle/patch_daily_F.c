@@ -619,8 +619,6 @@ void		patch_daily_F(
     		// Loop to assign correct variables to each patch and date 
      		for (int i = 0; i < count; i++) {
 			struct date inundation_date_f = createDateFromDateString(inundation_date[i]);
-        		struct date current_date_2 = createDateFromDateString(myString);
-        
 		if (inundation_PatchID[i] == patchID) {
 		    if (julday(inundation_date_f) == julday(current_date)) {
 			   ex_inundation_depth[i] = inundation_depth[i]; 
