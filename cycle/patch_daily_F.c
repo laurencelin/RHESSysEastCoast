@@ -531,7 +531,6 @@ void		patch_daily_F(
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#include "julday.h" // Include the header file
 
 struct date createDateFromDateString(const char* dateString) {
     struct date result;
