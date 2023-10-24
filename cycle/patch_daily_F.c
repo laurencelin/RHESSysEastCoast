@@ -591,7 +591,7 @@ void		patch_daily_F(
         	createDateFromDateString(inundation_date[count], &temp_date);
 
         	// Now you can work with temp_date to compare it to current_date and assign other variables
-        	if (inundation_PatchID[count] == patchID) {
+        	if (inundation_PatchID[count] == patch[0].ID) {
             	if (julday(temp_date) == julday(current_date)) {
                 	ex_inundation_depth[count] = inundation_depth[count];
                 	ex_inundation_dur[count] = inundation_duration[count];
