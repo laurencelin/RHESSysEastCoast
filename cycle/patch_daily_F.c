@@ -526,11 +526,38 @@ void		patch_daily_F(
 	/*--------------------------------------------------------------*/
 	/*	INUNDATION	*/
 	/*--------------------------------------------------------------*/
-    
-	#include <string.h>
-#include <stdio.h>
+
+	#include <stdio.h>
 #include <stdlib.h>
-#include <math.h>
+#include <string.h>
+#include <curl/curl.h>
+
+// Callback function to write data received from the URL
+struct MemoryStruct {
+    char *memory;
+    size_t size;
+};
+
+size_t write_data(void *ptr, size_t size, size_t nmemb, void *data) {
+    size_t total_size = size * nmemb;
+    struct MemoryStruct *mem = (struct MemoryStruct *)data;
+
+    // Reallocate memory to store the received data
+    mem->memory = (char *)realloc(mem->memory, mem->size + total_size + 1);
+
+    // Copy the received data into the memory buffer
+    memcpy(&(mem->memory[mem->size]), ptr, total_size);
+    mem->size += total_size;
+    mem->memory[mem->size] = 0; // Null-terminate the string
+
+    return total_size;
+}
+
+struct date {
+    int month;
+    int day;
+    int year;
+};
 
 struct date createDateFromDateString(const char* dateString) {
     struct date result;
@@ -549,50 +576,68 @@ struct date createDateFromDateString(const char* dateString) {
     return result;
 }
 
-	// Declare variables for the column names
-	double inundation_PatchID[1000];
-	char inundation_date[1000][20];
-	double inundation_duration[1000];
-	double inundation_depth[1000];
-	double ex_inundation_depth[1000];
-	double ex_inundation_dur[1000];
-	FILE *file;
+    CURL *curl;
+    CURLcode res;
     
-    struct date_ {
-    int month;
-    int day;
-    int year;
-    };
+    curl = curl_easy_init();
 
-    
-	file = fopen("/scratch/tpv4jw/RHESSys/5_INUNDATION/CobbMill_output_edited.txt", "r");
-    if (file == NULL) {
-    fprintf(stderr, "Error: Unable to open the input file.\n");
-	patch[0].ex_inundation_depth = 10; 
-	patch[0].ex_inundation_dur = 10; 
+    const char *url = "https://raw.githubusercontent.com/hanneborstlap/RHESSysEastCoast_orig/inundation/CobbMill_output_edited.txt"; 
+
+    struct MemoryStruct chunk;
+    chunk.memory = NULL;
+    chunk.size = 0;
+
+    curl_easy_setopt(curl, CURLOPT_URL, url);
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_data);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &chunk);
+
+    res = curl_easy_perform(curl);
+    if (res != CURLE_OK) {
+        fprintf(stderr, "curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
+        curl_easy_cleanup(curl);
+        free(chunk.memory);
+        return 1;
     }
-    else { 
-        int count = 0;
-        while (fscanf(file, "%lf,%[^,],%lf,%lf", &inundation_PatchID[count], inundation_date[count], &inundation_duration[count], &inundation_depth[count]) == 4) {
-            count++;
-    	}
-        
-	for (int i = 0; i < count; i++) {
+
+    curl_easy_cleanup(curl);
+
+    // data sits in chunk.memory as a string
+
+    // Declare variables to store the parsed data
+    double inundation_PatchID[1000];
+    char inundation_date[1000][20];
+    double inundation_duration[1000];
+    double inundation_depth[1000];
+
+    // Parse the received data into the variables
+    char *token = strtok(chunk.memory, "\n");
+    int count = 0;
+
+    while (token != NULL) {
+        sscanf(token, "%lf,%19[^,],%lf,%lf", &inundation_PatchID[count], inundation_date[count], &inundation_duration[count], &inundation_depth[count]);
+        count++;
+        token = strtok(NULL, "\n");
+    }
+
+    // Loop to assign correct variables to each patch and date 
+     for (int i = 0; i < count; i++) {
 		struct date inundation_date_f = createDateFromDateString(inundation_date[i]);
+        
 		if (inundation_PatchID[i] == patch[0].ID) {
 		    if (julday(inundation_date_f) == julday(current_date)) {
 			   patch[0].ex_inundation_depth = inundation_depth[i]; 
-			   patch[0].ex_inundation_dur = inundation_duration[i]; 
+			   patch[0].ex_inundation_dur = inundation_duration[i];; 
 		 }
-        else {
-            		patch[0].ex_inundation_depth = 0.5; 
-			patch[0].ex_inundation_dur = 0.5; 
-    }
-        }
-    }
     }
     
+    // Free the allocated memory
+    free(chunk.memory);
 
+}
+
+
+
+	
 	/*--------------------------------------------------------------*/
 	/*	Set the patch rain and snow throughfall equivalent to the	*/
 	/*	rain and snow coming down over the zone.					*/
