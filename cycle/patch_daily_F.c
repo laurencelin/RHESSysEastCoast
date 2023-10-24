@@ -570,7 +570,6 @@ struct date createDateFromDateString(const char* dateString) {
     fprintf(stderr, "Error: Unable to open the input file.\n");
 	patch[0].ex_inundation_depth = 10; 
 	patch[0].ex_inundation_dur = 10; 
-    return 1;
     }
     else { 
         int count = 0;
