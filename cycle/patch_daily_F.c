@@ -565,72 +565,69 @@ void		patch_daily_F(
     	return result;
 	}
 
-	int main() {
-    		CURL *curl;
-    		CURLcode res;
+    	CURL *curl;
+    	CURLcode res;
     
-    		curl = curl_easy_init();
+    	curl = curl_easy_init();
 
-    		const char *url = "https://raw.githubusercontent.com/hanneborstlap/RHESSysEastCoast_orig/inundation/CobbMill_output_edited.txt"; 
-    		struct MemoryStruct chunk;
-    		chunk.memory = NULL;
-   		chunk.size = 0;
+    	const char *url = "https://raw.githubusercontent.com/hanneborstlap/RHESSysEastCoast_orig/inundation/CobbMill_output_edited.txt"; 
+    	struct MemoryStruct chunk;
+    	chunk.memory = NULL;
+   	chunk.size = 0;
 
-    		curl_easy_setopt(curl, CURLOPT_URL, url);
-    		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_data);
-    		curl_easy_setopt(curl, CURLOPT_WRITEDATA, &chunk);
+    	curl_easy_setopt(curl, CURLOPT_URL, url);
+    	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_data);
+    	curl_easy_setopt(curl, CURLOPT_WRITEDATA, &chunk);
 
-    		res = curl_easy_perform(curl);
-    		if (res != CURLE_OK) {
-        	fprintf(stderr, "curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
-        	curl_easy_cleanup(curl);
-        	free(chunk.memory);
-        	return 1;
+    	res = curl_easy_perform(curl);
+    	if (res != CURLE_OK) {
+        fprintf(stderr, "curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
+        curl_easy_cleanup(curl);
+        free(chunk.memory);
+        return 1;
+    	}
+
+    	curl_easy_cleanup(curl);
+
+    	// data sits in chunk.memory as a string
+
+    	// Declare variables to store the parsed data
+    	double inundation_PatchID[1000];
+    	char inundation_date[1000][20];
+    	double inundation_duration[1000];
+    	double inundation_depth[1000];
+    	double ex_inundation_depth[1000];
+    	double ex_inundation_dur[1000];
+
+    	// Parse the received data into the variables
+    	char *token = strtok(chunk.memory, "\n");
+    	int count = 0;
+
+    	while (token != NULL) {
+        	sscanf(token, "%lf,%19[^,],%lf,%lf", &inundation_PatchID[count], inundation_date[count], &inundation_duration[count], &inundation_depth[count]);
+        	count++;
+        	token = strtok(NULL, "\n");
     		}
 
-    		curl_easy_cleanup(curl);
-
-    		// data sits in chunk.memory as a string
-
-    		// Declare variables to store the parsed data
-    		double inundation_PatchID[1000];
-    		char inundation_date[1000][20];
-    		double inundation_duration[1000];
-    		double inundation_depth[1000];
-    		double ex_inundation_depth[1000];
-    		double ex_inundation_dur[1000];
-
-    		// Parse the received data into the variables
-    		char *token = strtok(chunk.memory, "\n");
-    		int count = 0;
-
-    		while (token != NULL) {
-        		sscanf(token, "%lf,%19[^,],%lf,%lf", &inundation_PatchID[count], inundation_date[count], &inundation_duration[count], &inundation_depth[count]);
-        		count++;
-        		token = strtok(NULL, "\n");
-    		}
-
-    		// Loop to assign correct variables to each patch and date 
-     		for (int i = 0; i < count; i++) {
-			struct date inundation_date_f = createDateFromDateString(inundation_date[i]);
-		if (inundation_PatchID[i] == patch[0].ID) {
-		    if (julday(inundation_date_f) == julday(current_date)) {
-			   ex_inundation_depth[i] = inundation_depth[i]; 
-			   ex_inundation_dur[i] = inundation_duration[i]; 
+    	// Loop to assign correct variables to each patch and date 
+     	for (int i = 0; i < count; i++) {
+		struct date inundation_date_f = createDateFromDateString(inundation_date[i]);
+	if (inundation_PatchID[i] == patch[0].ID) {
+		if (julday(inundation_date_f) == julday(current_date)) {
+			ex_inundation_depth[i] = inundation_depth[i]; 
+			ex_inundation_dur[i] = inundation_duration[i]; 
 		 }
     		}
-		else {
-		ex_inundation_depth[i] = 5.0; 
-		ex_inundation_dur[i] = 5.0; 
+	else {
+	ex_inundation_depth[i] = 5.0; 
+	ex_inundation_dur[i] = 5.0; 
 		}
     
-    		// Free the allocated memory
-    		free(chunk.memory);
+    	// Free the allocated memory
+    	// free(chunk.memory);
 
     		return 0;
 		}
-		}
-
 
 	/*--------------------------------------------------------------*/
 	/*	Set the patch rain and snow throughfall equivalent to the	*/
