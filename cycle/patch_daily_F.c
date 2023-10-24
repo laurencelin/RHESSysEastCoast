@@ -527,71 +527,53 @@ void		patch_daily_F(
 	/*	INUNDATION	*/
 	/*--------------------------------------------------------------*/
     
+	#include <string.h>
+	#include <stdio.h>
+	#include <stdlib.h>
+	#include <math.h>
+	#include "julday.h"
+	#include <curl/curl.h>
+
 	// Callback function to write data received from the URL
-	struct MemoryStruct {
-    		char *memory;
-    		size_t size;
-	};
+	size_t write_data(void *ptr, size_t size, size_t nmemb, FILE *stream) {
+    	return fwrite(ptr, size, nmemb, stream);
+		}
 
-	size_t write_data(void *ptr, size_t size, size_t nmemb, void *data) {
-    	size_t total_size = size * nmemb;
-    	struct MemoryStruct *mem = (struct MemoryStruct *)data;
+	struct date createDateFromDateString(const char* dateString, struct date* result) {
+   	char* token;
+    	char* copy = strdup(dateString);
 
-   	// Reallocate memory to store the received data
-    	mem->memory = (char *)realloc(mem->memory, mem->size + total_size + 1);
-
-    	// Copy the received data into the memory buffer
-    	memcpy(&(mem->memory[mem->size]), ptr, total_size);
-    	mem->size += total_size;
-    	mem->memory[mem->size] = 0; // Null-terminate the string
-
-    	return total_size;
-	}
-
-	struct date createDateFromDateString(const char* dateString) {
-   	struct date result;
-    	char* token;
-    	char* copy = strdup(dateString); // Make a copy of the input string
-
-    	// Tokenize the string using "-" as the delimiter
     	token = strtok(copy, "/");
-    	result.month = atoi(token);
+    	result->month = atoi(token);
     	token = strtok(NULL, "/");
-    	result.day = atoi(token);
+    	result->day = atoi(token);
     	token = strtok(NULL, "/");
-    	result.year = atoi(token);
+    	result->year = atoi(token);
 
     	free(copy);
-    	return result;
 	}
-
+	
     	CURL *curl;
-    	CURLcode res;
-    
+    	FILE *file;
+
     	curl = curl_easy_init();
 
-    	const char *url = "https://raw.githubusercontent.com/hanneborstlap/RHESSysEastCoast_orig/inundation/CobbMill_output_edited.txt"; 
-    	struct MemoryStruct chunk;
-    	chunk.memory = NULL;
-   	chunk.size = 0;
+    	file = fopen("downloaded_file.txt", "w");
+
+    	const char* url = "https://raw.githubusercontent.com/hanneborstlap/RHESSysEastCoast_orig/inundation/CobbMill_output_edited.txt";
 
     	curl_easy_setopt(curl, CURLOPT_URL, url);
     	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_data);
-    	curl_easy_setopt(curl, CURLOPT_WRITEDATA, &chunk);
+    	curl_easy_setopt(curl, CURLOPT_WRITEDATA, file);
 
-    	res = curl_easy_perform(curl);
-    	if (res != CURLE_OK) {
-        fprintf(stderr, "curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
-        curl_easy_cleanup(curl);
-        free(chunk.memory);
-        return 1;
-    	}
+    	CURLcode res = curl_easy_perform(curl);
 
+    	fclose(file);
     	curl_easy_cleanup(curl);
 
-    	// data sits in chunk.memory as a string
+    	file = fopen("downloaded_file.txt", "r");
 
-    	// Declare variables to store the parsed data
+    	// Declare variables for the column names
     	double inundation_PatchID[1000];
     	char inundation_date[1000][20];
     	double inundation_duration[1000];
@@ -599,35 +581,31 @@ void		patch_daily_F(
     	double ex_inundation_depth[1000];
     	double ex_inundation_dur[1000];
 
-    	// Parse the received data into the variables
-    	char *token = strtok(chunk.memory, "\n");
+
+    	// Continue with the code to parse and assign variables as shown in the previous response.
+
+    	struct date temp_date; // Temporary variable to store parsed date
     	int count = 0;
 
-    	while (token != NULL) {
-        	sscanf(token, "%lf,%19[^,],%lf,%lf", &inundation_PatchID[count], inundation_date[count], &inundation_duration[count], &inundation_depth[count]);
-        	count++;
-        	token = strtok(NULL, "\n");
-    		}
+    	while (fscanf(file, "%lf,%19[^,],%lf,%lf", &inundation_PatchID[count], inundation_date[count], &inundation_duration[count], &inundation_depth[count]) == 4) {
+        // Parse the date and assign it to temp_date
+        	createDateFromDateString(inundation_date[count], &temp_date);
 
-    	// Loop to assign correct variables to each patch and date 
-     	for (int i = 0; i < count; i++) {
-		struct date inundation_date_f = createDateFromDateString(inundation_date[i]);
-	if (inundation_PatchID[i] == patch[0].ID) {
-		if (julday(inundation_date_f) == julday(current_date)) {
-			ex_inundation_depth[i] = inundation_depth[i]; 
-			ex_inundation_dur[i] = inundation_duration[i]; 
-		 }
-    		}
-	else {
-	ex_inundation_depth[i] = 5.0; 
-	ex_inundation_dur[i] = 5.0; 
+        	// Now you can work with temp_date to compare it to current_date and assign other variables
+        	if (inundation_PatchID[count] == patchID) {
+            	if (julday(temp_date) == julday(current_date)) {
+                	ex_inundation_depth[count] = inundation_depth[count];
+                	ex_inundation_dur[count] = inundation_duration[count];
+            }
+        }
+		else {
+			ex_inundation_depth[count] = 0.5;
+                	ex_inundation_dur[count] = 0.5;
 		}
-    
-    	// Free the allocated memory
-    	// free(chunk.memory);
 
-    		// return 0;
-		}
+        count++;
+    }
+
 
 	/*--------------------------------------------------------------*/
 	/*	Set the patch rain and snow throughfall equivalent to the	*/
