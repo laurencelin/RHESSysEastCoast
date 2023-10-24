@@ -626,7 +626,7 @@ void		patch_daily_F(
     	// Free the allocated memory
     	// free(chunk.memory);
 
-    		return 0;
+    		// return 0;
 		}
 
 	/*--------------------------------------------------------------*/
