@@ -531,7 +531,6 @@ void		patch_daily_F(
 	#include <stdio.h>
 	#include <stdlib.h>
 	#include <math.h>
-	#include "julday.h"
 	#include <curl/curl.h>
 
 	// Callback function to write data received from the URL
