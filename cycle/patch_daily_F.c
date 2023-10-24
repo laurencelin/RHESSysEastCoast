@@ -528,83 +528,72 @@ void		patch_daily_F(
 	/*--------------------------------------------------------------*/
     
 	#include <string.h>
-	#include <stdio.h>
-	#include <stdlib.h>
-	#include <math.h>
-	#include <curl/curl.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
+#include "julday.h" // Include the header file
 
-	// Callback function to write data received from the URL
-	size_t write_data(void *ptr, size_t size, size_t nmemb, FILE *stream) {
-    	return fwrite(ptr, size, nmemb, stream);
-		}
+struct date createDateFromDateString(const char* dateString) {
+    struct date result;
+    char* token;
+    char* copy = strdup(dateString); // Make a copy of the input string
 
-	struct date createDateFromDateString(const char* dateString, struct date* result) {
-   	char* token;
-    	char* copy = strdup(dateString);
+    // Tokenize the string using "-" as the delimiter
+    token = strtok(copy, "/");
+    result.month = atoi(token);
+    token = strtok(NULL, "/");
+    result.day = atoi(token);
+    token = strtok(NULL, "/");
+    result.year = atoi(token);
 
-    	token = strtok(copy, "/");
-    	result->month = atoi(token);
-    	token = strtok(NULL, "/");
-    	result->day = atoi(token);
-    	token = strtok(NULL, "/");
-    	result->year = atoi(token);
+    free(copy);
+    return result;
+}
 
-    	free(copy);
-	}
-	
-    	CURL *curl;
-    	FILE *file;
+	// Declare variables for the column names
+	double inundation_PatchID[1000];
+	char inundation_date[1000][20];
+	double inundation_duration[1000];
+	double inundation_depth[1000];
+	double ex_inundation_depth[1000];
+	double ex_inundation_dur[1000];
+	FILE *file;
+    
+    struct date_ {
+    int month;
+    int day;
+    int year;
+    };
 
-    	curl = curl_easy_init();
-
-    	file = fopen("downloaded_file.txt", "w");
-
-    	const char* url = "https://raw.githubusercontent.com/hanneborstlap/RHESSysEastCoast_orig/inundation/CobbMill_output_edited.txt";
-
-    	curl_easy_setopt(curl, CURLOPT_URL, url);
-    	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_data);
-    	curl_easy_setopt(curl, CURLOPT_WRITEDATA, file);
-
-    	CURLcode res = curl_easy_perform(curl);
-
-    	fclose(file);
-    	curl_easy_cleanup(curl);
-
-    	file = fopen("downloaded_file.txt", "r");
-
-    	// Declare variables for the column names
-    	double inundation_PatchID[1000];
-    	char inundation_date[1000][20];
-    	double inundation_duration[1000];
-    	double inundation_depth[1000];
-    	double ex_inundation_depth[1000];
-    	double ex_inundation_dur[1000];
-
-
-    	// Continue with the code to parse and assign variables as shown in the previous response.
-
-    	struct date temp_date; // Temporary variable to store parsed date
-    	int count = 0;
-
-    	while (fscanf(file, "%lf,%19[^,],%lf,%lf", &inundation_PatchID[count], inundation_date[count], &inundation_duration[count], &inundation_depth[count]) == 4) {
-        // Parse the date and assign it to temp_date
-        	createDateFromDateString(inundation_date[count], &temp_date);
-
-        	// Now you can work with temp_date to compare it to current_date and assign other variables
-        	if (inundation_PatchID[count] == patch[0].ID) {
-            	if (julday(temp_date) == julday(current_date)) {
-                	ex_inundation_depth[count] = inundation_depth[count];
-                	ex_inundation_dur[count] = inundation_duration[count];
-            }
-        }
-		else {
-			ex_inundation_depth[count] = 0.5;
-                	ex_inundation_dur[count] = 0.5;
-		}
-
-        count++;
+    
+	file = fopen("/scratch/tpv4jw/RHESSys/5_INUNDATION/CobbMill_output_edited.txt", "r");
+    if (file == NULL) {
+    fprintf(stderr, "Error: Unable to open the input file.\n");
+	patch[0].ex_inundation_depth[i] = 10; 
+	patch[0].ex_inundation_dur[i] = 10; 
+    return 1;
     }
-
+    else { 
+        int count = 0;
+        while (fscanf(file, "%lf,%[^,],%lf,%lf", &inundation_PatchID[count], inundation_date[count], &inundation_duration[count],        &inundation_depth[count]) == 4) {
+            count++;
+    	}
+        
+	for (int i = 0; i < count; i++) {
+		struct date inundation_date_f = createDateFromDateString(inundation_date[i]);
+		if (inundation_PatchID[i] == patchID) {
+		    if (julday(inundation_date_f) == julday(current_date)) {
+			   patch[0].ex_inundation_depth[i] = inundation_depth[i]; 
+			   patch[0].ex_inundation_dur[i] = inundation_duration[i]; 
+		 }
+        else {
+            		patch[0].ex_inundation_depth[i] = 0.5; 
+			patch[0].ex_inundation_dur[i] = 0.5; 
+    }
+        }
+    }
+    }
+    
 
 	/*--------------------------------------------------------------*/
 	/*	Set the patch rain and snow throughfall equivalent to the	*/
