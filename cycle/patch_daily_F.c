@@ -553,12 +553,6 @@ size_t write_data(void *ptr, size_t size, size_t nmemb, void *data) {
     return total_size;
 }
 
-struct date {
-    int month;
-    int day;
-    int year;
-};
-
 struct date createDateFromDateString(const char* dateString) {
     struct date result;
     char* token;
