@@ -2033,13 +2033,14 @@ double inundation_duration[] = {
 		}
 		
 		patch[0].recharge = infiltration;
-	} // end if hourly rain flag
+ 	// end if hourly rain flag
     if(patch[0].sat_deficit!=patch[0].sat_deficit || patch[0].sat_deficit_z!=patch[0].sat_deficit_z || patch[0].rootzone.field_capacity!=patch[0].rootzone.field_capacity || patch[0].field_capacity!=patch[0].field_capacity){
         printf("patch_daily_F(3): (%d,%d,%d) %lf %lf %lf %lf\n",
                patch[0].ID, patch[0].soil_defaults[0][0].ID, patch[0].sat_def_pct_index,
                patch[0].sat_deficit, patch[0].sat_deficit_z,
                patch[0].rootzone.field_capacity, patch[0].field_capacity);
-    }//debug
+    } 
+	//debug
     
 	/*--------------------------------------------------------------*/
 	/*	Calculate patch level transpiration			*/
