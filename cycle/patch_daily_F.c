@@ -1994,6 +1994,99 @@ struct date createDateFromDateString(const char* dateString) {
                patch[0].sat_deficit, patch[0].sat_deficit_z,
                patch[0].rootzone.field_capacity, patch[0].field_capacity);
     }//debug
+
+	if (patch[0].ex_inundation_depth > ZERO) {
+            
+			/*------------------------------------------------------------------------*/
+			/*	drainage to a deeper groundwater store				  */
+			/*	move both nitrogen and water				    	*/
+			/*------------------------------------------------------------------------*/
+			if (command_line[0].gw_flag > 0 && ((patch[0].drainage_type>0 && patch[0].drainage_type % actionGWDRAIN==0) || patch[0].drainage_type==ROAD)) {
+                
+                hillslope[0].gw.storage += patch[0].gw_drainage / hillslope[0].area;
+                hillslope[0].gw.DON += patch[0].gw_drainage_DON / hillslope[0].area;
+                hillslope[0].gw.DOC += patch[0].gw_drainage_DOC / hillslope[0].area;
+                hillslope[0].gw.NH4 += patch[0].gw_drainage_NH4 / hillslope[0].area;
+                hillslope[0].gw.NO3 += patch[0].gw_drainage_NO3 / hillslope[0].area;
+                patch[0].gw_drainage /= patch[0].area;
+                
+                if ( update_gw_drainage(patch,
+					hillslope,
+					zone,
+					command_line,
+					current_date) != 0) {
+					fprintf(stderr,"fATAL ERROR: in update_gw_drainage() ... Exiting\n");
+					exit(EXIT_FAILURE);
+				}
+			}
+			net_inflow = patch[0].detention_store;
+			/*--------------------------------------------------------------*/
+			/*      - if rain duration is zero, then input is from snow     */
+			/*      melt  assume full daytime duration                      */
+			/*--------------------------------------------------------------*/
+
+            duration = patch[0].ex_inundation_dur; //makes rain all daytime
+            infiltration = compute_infiltration(
+                command_line[0].verbose_flag,
+                patch[0].sat_deficit_z,
+                0.0, //patch[0].aboveWT_SatPct,
+                patch[0].Ksat_vertical,
+                patch[0].sat_def_pct_indexM * patch[0].soil_defaults[0][0].vksat_0zm[patch[0].sat_def_pct_index+1] + (1.0-patch[0].sat_def_pct_indexM) * patch[0].soil_defaults[0][0].vksat_0zm[patch[0].sat_def_pct_index],
+                patch[0].rz_storage+patch[0].unsat_storage,
+                patch[0].sat_def_pct_indexM * patch[0].soil_defaults[0][0].sat_def_0zm[patch[0].sat_def_pct_index+1] + (1.0-patch[0].sat_def_pct_indexM) * patch[0].soil_defaults[0][0].sat_def_0zm[patch[0].sat_def_pct_index],
+                patch[0].sat_deficit,
+                patch[0].ex_inundation_depth,
+                duration,
+                patch[0].soil_defaults[0][0].psi_air_entry);
+            
+        } else infiltration = 0.0;
+
+		if (infiltration < 0.0) {
+			printf("\nInfiltration %lf < 0 for %d on %ld",
+				infiltration,
+				patch[0].ID, current_date.day);
+		}//if
+		/*--------------------------------------------------------------*/
+		/* determine fate of hold infiltration excess in detention store */
+		/* infiltration excess will removed during routing portion	*/
+		/*--------------------------------------------------------------*/
+		
+		infiltration = min(infiltration,patch[0].ex_inundation_depth);
+
+		/*--------------------------------------------------------------*/
+		/* now take infiltration out of detention store 	*/
+		/*--------------------------------------------------------------*/
+		
+        patch[0].ex_inundation_depth -= infiltration;  
+		patch[0].detention_store += patch[0].ex_inundation_depth;
+			/*--------------------------------------------------------------*/
+			/*	Determine if the infifltration will fill up the unsat	*/
+			/*	zone or not.						*/
+			/*	We use the strict assumption that sat deficit is the	*/
+			/*	amount of water needed to saturate the soil.		*/
+			/*--------------------------------------------------------------*/
+		
+		if (infiltration > ZERO) {
+			/*--------------------------------------------------------------*/
+			/*	Update patch level soil moisture with final infiltration.	*/
+			/*--------------------------------------------------------------*/
+			update_soil_moisture(
+				command_line[0].verbose_flag,
+				infiltration,
+				patch[0].ex_inundation_depth,
+				patch,
+				command_line,
+				current_date );
+		}
+		
+		patch[0].recharge = infiltration;
+	} // end if hourly rain flag
+    if(patch[0].sat_deficit!=patch[0].sat_deficit || patch[0].sat_deficit_z!=patch[0].sat_deficit_z || patch[0].rootzone.field_capacity!=patch[0].rootzone.field_capacity || patch[0].field_capacity!=patch[0].field_capacity){
+        printf("patch_daily_F(3): (%d,%d,%d) %lf %lf %lf %lf\n",
+               patch[0].ID, patch[0].soil_defaults[0][0].ID, patch[0].sat_def_pct_index,
+               patch[0].sat_deficit, patch[0].sat_deficit_z,
+               patch[0].rootzone.field_capacity, patch[0].field_capacity);
+    }//debug
     
 	/*--------------------------------------------------------------*/
 	/*	Calculate patch level transpiration			*/
