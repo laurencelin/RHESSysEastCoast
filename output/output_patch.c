@@ -138,7 +138,7 @@ void	output_patch(
     
 
     
-	check = fprintf(outfile,"%d %d %d %d %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf\n",
+	check = fprintf(outfile,"%d %d %d %d %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf\n",
                     
 					current_date.year, current_date.month, current_date.day, //1,2,3,
 					patch[0].ID, //4
@@ -174,7 +174,8 @@ void	output_patch(
                     top60cm_potential_sat * 1000.0,
 		// Added additional variables for external coastal inundation, by Borstlap H, Oct 8, 2023
 		    patch[0].ex_inundation_depth, 
-		    patch[0].ex_inundation_dur
+		    patch[0].ex_inundation_dur, 
+		patch[0].test_variable
                     );
 
 	if (check <= 0) {
