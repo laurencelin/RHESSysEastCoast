@@ -515,6 +515,8 @@ void		patch_daily_F(
 	patch[0].ex_inundation_depth = 0.0;
 	patch[0].ex_inundation_dur = 0.0;
 
+	patch[0].test_variable = 0.0;
+
 	if ( command_line[0].verbose_flag == -5 ){
         printf("\nPATCH DAILY F:");
 	}
@@ -2005,6 +2007,7 @@ double inundation_duration[] = {
 		/*--------------------------------------------------------------*/
 		
 		infiltration = min(infiltration,patch[0].ex_inundation_depth);
+	    	patch[0].test_variable = min(infiltration,patch[0].ex_inundation_depth);
 
 		/*--------------------------------------------------------------*/
 		/* now take infiltration out of detention store 	*/
