@@ -2007,7 +2007,9 @@ double inundation_duration[] = {
 		/*--------------------------------------------------------------*/
 		
 		infiltration = min(infiltration,patch[0].ex_inundation_depth);
-	    	patch[0].test_variable = infiltration;
+	    	if (infiltration > 0.0) {
+			patch[0].test_variable = infiltration; 
+		}
 
 		/*--------------------------------------------------------------*/
 		/* now take infiltration out of detention store 	*/
