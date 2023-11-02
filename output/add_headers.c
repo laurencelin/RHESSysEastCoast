@@ -487,7 +487,7 @@ void add_headers(struct world_output_file_object *world_output_files,
                         "top60cm_storage", //30
                         "top60cm_potential_sat", //31
 			"ex_inundation_depth", //32
-			"ex_inundation_dur" //33
+			"ex_inundation_dur", //33
 			"test_variable" //34
 						); 
                         // patch daily
