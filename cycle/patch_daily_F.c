@@ -1956,13 +1956,13 @@ double inundation_duration[] = {
 			/*	drainage to a deeper groundwater store				  */
 			/*	move both nitrogen and water				    	*/
 			/*------------------------------------------------------------------------*/
-			net_inflow = patch[0].detention_store;
+			net_inflow = patch[0].detention_store + patch[0].ex_inundation_depth; 
 			/*--------------------------------------------------------------*/
 			/*      - if rain duration is zero, then input is from snow     */
 			/*      melt  assume full daytime duration                      */
 			/*--------------------------------------------------------------*/
 
-            duration = patch[0].ex_inundation_dur; //makes rain all daytime
+            duration = patch[0].ex_inundation_dur*0.00001157407; // 1/86400
             infiltration = compute_infiltration(
                 command_line[0].verbose_flag,
                 patch[0].sat_deficit_z,
@@ -1975,10 +1975,8 @@ double inundation_duration[] = {
                 patch[0].ex_inundation_depth,
                 duration,
                 patch[0].soil_defaults[0][0].psi_air_entry);
-            
+        
         } else infiltration = 0.0;
-
-	    	patch[0].test_variable = patch[0].ex_inundation_dur; 
 
 		if (infiltration < 0.0) {
 			printf("\nInfiltration %lf < 0 for %d on %ld",
@@ -1989,7 +1987,8 @@ double inundation_duration[] = {
 		/* determine fate of hold infiltration excess in detention store */
 		/* infiltration excess will removed during routing portion	*/
 		/*--------------------------------------------------------------*/
-		
+
+	    	patch[0].test_variable = infiltration; 
 		infiltration = min(infiltration,patch[0].ex_inundation_depth);
 
 		/*--------------------------------------------------------------*/
